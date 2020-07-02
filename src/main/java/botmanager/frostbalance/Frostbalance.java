@@ -22,7 +22,6 @@ public class Frostbalance extends BotBase {
 
         setCommands(new ICommand[] {
                 new HelpCommand(this),
-                new ReferenceCommand(this),
                 new DailyRewardCommand(this),
                 new InfluenceCommand(this),
                 new SupportCommand(this),
@@ -102,7 +101,7 @@ public class Frostbalance extends BotBase {
     }
 
     public double getUserInfluence(Member member) {
-        return getUserDaily(member.getGuild(), member.getUser());
+        return getUserInfluence(member.getGuild(), member.getUser());
     }
 
     public int getUserDaily(Member member) {
