@@ -2,12 +2,11 @@ package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-
-import java.io.File;
 
 public class CoupCommand extends FrostbalanceCommandBase {
 
@@ -53,12 +52,7 @@ public class CoupCommand extends FrostbalanceCommandBase {
             return;
         }
 
-        try {
-            String info = Utilities.read(new File("data/" + bot.getName() + "/" + event.getGuild().getId() + "/owner.csv"));
-            currentOwner = event.getGuild().getMember(event.getJDA().getUserById(Utilities.getCSVValueAtIndex(info, 0)));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            currentOwner = null;
-        }
+        currentOwner = bot.getOwner(event.getGuild());
 
         Member member = event.getGuild().getMemberById(id);
 
@@ -94,11 +88,8 @@ public class CoupCommand extends FrostbalanceCommandBase {
         }
 
         if (success) {
-            if (currentOwner != null) {
-                event.getGuild().removeRoleFromMember(currentOwner, bot.getOwnerRole(event.getGuild())).complete();
-            }
-            event.getGuild().addRoleToMember(member, bot.getOwnerRole(event.getGuild())).complete();
-            bot.updateOwner(event.getGuild(), member.getUser());
+            bot.endRegime(event.getGuild(), TerminationCondition.COUP);
+            bot.startRegime(event.getGuild(), member.getUser());
         }
 
         Utilities.sendGuildMessage(event.getChannel(), result);

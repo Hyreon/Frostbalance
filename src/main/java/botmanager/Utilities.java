@@ -17,6 +17,8 @@ import java.util.List;
  */
 public class Utilities {
 
+    static SimpleDateFormat sdf = new SimpleDateFormat("MMddyyyy");
+
     public static String read(File file) {
         StringBuilder result = new StringBuilder("");
         
@@ -60,6 +62,15 @@ public class Utilities {
         } catch (IOException e) {
             throw new RuntimeException(e.getLocalizedMessage());
         }
+    }
+
+    public static void append(File file, String info) {
+        write(file, read(file) + "\n" + info);
+    }
+
+    public static void removeLine(File file) {
+        List<String> lines = readLines(file);
+        write(file, String.join("\n", lines.subList(0, lines.size() - 1)));
     }
     
     public static void verifyFilePathExists(File file) {
@@ -249,6 +260,16 @@ public class Utilities {
         
         return values[index];
     }
+
+    public static String getCSVLineAtIndex(String csv, int index) {
+        String[] lines = csv.split("\n");
+
+        if (index < 0 || index >= lines.length) {
+            return null;
+        }
+
+        return lines[index];
+    }
     
     public static String buildCSV(String[] array) {
         String result = "";
@@ -265,5 +286,8 @@ public class Utilities {
         
         return result;
     }
-    
+
+    public static long todayAsLong() {
+        return Long.parseLong(sdf.format(new Date()));
+    }
 }

@@ -56,7 +56,7 @@ public class ReferenceCommand extends FrostbalanceCommandBase {
 
     @Override
     public String info() {
-        return "**" + bot.getPrefix() + "daily** - get your daily.";
+        return "**" + bot.getPrefix() + "hi** - says hi back.";
     }
 
 }

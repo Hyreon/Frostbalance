@@ -2,8 +2,10 @@ package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -69,7 +71,6 @@ public class TransferCommand extends FrostbalanceCommandBase {
             return;
         }
 
-
         id = Utilities.findUserId(event.getGuild(), message);
 
         if (id == null) {
@@ -77,12 +78,10 @@ public class TransferCommand extends FrostbalanceCommandBase {
             return;
         }
 
-        if (currentOwner != null) {
-            event.getGuild().removeRoleFromMember(currentOwner, bot.getOwnerRole(event.getGuild())).complete();
-        }
-        Member newOwner = event.getGuild().getMemberById(id);
-        event.getGuild().addRoleToMember(newOwner, bot.getOwnerRole(event.getGuild())).complete();
-        bot.updateOwner(event.getGuild(), newOwner.getUser());
+        User newOwner = event.getJDA().getUserById(id);
+
+        bot.endRegime(event.getGuild(), TerminationCondition.TRANSFER);
+        bot.startRegime(event.getGuild(), newOwner);
 
         result = "**" + currentOwner.getEffectiveName() + "** has transferred ownership to " +
                 newOwner.getAsMention() + " for this server.";

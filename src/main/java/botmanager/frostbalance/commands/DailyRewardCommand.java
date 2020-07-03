@@ -16,7 +16,6 @@ import java.util.Date;
 
 public class DailyRewardCommand extends FrostbalanceCommandBase {
 
-    SimpleDateFormat sdf = new SimpleDateFormat("MMddyyyy");
     SimpleDateFormat hours = new SimpleDateFormat("HH");
     
     public DailyRewardCommand(BotBase bot) {
@@ -27,7 +26,6 @@ public class DailyRewardCommand extends FrostbalanceCommandBase {
     public void run(Event genericEvent) {
         GuildMessageReceivedEvent event;
         String message;
-        int date;
         
         if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
             return;
@@ -39,12 +37,10 @@ public class DailyRewardCommand extends FrostbalanceCommandBase {
         if (!message.equalsIgnoreCase(bot.getPrefix() + "daily")) {
             return;
         }
-        
-        date = Integer.parseInt(sdf.format(new Date()));
-        
-        if (bot.getUserDaily(event.getMember()) != date) {
-            bot.setUserDaily(event.getMember(), date);
-            bot.changeUserInfluence(event.getMember(), 1);
+
+        double gain = bot.gainDailyInfluence(event.getMember(), 1);
+
+        if (gain > 0) {
             Utilities.sendGuildMessage(event.getChannel(), event.getMember().getEffectiveName() + ", your influence increases.");
         } else {
             int hrsDelay = (24 - Integer.parseInt(hours.format(new Date())));
@@ -55,7 +51,7 @@ public class DailyRewardCommand extends FrostbalanceCommandBase {
 
     @Override
     public String info() {
-        return "**" + bot.getPrefix() + "daily** - gives you influence once a day";
+        return "**" + bot.getPrefix() + "daily** - gives you all the influence you can get today, instantly";
     }
 
 }
