@@ -25,7 +25,6 @@ public class InfluenceCommand extends FrostbalanceHybridCommandBase {
         String id;
         String result, privateResult;
 
-        message = event.getMessage().getContentRaw();
         id = event.getAuthor().getId();
         
         if (message.length() > 0) {
