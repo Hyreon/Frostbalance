@@ -62,6 +62,13 @@ public class CoupCommand extends FrostbalanceCommandBase {
             privateResult = null;
             success = true;
         } else {
+
+            if (currentOwner.equals(member)) {
+                result = "You realize that you're no match for yourself, and call it off.";
+                Utilities.sendGuildMessage(event.getChannel(), result);
+                return;
+            }
+
             double influence = bot.getUserInfluence(member);
             double ownerInfluence = bot.getUserInfluence(currentOwner);
 
