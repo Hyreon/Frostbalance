@@ -95,8 +95,8 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
 
     @Override
     public String info() {
-        return "**" + bot.getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
-                "**" + bot.getPrefix() + "guild** - resets your default guild.";
+        return "**" + bot.getPrefix() + "guild GUILDNAME** in PM - sets your default guild when running commands through PM." + "\n" +
+                "**" + bot.getPrefix() + "guild** in PM - resets your default guild.";
     }
 
 }
