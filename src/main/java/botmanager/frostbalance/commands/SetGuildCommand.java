@@ -5,6 +5,7 @@ import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.List;
@@ -28,6 +29,13 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
         String id;
         String result = "";
         boolean found = false;
+
+        if (genericEvent instanceof GuildMessageReceivedEvent) {
+            GuildMessageReceivedEvent e = (GuildMessageReceivedEvent) genericEvent;
+            result = "This command only works through PM.";
+            Utilities.sendPrivateMessage(e.getAuthor(), result);
+            return;
+        }
 
         if (!(genericEvent instanceof PrivateMessageReceivedEvent)) {
             return;
