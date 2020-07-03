@@ -71,10 +71,23 @@ public class TransferCommand extends FrostbalanceCommandBase {
             return;
         }
 
+        if (message.isEmpty()) {
+            result = info();
+            Utilities.sendGuildMessage(event.getChannel(), result);
+            return;
+        }
+
         id = Utilities.findUserId(event.getGuild(), message);
 
         if (id == null) {
-            Utilities.sendGuildMessage(event.getChannel(), "Couldn't find user'" + message + "'.");
+            result = "Couldn't find user '" + message + "'.";
+            Utilities.sendGuildMessage(event.getChannel(), result);
+            return;
+        }
+
+        if (event.getGuild().getMemberById(id).getRoles().contains(bot.getSystemRole(event.getGuild()))) {
+            result = "A very generous offer, but I can't accept.";
+            Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
 

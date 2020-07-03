@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,8 +17,6 @@ import java.util.List;
  * @author MC_2018 <mc2018.git@gmail.com>
  */
 public class Utilities {
-
-    static SimpleDateFormat sdf = new SimpleDateFormat("MMddyyyy");
 
     public static String read(File file) {
         StringBuilder result = new StringBuilder("");
@@ -44,7 +43,10 @@ public class Utilities {
     public static List<String> readLines(File file) {
         try {
             return Files.readLines(file, Charsets.UTF_8);
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
+            System.err.println("File " + file + " not found, using empty list.");
+            return new ArrayList<>();
+        } catch (Exception e) { //ew
             e.printStackTrace();
             return null;
         }
@@ -62,15 +64,6 @@ public class Utilities {
         } catch (IOException e) {
             throw new RuntimeException(e.getLocalizedMessage());
         }
-    }
-
-    public static void append(File file, String info) {
-        write(file, read(file) + "\n" + info);
-    }
-
-    public static void removeLine(File file) {
-        List<String> lines = readLines(file);
-        write(file, String.join("\n", lines.subList(0, lines.size() - 1)));
     }
     
     public static void verifyFilePathExists(File file) {
@@ -154,7 +147,7 @@ public class Utilities {
         sentMessage = channel.sendMessage(message).complete();
         
         for (String reactionName : reactionNames) {
-            botmanager.Utilities.addReaction(sentMessage, reactionName);
+            Utilities.addReaction(sentMessage, reactionName);
         }
     }
     
@@ -168,7 +161,7 @@ public class Utilities {
         sentMessage = channel.sendMessage(message).addFile(file).complete();
         
         for (String reactionName : reactionNames) {
-            botmanager.Utilities.addReaction(sentMessage, reactionName);
+            Utilities.addReaction(sentMessage, reactionName);
         }
     }
     
@@ -190,7 +183,7 @@ public class Utilities {
         sentMessage = channel.sendMessage(message).complete();
         
         for (String reactionName : reactionNames) {
-            botmanager.Utilities.addReaction(sentMessage, reactionName);
+            Utilities.addReaction(sentMessage, reactionName);
         }
     }
     
@@ -260,16 +253,6 @@ public class Utilities {
         
         return values[index];
     }
-
-    public static String getCSVLineAtIndex(String csv, int index) {
-        String[] lines = csv.split("\n");
-
-        if (index < 0 || index >= lines.length) {
-            return null;
-        }
-
-        return lines[index];
-    }
     
     public static String buildCSV(String[] array) {
         String result = "";
@@ -287,7 +270,30 @@ public class Utilities {
         return result;
     }
 
-    public static long todayAsLong() {
-        return Long.parseLong(sdf.format(new Date()));
+    //HYREON'S UTILITIES---
+
+    public static void removeFile(File file) {
+        file.delete();
     }
+
+    public static void append(File file, String info) {
+        List<String> lines = readLines(file);
+        String previousData;
+        if (lines.isEmpty()) {
+            previousData = "";
+        } else {
+            previousData = String.join("\n", lines) + "\n";
+        }
+        write(file, previousData + info);
+    }
+
+    public static void removeLine(File file) {
+        List<String> lines = readLines(file);
+        write(file, String.join("\n", lines.subList(0, lines.size() - 1)));
+    }
+
+    public static long todayAsLong() {
+        return LocalDate.now().toEpochDay();
+    }
+    
 }

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+//TODO change the date-time number format to something sane
 public class Frostbalance extends BotBase {
 
     Map<Guild, List<RegimeData>> regimes = new HotMap();
@@ -38,7 +39,8 @@ public class Frostbalance extends BotBase {
                 new CoupCommand(this),
                 new TransferCommand(this),
                 new HistoryCommand(this),
-                new ImplicitInfluence(this)
+                new ImplicitInfluence(this),
+                new SetGuildCommand(this)
         });
     }
 
@@ -58,13 +60,24 @@ public class Frostbalance extends BotBase {
 
     @Override
     public void onGuildMemberLeave(GuildMemberLeaveEvent event) {
-        if (getOwner(event.getGuild()).equals(event.getMember())) {
+        System.out.println("CURRENT OWNER: " + getOwnerId(event.getGuild()));
+        System.out.println("PLAYER LEAVING: " + event.getUser().getId());
+        if (getOwnerId(event.getGuild()).equals(event.getUser().getId())) {
+            System.out.println("Event fired!");
             endRegime(event.getGuild(), TerminationCondition.LEFT);
         }
     }
     
     public String getUserCSVAtIndex(Guild guild, User user, int index) {
-        File file = new File("data/" + getName() + "/" + guild.getId() + "/" + user.getId() + ".csv");
+
+        String guildId;
+        if (guild == null) {
+            guildId = "global";
+        } else {
+            guildId = guild.getId();
+        }
+
+        File file = new File("data/" + getName() + "/" + guildId + "/" + user.getId() + ".csv");
 
         if (!file.exists()) {
             return "";
@@ -74,7 +87,15 @@ public class Frostbalance extends BotBase {
     }
 
     public void setUserCSVAtIndex(Guild guild, User user, int index, String newValue) {
-        File file = new File("data/" + getName() + "/" + guild.getId() + "/" + user.getId() + ".csv");
+
+        String guildId;
+        if (guild == null) {
+            guildId = "global";
+        } else {
+            guildId = guild.getId();
+        }
+
+        File file = new File("data/" + getName() + "/" + guildId + "/" + user.getId() + ".csv");
         String data = Utilities.read(file);
         String[] originalValues = data.split(",");
         String[] newValues;
@@ -96,46 +117,63 @@ public class Frostbalance extends BotBase {
 
     public void loadRecords(Guild guild) {
 
-        String info = Utilities.read(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"));
-        for (int i = 0; i < info.split("\n").length; i++) {
-            String line = Utilities.getCSVLineAtIndex(info, i);
+        List<String> info = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"));
+        if (info != null && !info.isEmpty()) {
+            for (String line : info) {
+                System.out.println(line);
 
-            String rulerId = Utilities.getCSVValueAtIndex(line, 0);
-            TerminationCondition terminationCondition;
-            try {
-                terminationCondition = TerminationCondition.valueOf(Utilities.getCSVValueAtIndex(line, 1));
-            } catch (IllegalArgumentException e) {
-                terminationCondition = TerminationCondition.OTHER;
-            }
-            long startDay;
-            try {
-                startDay = Long.parseLong(Utilities.getCSVValueAtIndex(line, 2));
-            } catch (NumberFormatException e) {
-                startDay = 0;
-            }
-            long endDay;
-            try {
-                endDay = Long.parseLong(Utilities.getCSVValueAtIndex(line, 3));
-            } catch (NumberFormatException e) {
-                endDay = 0;
-            }
+                if (line.isEmpty()) {
+                    regimes.getOrDefault(guild, new ArrayList<>());
+                    continue;
+                }
 
-            regimes.getOrDefault(guild, new ArrayList<>()).add(new RegimeData(rulerId, terminationCondition, startDay, endDay));
+                String rulerId = Utilities.getCSVValueAtIndex(line, 0);
+                String lastKnownUserName = Utilities.getCSVValueAtIndex(line, 1);
+                long startDay;
+                try {
+                    startDay = Long.parseLong(Utilities.getCSVValueAtIndex(line, 2));
+                } catch (NumberFormatException e) {
+                    startDay = 0;
+                }
+                long endDay;
+                try {
+                    endDay = Long.parseLong(Utilities.getCSVValueAtIndex(line, 3));
+                } catch (NumberFormatException e) {
+                    endDay = 0;
+                }
+                TerminationCondition terminationCondition;
+                try {
+                    terminationCondition = TerminationCondition.valueOf(Utilities.getCSVValueAtIndex(line, 4));
+                } catch (IllegalArgumentException | NullPointerException e) {
+                    terminationCondition = TerminationCondition.UNKNOWN;
+                }
 
+                regimes.getOrDefault(guild, new ArrayList<>()).add(new RegimeData(guild, rulerId, startDay, endDay, terminationCondition, lastKnownUserName));
+
+            }
         }
+
     }
 
-    public List<RegimeData> getRecords(Guild guild) {
+    private List<RegimeData> getRecords(Guild guild) {
 
-        List<RegimeData> regimesForServer = regimes.get(guild);
-        if (regimesForServer == null) {
+        if (regimes.get(guild) == null) {
             loadRecords(guild);
-            regimesForServer = regimes.get(guild);
-            if (regimesForServer == null) {
-                regimesForServer = regimes.getOrDefault(guild, new ArrayList<>());
-            }
         }
-        return regimesForServer;
+        return regimes.getOrDefault(guild, new ArrayList<>());
+
+    }
+
+    public List<RegimeData> readRecords(Guild guild) {
+
+        if (regimes.get(guild) == null) {
+            loadRecords(guild);
+        }
+        if (regimes.get(guild) == null) {
+            return new ArrayList<>();
+        } else {
+            return new ArrayList<>(regimes.get(guild));
+        }
 
     }
 
@@ -148,31 +186,48 @@ public class Frostbalance extends BotBase {
         Utilities.append(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"), regime.toCSV());
     }
 
-    public void endRegime(Guild guild, TerminationCondition coup) {
-        List<RegimeData> regimeData = regimes.getOrDefault(guild, new ArrayList<>());
+    public void endRegime(Guild guild, TerminationCondition condition) {
+        List<RegimeData> regimeData = getRecords(guild);
 
+        String currentOwnerId = getOwnerId(guild);
         Member currentOwner = getOwner(guild);
 
         if (currentOwner != null) {
             guild.removeRoleFromMember(currentOwner, getOwnerRole(guild)).complete();
+        }
 
-            int lastRegimeIndex = regimeData.size() - 1;
-            regimeData.get(lastRegimeIndex).end(coup);
-
-            updateLastRegime(guild, regimeData.get(lastRegimeIndex));
+        if (currentOwnerId != null && !currentOwnerId.isEmpty()) {
+            System.out.println("Ending active regime of " + currentOwnerId);
+            try {
+                int lastRegimeIndex = regimeData.size() - 1;
+                regimeData.get(lastRegimeIndex).end(condition);
+                updateLastRegime(guild, regimeData.get(lastRegimeIndex));
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("Index out of bounds when trying to adjust the last regime! The history data may be lost.");
+                System.err.println("Creating a fragmented history.");
+                RegimeData regime = new RegimeData(guild, currentOwnerId);
+                regime.end(condition);
+                regimeData.add(regime);
+                logRegime(guild, regime);
+            }
 
             removeOwner(guild);
         }
     }
 
     public void startRegime(Guild guild, User user) {
-        RegimeData regime = new RegimeData(user.getId(), TerminationCondition.NONE, Utilities.todayAsLong(), 0);
-        regimes.getOrDefault(guild, new ArrayList<>()).add(regime);
+        RegimeData regime = new RegimeData(guild, user.getId(), Utilities.todayAsLong());
+        getRecords(guild).add(regime);
 
         guild.addRoleToMember(guild.getMember(user), getOwnerRole(guild)).complete();
         updateOwner(guild, user);
 
         logRegime(guild, regime);
+    }
+
+    public String getOwnerId(Guild guild) {
+        String info = Utilities.read(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
+        return Utilities.getCSVValueAtIndex(info, 0);
     }
 
     public Member getOwner(Guild guild) {
@@ -189,12 +244,16 @@ public class Frostbalance extends BotBase {
     }
 
     public void removeOwner(Guild guild) {
-        Utilities.write(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"), "");
+        Utilities.removeFile(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
+    }
+
+    public void changeUserInfluence(Guild guild, User user, double influence) {
+        double startingInfluence = getUserInfluence(guild, user);
+        setUserCSVAtIndex(guild, user, 0, String.valueOf(influence + startingInfluence));
     }
 
     public void changeUserInfluence(Member member, double influence) {
-        double startingInfluence = getUserInfluence(member);
-        setUserCSVAtIndex(member.getGuild(), member.getUser(), 0, String.valueOf(influence) + startingInfluence);
+        changeUserInfluence(member.getGuild(), member.getUser(), influence);
     }
 
     public double gainDailyInfluence(Member member, double influenceGained) {
@@ -229,7 +288,7 @@ public class Frostbalance extends BotBase {
 
     public double getUserDailyAmount(Guild guild, User user) {
         try {
-            return Integer.parseInt(getUserCSVAtIndex(guild, user, 3));
+            return Double.parseDouble(getUserCSVAtIndex(guild, user, 3));
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -267,6 +326,22 @@ public class Frostbalance extends BotBase {
         setUserLastDaily(member.getGuild(), member.getUser(), date);
     }
 
+    public void resetUserDefaultGuild(User user) {
+        setUserCSVAtIndex(null, user, 0, "");
+    }
+
+    public void setUserDefaultGuild(User user, Guild guild) {
+        setUserCSVAtIndex(null, user, 0, guild.getId());
+    }
+
+    public Guild getUserDefaultGuild(User user) {
+        try {
+            return getJDA().getGuildById(getUserCSVAtIndex(null, user, 0));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     @Override
     public FrostbalanceCommandBase[] getCommands() {
         ICommand[] commands = super.getCommands();
@@ -281,5 +356,9 @@ public class Frostbalance extends BotBase {
 
     public Role getOwnerRole(Guild guild) {
         return getJDA().getRolesByName("OWNER", true).get(0);
+    }
+
+    public Role getSystemRole(Guild guild) {
+        return getJDA().getRolesByName("FROSTBALANCE", true).get(0);
     }
 }

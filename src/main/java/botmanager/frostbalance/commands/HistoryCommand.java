@@ -7,6 +7,7 @@ import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +28,6 @@ public class HistoryCommand extends FrostbalanceCommandBase {
         GuildMessageReceivedEvent event;
         String[] words;
         String message;
-        String id;
         String result = "";
         boolean found = false;
         int page = 1;
@@ -39,7 +39,6 @@ public class HistoryCommand extends FrostbalanceCommandBase {
 
         event = (GuildMessageReceivedEvent) genericEvent;
         message = event.getMessage().getContentRaw();
-        id = event.getAuthor().getId();
 
         for (String keyword : KEYWORDS) {
             if (message.equalsIgnoreCase(keyword)) {
@@ -59,7 +58,7 @@ public class HistoryCommand extends FrostbalanceCommandBase {
 
         words = message.split(" ");
 
-        if (words.length >= 1) {
+        if (words.length >= 1 && !message.isEmpty()) {
             try {
                 page = Integer.parseInt(words[0]);
             } catch (NumberFormatException e) {
@@ -79,13 +78,17 @@ public class HistoryCommand extends FrostbalanceCommandBase {
             return;
         }
 
-        records = bot.getRecords(event.getGuild());
+        records = bot.readRecords(event.getGuild());
+        Collections.reverse(records);
 
-        if (page > Math.ceil(maxPages(records))) {
-            result += "This number is too high, it must be at most " + Math.ceil(maxPages(records)) + ".";
+        if (page > maxPages(records)) {
 
+            if (page == 1) {
+                result += "**This server has no history. This is likely an error, and you should inform staff.**";
+            } else {
+                result += "This number is too high, it must be at most " + maxPages(records) + ".";
+            }
             Utilities.sendGuildMessage(event.getChannel(), result);
-
             return;
         }
 
@@ -97,16 +100,16 @@ public class HistoryCommand extends FrostbalanceCommandBase {
 
     private String displayRecords(List<RegimeData> records, int page) {
 
-        List<RegimeData> sublist = records.subList((page - 1) * HISTORY_PAGE_SIZE, page * HISTORY_PAGE_SIZE);
-        List<String> displayList = sublist.stream().map(regimeData -> regimeData.toString()).collect(Collectors.toList());
+        List<RegimeData> sublist = records.subList((page - 1) * HISTORY_PAGE_SIZE, Math.min(page * HISTORY_PAGE_SIZE, records.size()));
+        List<String> displayList = sublist.stream().map(regimeData -> regimeData.forHumans(bot.getJDA())).collect(Collectors.toList());
 
         return String.join("\n", displayList)
-                + " Page " + page + "/" + maxPages(records);
+                + "\nPage " + page + "/" + maxPages(records);
 
     }
 
     private int maxPages(List<?> list) {
-        return (int) Math.ceil(list.size() / HISTORY_PAGE_SIZE);
+        return (int) Math.ceil(list.size() / (double) HISTORY_PAGE_SIZE);
     }
 
     @Override

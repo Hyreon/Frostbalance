@@ -71,7 +71,7 @@ public class CoupCommand extends FrostbalanceCommandBase {
                 result = "**" + event.getMember().getEffectiveName() + "** has successfully supplanted **" +
                         currentOwner.getAsMention() + "** as leader, reducing both users' influence and becoming" +
                         " the new leader!";
-                privateResult = "*This maneuver has cost you " + ownerInfluence + " influence. " +
+                privateResult = "*This maneuver has cost you " + String.format("%.3f", ownerInfluence) + " influence. " +
                         currentOwner.getEffectiveName() + " has lost **ALL** of their influence.*";
                 success = true;
             } else {
@@ -81,7 +81,7 @@ public class CoupCommand extends FrostbalanceCommandBase {
                         currentOwner.getAsMention() + "**, which has backfired. Both players have lost influence" +
                         " and the leader has not changed.";
                 privateResult = "*This maneuver has cost you **ALL** of your influence. " +
-                        currentOwner.getEffectiveName() + " has lost " + influence + " of their influence.*";
+                        currentOwner.getEffectiveName() + " has lost " + String.format("%.3f", influence) + " of their influence.*";
                 success = false;
             }
 

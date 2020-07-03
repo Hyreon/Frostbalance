@@ -2,7 +2,7 @@ package botmanager.frostbalance.history;
 
 public enum TerminationCondition {
 
-    OTHER("Unknown"),
+    UNKNOWN("Unknown"),
     NONE("Ongoing"),
     TRANSFER("Retired"),
     COUP("Deposed"),
