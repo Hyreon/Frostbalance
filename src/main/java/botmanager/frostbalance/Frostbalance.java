@@ -355,10 +355,10 @@ public class Frostbalance extends BotBase {
     }
 
     public Role getOwnerRole(Guild guild) {
-        return getJDA().getRolesByName("OWNER", true).get(0);
+        return guild.getRolesByName("OWNER", true).get(0);
     }
 
     public Role getSystemRole(Guild guild) {
-        return getJDA().getRolesByName("FROSTBALANCE", true).get(0);
+        return guild.getRolesByName("FROSTBALANCE", true).get(0);
     }
 }
