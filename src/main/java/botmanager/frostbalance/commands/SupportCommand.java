@@ -46,6 +46,8 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
             } else if (amount <= 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You have to give *some* support if you're running this command.");
                 return;
+            } else if (amount == Double.NaN) {
+                Utilities.sendPrivateMessage(event.getAuthor(), "NOPE.");
             }
         } catch (NumberFormatException e) {
             Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
@@ -59,7 +61,6 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
             Utilities.sendGuildMessage(event.getChannel(), "Couldn't find user '" + name + "'.");
             return;
         }
-        
         bot.changeUserInfluence(event.getMember(), -amount);
         bot.changeUserInfluence(event.getGuild().getMemberById(id), amount);
 
@@ -108,6 +109,8 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
             } else if (amount <= 0) {
                 Utilities.sendPrivateMessage(event.getAuthor(), "You have to give *some* support if you're running this command.");
                 return;
+            } else if (amount == Double.NaN) {
+                Utilities.sendPrivateMessage(event.getAuthor(), "NOPE.");
             }
         } catch (NumberFormatException e) {
             Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
