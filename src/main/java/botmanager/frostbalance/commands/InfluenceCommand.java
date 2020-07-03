@@ -37,7 +37,7 @@ public class InfluenceCommand extends FrostbalanceHybridCommandBase {
         Member member = event.getGuild().getMemberById(id);
         double influence = bot.getUserInfluence(member);
 
-        if (influence <= 0 && message.length() == 0) {
+        if (influence <= 0) {
             privateResult = "You have *no* influence in **" + event.getGuild().getName() + "**.";
         } else {
             privateResult = "You have **" + String.format("%.3f", influence) + "** influence in **" + event.getGuild().getName() + "**.";
