@@ -93,8 +93,8 @@ public class RegimeData {
 
     public String forHumans(JDA jda) {
         return jda.getUserById(userId).getName() + ": " +
-                (startDay != 0 ? LocalDate.EPOCH.plusDays(startDay).format(FORMAT) : "???") + " - " +
-                (endDay != 0 ? LocalDate.EPOCH.plusDays(endDay).format(FORMAT) + " (" : "(") +
+                (startDay != 0 ? LocalDate.ofEpochDay(startDay).format(FORMAT) : "???") + " - " +
+                (endDay != 0 ? LocalDate.ofEpochDay(endDay).format(FORMAT) + " (" : "(") +
                 terminationCondition.name + ")";
     }
 
