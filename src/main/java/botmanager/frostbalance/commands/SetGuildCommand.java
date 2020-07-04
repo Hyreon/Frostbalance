@@ -55,10 +55,8 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
         }
 
         if (genericEvent instanceof GuildMessageReceivedEvent) {
-            MessageReceivedEvent e = (MessageReceivedEvent) genericEvent;
-
             result = "This command only works through PM.";
-            Utilities.sendPrivateMessage(e.getAuthor(), result);
+            Utilities.sendPrivateMessage(event.getAuthor(), result);
             return;
         }
 
