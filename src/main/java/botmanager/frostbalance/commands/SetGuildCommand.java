@@ -37,6 +37,10 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
         event = (MessageReceivedEvent) genericEvent;
         message = event.getMessage().getContentRaw();
         id = event.getAuthor().getId();
+        
+        if (id.equals(bot.getJDA().getSelfUser().getId())) {
+            return; //no
+        }
 
         for (String keyword : KEYWORDS) {
             if (message.equalsIgnoreCase(keyword)) {
