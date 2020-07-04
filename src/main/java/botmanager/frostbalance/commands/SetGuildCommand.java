@@ -5,8 +5,8 @@ import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
 
     @Override
     public void run(Event genericEvent) {
-        MessageReceivedEvent event;
+        PrivateMessageReceivedEvent event;
         String[] words;
         String message;
         String name;
@@ -30,11 +30,18 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
         String result = "";
         boolean found = false;
 
-        if (!(genericEvent instanceof MessageReceivedEvent)) {
+        if (genericEvent instanceof GuildMessageReceivedEvent) {
+            GuildMessageReceivedEvent e = (GuildMessageReceivedEvent) genericEvent;
+            result = "This command only works through PM.";
+            Utilities.sendPrivateMessage(e.getAuthor(), result);
             return;
         }
 
-        event = (MessageReceivedEvent) genericEvent;
+        if (!(genericEvent instanceof PrivateMessageReceivedEvent)) {
+            return;
+        }
+
+        event = (PrivateMessageReceivedEvent) genericEvent;
         message = event.getMessage().getContentRaw();
         id = event.getAuthor().getId();
 
@@ -51,14 +58,6 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
         }
 
         if (!found) {
-            return;
-        }
-
-        if (genericEvent instanceof GuildMessageReceivedEvent) {
-            MessageReceivedEvent e = (MessageReceivedEvent) genericEvent;
-
-            result = "This command only works through PM.";
-            Utilities.sendPrivateMessage(e.getAuthor(), result);
             return;
         }
 
