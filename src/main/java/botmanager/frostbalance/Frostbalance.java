@@ -42,7 +42,12 @@ public class Frostbalance extends BotBase {
                 new TransferCommand(this),
                 new HistoryCommand(this),
                 new ImplicitInfluence(this),
-                new SetGuildCommand(this)
+                new SetGuildCommand(this),
+                new AdjustCommand(this),
+                new FlagCommand(this),
+                new GlobalBanCommand(this),
+                new GlobalPardonCommand(this),
+                new InterveneCommand(this)
         });
     }
 
