@@ -26,8 +26,9 @@ public class TransferCommand extends FrostbalanceCommandBase {
 
         GuildMessageReceivedEvent event;
         String message;
-        String id;
+        String targetId;
         String result;
+        Member authorAsMember;
         Member currentOwner;
         boolean found = false;
 
@@ -37,7 +38,6 @@ public class TransferCommand extends FrostbalanceCommandBase {
 
         event = (GuildMessageReceivedEvent) genericEvent;
         message = event.getMessage().getContentRaw();
-        id = event.getAuthor().getId();
 
         for (String keyword : KEYWORDS) {
             if (message.equalsIgnoreCase(keyword)) {
@@ -62,9 +62,9 @@ public class TransferCommand extends FrostbalanceCommandBase {
             currentOwner = null;
         }
 
-        Member member = event.getGuild().getMemberById(id);
+        authorAsMember = event.getMember();
 
-        if (!member.equals(currentOwner)) {
+        if (!authorAsMember.equals(currentOwner)) {
             result = "You have to be the owner to transfer ownership of the server peaceably.";
 
             Utilities.sendGuildMessage(event.getChannel(), result);
@@ -77,21 +77,25 @@ public class TransferCommand extends FrostbalanceCommandBase {
             return;
         }
 
-        id = Utilities.findUserId(event.getGuild(), message);
+        targetId = Utilities.findUserId(event.getGuild(), message);
 
-        if (id == null) {
+        if (targetId == null) {
             result = "Couldn't find user '" + message + "'.";
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
 
-        if (event.getGuild().getMemberById(id).getRoles().contains(bot.getSystemRole(event.getGuild()))) {
-            result = "A very generous offer, but I can't accept.";
+        if (event.getGuild().getMemberById(targetId).getRoles().contains(bot.getSystemRole(event.getGuild()))) {
+            if (targetId.equals(event.getJDA().getSelfUser().getId())) {
+                result = "A very generous offer, but I can't accept.";
+            } else {
+                result = "Staff members are prohibited from getting server ownership through transfer.";
+            }
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
 
-        User newOwner = event.getJDA().getUserById(id);
+        User newOwner = event.getJDA().getUserById(targetId);
 
         bot.endRegime(event.getGuild(), TerminationCondition.TRANSFER);
         bot.startRegime(event.getGuild(), newOwner);

@@ -6,7 +6,8 @@ public enum TerminationCondition {
     NONE("Ongoing"),
     TRANSFER("Retired"),
     COUP("Deposed"),
-    LEFT("Vanished");
+    LEFT("Vanished"),
+    RESET("The Plot Demanded It");
 
     String name;
 

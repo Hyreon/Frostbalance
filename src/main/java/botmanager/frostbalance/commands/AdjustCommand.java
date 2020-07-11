@@ -7,20 +7,14 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
-/**
- *
- * @author MC_2018 <mc2018.git@gmail.com>
- */
-public class SupportCommand extends FrostbalanceHybridCommandBase {
+public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
-    private static final double PRIVATE_RATE = 0.5;
-
-    public SupportCommand(BotBase bot) {
+    public AdjustCommand(BotBase bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "support"
+                bot.getPrefix() + "adjust"
         });
     }
-    
+
     @Override
     public void runPublic(GuildMessageReceivedEvent event, String message) {
         String[] words;
@@ -29,24 +23,18 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
         double balance, amount;
 
         balance = bot.getUserInfluence(event.getMember());
-        
+
         words = message.split(" ");
-        
+
         if (words.length < 2) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
+            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
-        
+
         try {
             amount = Double.parseDouble(words[words.length - 1]);
-            
-            if (balance < amount) {
-                Utilities.sendGuildMessage(event.getChannel(), "You can't offer that much support. You will instead offer all of your support.");
-                amount = balance;
-            } else if (amount <= 0) {
-                Utilities.sendGuildMessage(event.getChannel(), "You have to give *some* support if you're running this command.");
-                return;
-            } else if (amount == Double.NaN) {
+
+            if (amount == Double.NaN) {
                 Utilities.sendGuildMessage(event.getChannel(), "NOPE.");
                 return;
             }
@@ -54,26 +42,25 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
             Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
             return;
         }
-        
+
         name = Utilities.combineArrayStopAtIndex(words, words.length - 1);
         id = Utilities.findUserId(event.getGuild(), name);
-        
+
         if (id == null) {
             Utilities.sendGuildMessage(event.getChannel(), "Couldn't find user '" + name + "'.");
             return;
         }
-        bot.changeUserInfluence(event.getMember(), -amount);
         bot.changeUserInfluence(event.getGuild().getMemberById(id), amount);
 
         event.getMessage().delete();
-        
+
         Utilities.sendGuildMessage(event.getChannel(),
-                event.getMember().getEffectiveName() + " has supported "
-                + event.getGuild().getMemberById(id).getEffectiveName()
-                + ", giving them some influence.");
+                event.getMember().getEffectiveName() + " has adjusted the influence of "
+                        + event.getGuild().getMemberById(id).getEffectiveName()
+                        + ".");
 
         Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                event.getMember().getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount) + " influence.");
+                event.getMember().getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + ".");
     }
 
     @Override
@@ -82,7 +69,7 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
         String id;
         String name;
         String result;
-        double balance, amount;
+        double amount;
 
         Guild guild = bot.getUserDefaultGuild(event.getAuthor());
 
@@ -92,8 +79,6 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        balance = bot.getUserInfluence(bot.getUserDefaultGuild(event.getAuthor()), event.getAuthor());
-
         words = message.split(" ");
 
         if (words.length < 2) {
@@ -104,18 +89,12 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
         try {
             amount = Double.parseDouble(words[words.length - 1]);
 
-            if (balance < amount) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "You can't offer that much support. You will instead offer all of your support.");
-                amount = balance;
-            } else if (amount <= 0) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "You have to give *some* support if you're running this command.");
-                return;
-            } else if (amount == Double.NaN) {
+            if (amount == Double.NaN) {
                 Utilities.sendPrivateMessage(event.getAuthor(), "NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
+            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
 
@@ -127,24 +106,21 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        bot.changeUserInfluence(guild, event.getAuthor(), -amount);
-        bot.changeUserInfluence(guild.getMemberById(id), amount * PRIVATE_RATE);
+        bot.changeUserInfluence(guild.getMemberById(id), amount);
 
         Utilities.sendPrivateMessage(event.getAuthor(),
-                "Your private support of "
+                "Your adjustment of "
                         + guild.getMemberById(id).getEffectiveName()
-                        + " has been noted, giving them half of that influence. (" +
-                        String.format("%.3f", amount * PRIVATE_RATE) + ", -" +
-                        String.format("%.3f", amount) + ")");
+                        + " has been noted, giving them " + String.format("%.3f", amount) + " influence.");
 
         Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount * PRIVATE_RATE) + " influence.");
+                guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + ".");
     }
 
     @Override
     public String info() {
-        return "**" + bot.getPrefix() + "support USER AMOUNT** - gives your influence to someone else (don't @ them); can be done in a private " +
-                "message, but doing so causes 50% of the influence to simply disappear.";
+        return "**" + bot.getPrefix() + "adjust USER AMOUNT** - gives your influence to someone else (don't @ them); can be done in a private message.";
     }
 
 }
+

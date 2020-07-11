@@ -56,6 +56,12 @@ public class CoupCommand extends FrostbalanceCommandBase {
 
         Member member = event.getGuild().getMemberById(id);
 
+        if (!bot.hasBeenForciblyRemoved(member)) {
+            result = "You have been recently removed by administrative action. Wait until someone else is leader.";
+            Utilities.sendGuildMessage(event.getChannel(), result);
+            return;
+        }
+
         if (currentOwner == null) {
             result = "**" + event.getMember().getEffectiveName() + "** is the first player to declare themselves leader, " +
                     "and is now leader!";

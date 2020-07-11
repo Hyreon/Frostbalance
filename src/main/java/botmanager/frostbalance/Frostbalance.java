@@ -8,6 +8,8 @@ import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild.Ban;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -17,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-//TODO change the date-time number format to something sane
 public class Frostbalance extends BotBase {
 
+    private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you are violating Discord's TOS or you have been warned before about this violation.";
     Map<Guild, List<RegimeData>> regimes = new HotMap();
 
     public final double DAILY_INFLUENCE_CAP = 1.00;
@@ -29,7 +31,7 @@ public class Frostbalance extends BotBase {
 
         setPrefix(".");
 
-        getJDA().getPresence().setActivity(Activity.playing(getPrefix() + "help for help!"));
+        getJDA().getPresence().setActivity(Activity.of(Activity.ActivityType.CUSTOM_STATUS,getPrefix() + "help for help!"));
 
         setCommands(new ICommand[] {
                 new HelpCommand(this),
@@ -67,7 +69,18 @@ public class Frostbalance extends BotBase {
             endRegime(event.getGuild(), TerminationCondition.LEFT);
         }
     }
-    
+
+    @Override
+    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+        System.out.println("CURRENT OWNER: " + getOwnerId(event.getGuild()));
+        System.out.println("PLAYER LEAVING: " + event.getUser().getId());
+        if (isGloballyBanned(event.getUser())) {
+            System.out.println("Found a banned player, banning them once again");
+            event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE);
+            Utilities.sendPrivateMessage(event.getUser(), BAN_MESSAGE);
+        }
+    }
+
     public String getUserCSVAtIndex(Guild guild, User user, int index) {
 
         String guildId;
@@ -152,6 +165,62 @@ public class Frostbalance extends BotBase {
 
             }
         }
+
+    }
+
+    public void globallyBanUser(User user) {
+
+        Utilities.append(new File("data/" + getName() + "/global/bans.csv"), user.getId());
+        for (Guild guild : getJDA().getGuilds()) {
+            if (guild.isMember(user)) {
+                guild.ban(user, 0);
+            }
+        }
+
+    }
+
+    public boolean globallyPardonUser(User user) {
+
+        File file = new File("data/" + getName() + "/global/bans.csv");
+
+        boolean found = false;
+        List<String> validBans = new ArrayList<>();
+
+        for (String line : Utilities.readLines(file)) {
+            if (!line.equals(user.getId())) {
+                validBans.add(line);
+            } else {
+                found = true;
+
+                for (Guild guild : getJDA().getGuilds()) {
+                    guild.unban(user);
+                }
+
+            }
+        }
+
+        Utilities.write(file, String.join("\n", validBans));
+
+        return found;
+
+    }
+
+    /**
+     * Returns if the player is globally banned.
+     * This function is expensive and should not be fired often.
+     * @param user The user to check
+     * @return Whether this user is banned globally
+     */
+    private boolean isGloballyBanned(User user) {
+
+        List<String> bannedUserIds = Utilities.readLines(new File("data/" + getName() + "/global/bans.csv"));
+        for (String bannedUserId : bannedUserIds) {
+            if (bannedUserId.equals(user.getId())) {
+                return true;
+            }
+        }
+
+        return false;
 
     }
 
@@ -249,7 +318,9 @@ public class Frostbalance extends BotBase {
 
     public void changeUserInfluence(Guild guild, User user, double influence) {
         double startingInfluence = getUserInfluence(guild, user);
-        setUserCSVAtIndex(guild, user, 0, String.valueOf(influence + startingInfluence));
+        double newInfluence = influence + startingInfluence;
+        newInfluence = Math.round(newInfluence * 1000.0) / 1000.0;
+        setUserCSVAtIndex(guild, user, 0, String.valueOf(newInfluence));
     }
 
     public void changeUserInfluence(Member member, double influence) {
@@ -360,5 +431,49 @@ public class Frostbalance extends BotBase {
 
     public Role getSystemRole(Guild guild) {
         return guild.getRolesByName("FROSTBALANCE", true).get(0);
+    }
+
+    /**
+     * Performs a soft reset on a guild. This will set reset all player roles and lift all bans.
+     * In the future, it will also reset the server icon and name.
+     * It will *not* reset player data about influence, leader history, channels or their conversations.
+     * @param guild The guild to reset.
+     */
+    public void softReset(Guild guild) {
+        List<Role> roles = guild.getRoles();
+        for (Role role : roles) {
+            if (!getSystemRole(guild).equals(role) && !getOwnerRole(guild).equals(role)) {
+                role.delete();
+            }
+        }
+        //TODO don't unban players who are under a global ban.
+        for (Ban ban : guild.retrieveBanList().complete()) {
+            guild.unban(ban.getUser());
+        }
+    }
+
+    //FIXME perform functions different than the soft reset.
+    /**
+     * Performs a hard reset on a guild. This will set reset all player roles and lift all bans,
+     * reset the server name and icon, delete all stored data about a server and its members, and delete
+     * all channels and their conversations, leaving only a general channel.
+     * It will *not* reset player data about influence, leader history, channels or their conversations.
+     * @param guild The guild to reset.
+     */
+    public void hardReset(Guild guild) {
+        softReset(guild);
+    }
+
+    public boolean hasBeenForciblyRemoved(Member member) {
+        List<RegimeData> relevantRegimes = getRecords(member.getGuild());
+        try {
+            RegimeData lastRegime = relevantRegimes.get(relevantRegimes.size() - 1);
+            if (lastRegime.getTerminationCondition() == TerminationCondition.RESET && lastRegime.getUserId().equals(member.getUser().getId())) {
+                return false;
+            }
+            return true;
+        } catch (IndexOutOfBoundsException e) {
+            return true;
+        }
     }
 }

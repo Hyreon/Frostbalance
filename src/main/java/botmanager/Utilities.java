@@ -272,6 +272,20 @@ public class Utilities {
 
     //HYREON'S UTILITIES---
 
+    public static String combineArrayStopAtIndex(String[] array, int index) {
+        String result = "";
+
+        for (int i = 0; i < index; i++) {
+            result += array[i];
+
+            if (i + 1 != index) {
+                result += " ";
+            }
+        }
+
+        return result;
+    }
+
     public static void removeFile(File file) {
         file.delete();
     }

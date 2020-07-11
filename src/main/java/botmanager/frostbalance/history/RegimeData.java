@@ -111,4 +111,12 @@ public class RegimeData {
         endDay = Utilities.todayAsLong();
         terminationCondition = condition;
     }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public TerminationCondition getTerminationCondition() {
+        return terminationCondition;
+    }
 }
