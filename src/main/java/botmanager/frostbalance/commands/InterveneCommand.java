@@ -34,7 +34,7 @@ public class InterveneCommand extends FrostbalanceCommandBase {
 
         bot.endRegime(event.getGuild(), TerminationCondition.RESET);
 
-        result = currentOwner.getAsMention() + "has been removed as leader by administrative action.";
+        result = currentOwner.getAsMention() + " has been removed as leader by administrative action.";
 
         bot.softReset(event.getGuild());
 

@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class Frostbalance extends BotBase {
 
-    private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you are violating Discord's TOS or you have been warned before about this violation.";
+    private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
     Map<Guild, List<RegimeData>> regimes = new HotMap();
 
     public final double DAILY_INFLUENCE_CAP = 1.00;
@@ -31,7 +31,7 @@ public class Frostbalance extends BotBase {
 
         setPrefix(".");
 
-        getJDA().getPresence().setActivity(Activity.of(Activity.ActivityType.CUSTOM_STATUS,getPrefix() + "help for help!"));
+        getJDA().getPresence().setActivity(Activity.of(Activity.ActivityType.DEFAULT,getPrefix() + "help for help!"));
 
         setCommands(new ICommand[] {
                 new HelpCommand(this),
@@ -81,8 +81,7 @@ public class Frostbalance extends BotBase {
         System.out.println("PLAYER LEAVING: " + event.getUser().getId());
         if (isGloballyBanned(event.getUser())) {
             System.out.println("Found a banned player, banning them once again");
-            event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE);
-            Utilities.sendPrivateMessage(event.getUser(), BAN_MESSAGE);
+            event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE).complete();
         }
     }
 
@@ -191,7 +190,7 @@ public class Frostbalance extends BotBase {
         Utilities.append(new File("data/" + getName() + "/global/bans.csv"), user.getId());
         for (Guild guild : getJDA().getGuilds()) {
             if (guild.isMember(user)) {
-                guild.ban(user, 0);
+                guild.ban(user, 0).complete();
             }
         }
 
@@ -211,7 +210,7 @@ public class Frostbalance extends BotBase {
                 found = true;
 
                 for (Guild guild : getJDA().getGuilds()) {
-                    guild.unban(user);
+                    guild.unban(user).complete();
                 }
 
             }
@@ -447,20 +446,30 @@ public class Frostbalance extends BotBase {
     }
 
     public Role getOwnerRole(Guild guild) {
-        return guild.getRolesByName("OWNER", true).get(0);
+        try {
+            return guild.getRolesByName("OWNER", true).get(0);
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println(guild.getName() + " doesn't have a valid owner role!");
+            return null;
+        }
     }
 
     public Role getSystemRole(Guild guild) {
-        return guild.getRolesByName("FROSTBALANCE", true).get(0);
+        try {
+            return guild.getRolesByName("FROSTBALANCE", true).get(0);
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println(guild.getName() + " doesn't have a valid frostbalance role!");
+            return null;
+        }
     }
 
     public boolean hasSystemRoleEverywhere(User user) {
         for (Guild guild : getJDA().getGuilds()) {
-            if (guild.getMember(user) != null && guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
-                return true;
+            if (guild.getMember(user) == null || guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     /**

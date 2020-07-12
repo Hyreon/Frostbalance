@@ -7,7 +7,7 @@ public enum TerminationCondition {
     TRANSFER("Retired"),
     COUP("Deposed"),
     LEFT("Vanished"),
-    RESET("The Plot Demanded It");
+    RESET("Admin Action");
 
     String name;
 

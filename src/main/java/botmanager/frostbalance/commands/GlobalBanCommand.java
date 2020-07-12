@@ -20,6 +20,13 @@ public class GlobalBanCommand extends FrostbalanceCommandBase {
         boolean found = false;
 
         String targetId = Utilities.findUserId(event.getGuild(), message);
+
+        if (targetId == null) {
+            result += "Could not find user " + message + ".";
+            Utilities.sendGuildMessage(event.getChannel(), result);
+            return;
+        }
+
         User targetUser = event.getJDA().getUserById(targetId);
 
         if (targetUser == null) {

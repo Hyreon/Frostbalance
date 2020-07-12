@@ -56,8 +56,11 @@ public class AdjustCommand extends FrostbalanceCommandBase {
                         + event.getGuild().getMemberById(id).getEffectiveName()
                         + ".");
 
-        Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                event.getMember().getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + ".");
+        if (amount != 0) {
+            Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
+                    event.getMember().getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + " in " +
+                            event.getGuild().getName() + ".");
+        }
     }
 
     @Override
@@ -71,7 +74,7 @@ public class AdjustCommand extends FrostbalanceCommandBase {
         Guild guild = bot.getUserDefaultGuild(event.getAuthor());
 
         if (guild == null) {
-            result = "You need to set a default guild to transfer influence.";
+            result = "You need to set a default guild to adjust influence.";
             Utilities.sendPrivateMessage(event.getAuthor(), result);
             return;
         }
@@ -110,8 +113,11 @@ public class AdjustCommand extends FrostbalanceCommandBase {
                         + guild.getMemberById(id).getEffectiveName()
                         + " has been noted, giving them " + String.format("%.3f", amount) + " influence.");
 
-        Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + ".");
+        if (amount != 0) {
+            Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
+                    guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + " in " +
+                            guild.getName() + ".");
+        }
     }
 
     @Override

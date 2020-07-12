@@ -8,11 +8,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
-//TODO grant access to .influence USER for admins
-/**
- *
- * @author MC_2018 <mc2018.git@gmail.com>
- */
 public class InfluenceCommand extends FrostbalanceCommandBase {
 
     public InfluenceCommand(BotBase bot) {
@@ -29,13 +24,26 @@ public class InfluenceCommand extends FrostbalanceCommandBase {
         id = event.getAuthor().getId();
         
         if (message.length() > 0) {
-            result = "If you want to find the influence of a different player, you must ask them.\n"
-                + "Your influence has been sent to you via PM.";
+            if (wouldAuthorize(event.getGuild(), event.getAuthor())) {
+                id = Utilities.findUserId(event.getGuild(), message);
+
+                if (id == null) {
+                    result = "Could not find user '" + message + "'.";
+                    Utilities.sendGuildMessage(event.getChannel(), result);
+                    return;
+                } else {
+                    result = "This user's influence has been sent to you via PM.";
+                }
+            } else {
+                result = "If you want to find the influence of a different player, you must ask them.\n"
+                        + "Your influence has been sent to you via PM.";
+            }
         } else {
             result = "Your influence has been sent to you via PM.";
         }
 
         Member member = event.getGuild().getMemberById(id);
+
         double influence = bot.getUserInfluence(member);
 
         if (influence <= 0) {

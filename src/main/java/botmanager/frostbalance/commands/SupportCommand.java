@@ -72,8 +72,11 @@ public class SupportCommand extends FrostbalanceCommandBase {
                 + event.getGuild().getMemberById(id).getEffectiveName()
                 + ", giving them some influence.");
 
-        Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                event.getMember().getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount) + " influence.");
+        if (amount != 0) {
+            Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
+                    event.getMember().getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount) + " influence in " +
+                            event.getGuild().getName() + ".");
+        }
     }
 
     @Override
@@ -137,8 +140,11 @@ public class SupportCommand extends FrostbalanceCommandBase {
                         String.format("%.3f", amount * PRIVATE_RATE) + ", -" +
                         String.format("%.3f", amount) + ")");
 
-        Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount * PRIVATE_RATE) + " influence.");
+        if (amount != 0) {
+            Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
+                    guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount * PRIVATE_RATE) + " influence in " +
+                            guild.getName() + ".");
+        }
     }
 
     @Override

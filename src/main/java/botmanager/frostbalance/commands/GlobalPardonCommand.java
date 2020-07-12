@@ -18,11 +18,9 @@ public class GlobalPardonCommand extends FrostbalanceCommandBase {
     public void runPublic(GuildMessageReceivedEvent event, String message) {
 
         String result = "";
-        String targetId;
         User targetUser;
 
-        targetId = Utilities.findUserId(event.getGuild(), message);
-        targetUser = event.getJDA().getUserById(targetId);
+        targetUser = Utilities.findBannedUser(event.getGuild(), message);
 
         if (targetUser == null) {
             result += "Could not find user " + message + ".";

@@ -28,6 +28,12 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
 
         words = message.split(" ");
 
+        if (eventWrapper.getGuild() == null) {
+            result += "You need to have a default server to do that.";
+            eventWrapper.sendResponse(result);
+            return;
+        }
+
         if (words.length >= 1 && !message.isEmpty()) {
             try {
                 page = Integer.parseInt(words[0]);
