@@ -1,68 +1,35 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class InterveneCommand extends FrostbalanceCommandBase {
-
-    final String[] KEYWORDS = {
-            bot.getPrefix() + "reset"
-    };
+public class InterveneCommand extends FrostbalanceHybridCommandBase {
 
     public InterveneCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "reset"
+        }, true);
     }
 
     @Override
-    public void run(Event genericEvent) {
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
 
-        GuildMessageReceivedEvent event;
-        String message;
         String id;
         String result;
         Member currentOwner;
-        boolean found = false;
 
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
         id = event.getAuthor().getId();
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
-
-        if (!event.getMember().getRoles().contains(bot.getSystemRole(event.getGuild()))) {
-            result = "You do not have sufficient authority to intervene.";
-            Utilities.sendGuildMessage(event.getChannel(), result);
-            return;
-        }
 
         currentOwner = bot.getOwner(event.getGuild());
 
         if (currentOwner == null) {
-            result = "You can't reset if there's an owner already.";
-
+            result = "You can't reset if there's no owner.";
+            Utilities.sendGuildMessage(event.getChannel(), result);
+            return;
         }
 
         bot.endRegime(event.getGuild(), TerminationCondition.RESET);
@@ -79,10 +46,16 @@ public class InterveneCommand extends FrostbalanceCommandBase {
 
 
     @Override
-    public String info() {
+    public String publicInfo() {
         return ""
                 + "**" + bot.getPrefix() + "reset** - Remove the current owner, unban all players, and reset all non-system roles. " +
                 "The current owner can't become owner until a new owner is in place.";
+    }
+
+
+    @Override
+    public String privateInfo() {
+        return null;
     }
 
 }

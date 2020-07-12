@@ -1,68 +1,27 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.Event;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.List;
 
-public class SetGuildCommand extends FrostbalanceCommandBase {
-
-    final String[] KEYWORDS = {
-            bot.getPrefix() + "guild"
-    };
+public class SetGuildCommand extends FrostbalanceHybridCommandBase {
 
     public SetGuildCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "guild"
+        });
     }
 
     @Override
-    public void run(Event genericEvent) {
-        MessageReceivedEvent event;
+    public void runPrivate(PrivateMessageReceivedEvent event, String message) {
+
         String[] words;
-        String message;
         String name;
-        String id;
         String result = "";
-        boolean found = false;
-
-        if (!(genericEvent instanceof MessageReceivedEvent)) {
-            return;
-        }
-
-        event = (MessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-        id = event.getAuthor().getId();
-        
-        if (id.equals(bot.getJDA().getSelfUser().getId())) {
-            return; //no
-        }
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
-
-        if (genericEvent instanceof GuildMessageReceivedEvent) {
-            result = "This command only works through PM.";
-            Utilities.sendPrivateMessage(event.getAuthor(), result);
-            return;
-        }
 
         words = message.split(" ");
 
@@ -74,7 +33,7 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
             return;
         }
 
-        name = combineArrayStopAtIndex(words, words.length);
+        name = Utilities.combineArrayStopAtIndex(words, words.length);
         List<Guild> guilds = event.getJDA().getGuildsByName(name, true);
 
         if (guilds.isEmpty()) {
@@ -90,24 +49,15 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
 
     }
 
-    public String combineArrayStopAtIndex(String[] array, int index) {
-        String result = "";
-
-        for (int i = 0; i < index; i++) {
-            result += array[i];
-
-            if (i + 1 != index) {
-                result += " ";
-            }
-        }
-
-        return result;
+    @Override
+    public String publicInfo() {
+        return null;
     }
 
     @Override
-    public String info() {
-        return "**" + bot.getPrefix() + "guild GUILDNAME** in PM - sets your default guild when running commands through PM." + "\n" +
-                "**" + bot.getPrefix() + "guild** in PM - resets your default guild.";
+    public String privateInfo() {
+        return "**" + bot.getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
+                "**" + bot.getPrefix() + "guild** - resets your default guild.";
     }
 
 }

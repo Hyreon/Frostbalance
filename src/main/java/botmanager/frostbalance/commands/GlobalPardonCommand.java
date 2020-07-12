@@ -1,60 +1,25 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GlobalPardonCommand extends FrostbalanceCommandBase {
-
-    final String[] KEYWORDS = {
-            bot.getPrefix() + "pardon"
-    };
+public class GlobalPardonCommand extends FrostbalanceHybridCommandBase {
 
     public GlobalPardonCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "pardon"
+        }, true);
     }
 
     @Override
-    public void run(Event genericEvent) {
-        GuildMessageReceivedEvent event;
-        String message;
-        String result = "";
-        boolean found = false;
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
 
+        String result = "";
         String targetId;
         User targetUser;
-
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
-
-        if (!event.getMember().getRoles().contains(bot.getSystemRole(event.getGuild()))) {
-            result = "You do not have sufficient authority to globally pardon a player.";
-            Utilities.sendGuildMessage(event.getChannel(), result);
-            return;
-        }
 
         targetId = Utilities.findUserId(event.getGuild(), message);
         targetUser = event.getJDA().getUserById(targetId);
@@ -70,7 +35,7 @@ public class GlobalPardonCommand extends FrostbalanceCommandBase {
         if (success) {
             result += "Pardoned player '" + targetUser.getAsMention() + "' from all servers.";
         } else {
-            result += "Unable to pardon '" + targetUser.getAsMention() + "'. They are not banned.";
+            result += "Unable to pardon '" + targetUser.getAsMention() + "'; they are not banned.";
         }
 
         Utilities.sendGuildMessage(event.getChannel(), result);
@@ -78,8 +43,13 @@ public class GlobalPardonCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String info() {
+    public String publicInfo() {
         return "**" + bot.getPrefix() + "pardon PLAYER** - pardons a player across all servers.";
+    }
+
+    @Override
+    public String privateInfo() {
+        return null;
     }
 
 }

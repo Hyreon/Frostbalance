@@ -2,7 +2,7 @@ package botmanager.frostbalance;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.*;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
@@ -173,6 +173,19 @@ public class Frostbalance extends BotBase {
 
     }
 
+    public boolean hasBeenForciblyRemoved(Member member) {
+        List<RegimeData> relevantRegimes = getRecords(member.getGuild());
+        try {
+            RegimeData lastRegime = relevantRegimes.get(relevantRegimes.size() - 1);
+            if (lastRegime.getTerminationCondition() == TerminationCondition.RESET && lastRegime.getUserId().equals(member.getUser().getId())) {
+                return false;
+            }
+            return true;
+        } catch (IndexOutOfBoundsException e) {
+            return true;
+        }
+    }
+
     public void globallyBanUser(User user) {
 
         Utilities.append(new File("data/" + getName() + "/global/bans.csv"), user.getId());
@@ -325,6 +338,9 @@ public class Frostbalance extends BotBase {
         double startingInfluence = getUserInfluence(guild, user);
         double newInfluence = influence + startingInfluence;
         newInfluence = Math.round(newInfluence * 1000.0) / 1000.0;
+        if (newInfluence < 0) {
+            newInfluence = 0;
+        }
         setUserCSVAtIndex(guild, user, 0, String.valueOf(newInfluence));
     }
 
@@ -419,12 +435,12 @@ public class Frostbalance extends BotBase {
     }
 
     @Override
-    public FrostbalanceCommandBase[] getCommands() {
+    public FrostbalanceHybridCommandBase[] getCommands() {
         ICommand[] commands = super.getCommands();
-        FrostbalanceCommandBase[] newCommands = new FrostbalanceCommandBase[commands.length];
+        FrostbalanceHybridCommandBase[] newCommands = new FrostbalanceHybridCommandBase[commands.length];
         
         for (int i = 0; i < commands.length; i++) {
-            newCommands[i] = (FrostbalanceCommandBase) commands[i];
+            newCommands[i] = (FrostbalanceHybridCommandBase) commands[i];
         }
         
         return newCommands;
@@ -436,6 +452,15 @@ public class Frostbalance extends BotBase {
 
     public Role getSystemRole(Guild guild) {
         return guild.getRolesByName("FROSTBALANCE", true).get(0);
+    }
+
+    public boolean hasSystemRoleEverywhere(User user) {
+        for (Guild guild : getJDA().getGuilds()) {
+            if (guild.getMember(user) != null && guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -467,18 +492,5 @@ public class Frostbalance extends BotBase {
      */
     public void hardReset(Guild guild) {
         softReset(guild);
-    }
-
-    public boolean hasBeenForciblyRemoved(Member member) {
-        List<RegimeData> relevantRegimes = getRecords(member.getGuild());
-        try {
-            RegimeData lastRegime = relevantRegimes.get(relevantRegimes.size() - 1);
-            if (lastRegime.getTerminationCondition() == TerminationCondition.RESET && lastRegime.getUserId().equals(member.getUser().getId())) {
-                return false;
-            }
-            return true;
-        } catch (IndexOutOfBoundsException e) {
-            return true;
-        }
     }
 }

@@ -1,56 +1,31 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class CoupCommand extends FrostbalanceCommandBase {
+public class CoupCommand extends FrostbalanceHybridCommandBase {
 
     final String[] KEYWORDS = {
             bot.getPrefix() + "coup"
     };
 
     public CoupCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "coup"
+        });
     }
 
     @Override
-    public void run(Event genericEvent) {
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
 
-        GuildMessageReceivedEvent event;
-        String message;
-        String id;
+        String id = event.getAuthor().getId();
         String result, privateResult;
         Member currentOwner;
-        boolean found = false, success = false;
-
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-        id = event.getAuthor().getId();
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
+        boolean found = false, success;
 
         currentOwner = bot.getOwner(event.getGuild());
 
@@ -113,12 +88,16 @@ public class CoupCommand extends FrostbalanceCommandBase {
 
     }
 
-
     @Override
-    public String info() {
+    public String publicInfo() {
         return ""
                 + "**" + bot.getPrefix() + "coup** - become server owner; this will drain both your influence and the influence " +
                 "of the current owner until one (or both) of you run out. For ties, the existing owner is still owner.";
+    }
+
+    @Override
+    public String privateInfo() {
+        return null;
     }
 
 }

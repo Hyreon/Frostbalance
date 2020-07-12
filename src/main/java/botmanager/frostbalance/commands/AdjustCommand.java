@@ -12,7 +12,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
     public AdjustCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "adjust"
-        });
+        }, true);
     }
 
     @Override
@@ -20,10 +20,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
         String[] words;
         String id;
         String name;
-        double balance, amount;
-
-        balance = bot.getUserInfluence(event.getMember());
-
+        double amount;
         words = message.split(" ");
 
         if (words.length < 2) {
@@ -39,7 +36,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
                 return;
             }
         } catch (NumberFormatException e) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
+            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
 
@@ -82,7 +79,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
         words = message.split(" ");
 
         if (words.length < 2) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "support USER AMOUNT**");
+            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
 
@@ -118,8 +115,13 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    public String info() {
-        return "**" + bot.getPrefix() + "adjust USER AMOUNT** - gives your influence to someone else (don't @ them); can be done in a private message.";
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in this server";
+    }
+
+    @Override
+    public String privateInfo() {
+        return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in your default server";
     }
 
 }

@@ -17,9 +17,9 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 public class InfluenceCommand extends FrostbalanceHybridCommandBase {
 
     public InfluenceCommand(BotBase bot) {
-        super(bot,
-                new String[] {bot.getPrefix() + "influence"}
-                );
+        super(bot, new String[] {
+                bot.getPrefix() + "influence"
+        });
     }
 
     @Override
@@ -79,9 +79,16 @@ public class InfluenceCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    public String info() {
+    public String publicInfo() {
         return ""
                 + "**" + bot.getPrefix() + "influence** - sends your influence on this server via PM";
+    }
+
+    @Override
+    public String privateInfo() {
+        return ""
+                + "**" + bot.getPrefix() + "influence** - sends your influence on your default server\n" +
+                "**" + bot.getPrefix() + "influence ALL** - sends your influence on all servers";
     }
     
 }

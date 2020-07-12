@@ -1,59 +1,30 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.io.File;
 
-public class TransferCommand extends FrostbalanceCommandBase {
-
-    final String[] KEYWORDS = {
-            bot.getPrefix() + "transfer"
-    };
+public class TransferCommand extends FrostbalanceHybridCommandBase {
 
     public TransferCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "transfer"
+        });
     }
 
     @Override
-    public void run(Event genericEvent) {
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
 
-        GuildMessageReceivedEvent event;
-        String message;
         String targetId;
         String result;
         Member authorAsMember;
         Member currentOwner;
-        boolean found = false;
-
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
 
         try {
             String info = Utilities.read(new File("data/" + bot.getName() + "/" + event.getGuild().getId() + "/owner.csv"));
@@ -72,7 +43,7 @@ public class TransferCommand extends FrostbalanceCommandBase {
         }
 
         if (message.isEmpty()) {
-            result = info();
+            result = publicInfo();
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
@@ -107,9 +78,14 @@ public class TransferCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String info() {
+    public String publicInfo() {
         return ""
                 + "**" + bot.getPrefix() + "transfer USER** - makes someone else server owner.";
+    }
+
+    @Override
+    public String privateInfo() {
+        return null;
     }
 
 }

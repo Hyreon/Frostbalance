@@ -1,8 +1,8 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -23,12 +23,15 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
     public void runPublic(GuildMessageReceivedEvent event, String message) {
         String result = "__**Frostbalance**__\n\n";
 
-        for (FrostbalanceCommandBase command : bot.getCommands()) {
-            String info = command.info();
+        for (FrostbalanceHybridCommandBase command : bot.getCommands()) {
+            String info = command.publicInfo();
 
-            if (info != null) {
-                result += info + "\n";
+            if (!command.isAdminOnly() || command.wouldAuthorize(event.getGuild(), event.getAuthor())) { //hide admin commands
+                if (info != null) {
+                    result += info + "\n";
+                }
             }
+
         }
         
         Utilities.sendGuildMessage(event.getChannel(), result);
@@ -38,11 +41,13 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
     public void runPrivate(PrivateMessageReceivedEvent event, String message) {
         String result = "__**Frostbalance**__\n\n";
 
-        for (FrostbalanceCommandBase command : bot.getCommands()) {
-            String info = command.info();
+        for (FrostbalanceHybridCommandBase command : bot.getCommands()) {
+            String info = command.privateInfo();
 
-            if (info != null) {
-                result += info + "\n";
+            if (!command.isAdminOnly() || command.wouldAuthorize(new GenericMessageReceivedEventWrapper(bot, event).getGuild(), event.getAuthor())) { //hide admin commands
+                if (info != null) {
+                    result += info + "\n";
+                }
             }
         }
 
@@ -50,8 +55,15 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    public String info() {
-        return "**" + bot.getPrefix() + "help** - rattles off a bunch of useless commands";
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "help** in public chat - rattles off a bunch of useless public commands\n" +
+                "**" + bot.getPrefix() + "help** in DM - rattles off a bunch of useless private commands";
     }
-    
+
+    @Override
+    public String privateInfo() {
+        return "**" + bot.getPrefix() + "help** in DM - rattles off a bunch of useless private commands\n" +
+                "**" + bot.getPrefix() + "help** in public chat - rattles off a bunch of useless public commands";
+    }
+
 }

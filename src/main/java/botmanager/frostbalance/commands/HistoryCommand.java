@@ -1,60 +1,31 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.generic.BotBase;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class HistoryCommand extends FrostbalanceCommandBase {
+public class HistoryCommand extends FrostbalanceHybridCommandBase {
 
-    private static final int HISTORY_PAGE_SIZE = 5;
-
-    final String[] KEYWORDS = {
-            bot.getPrefix() + "history"
-    };
+    private static final int HISTORY_PAGE_SIZE = 6;
 
     public HistoryCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "history"
+        });
     }
 
     @Override
-    public void run(Event genericEvent) {
-        GuildMessageReceivedEvent event;
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
         String[] words;
-        String message;
         String result = "";
-        boolean found = false;
         int page = 1;
         List<RegimeData> records;
-
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
 
         words = message.split(" ");
 
@@ -98,6 +69,16 @@ public class HistoryCommand extends FrostbalanceCommandBase {
 
     }
 
+    @Override
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes.";
+    }
+
+    @Override
+    public String privateInfo() {
+        return null;
+    }
+
     private String displayRecords(List<RegimeData> records, int page) {
 
         List<RegimeData> sublist = records.subList((page - 1) * HISTORY_PAGE_SIZE, Math.min(page * HISTORY_PAGE_SIZE, records.size()));
@@ -110,11 +91,6 @@ public class HistoryCommand extends FrostbalanceCommandBase {
 
     private int maxPages(List<?> list) {
         return (int) Math.ceil(list.size() / (double) HISTORY_PAGE_SIZE);
-    }
-
-    @Override
-    public String info() {
-        return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes.";
     }
 
 }

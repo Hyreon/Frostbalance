@@ -4,6 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
 
+//TODO phase out FrostbalanceCommandBase as a direct option
 public abstract class FrostbalanceCommandBase implements ICommand {
 
     protected Frostbalance bot;

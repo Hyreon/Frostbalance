@@ -1,54 +1,25 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.generic.BotBase;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 //TODO
-public class FlagCommand extends FrostbalanceCommandBase {
+public class FlagCommand extends FrostbalanceHybridCommandBase {
 
-
-    final String[] KEYWORDS = {
-            bot.getPrefix() + "flag"
-    };
 
     public FlagCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "flag"
+        });
     }
 
     @Override
-    public void run(Event genericEvent) {
-        GuildMessageReceivedEvent event;
-        String message;
-        String id;
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
+        String id = event.getAuthor().getId();
         String result = "";
         boolean found = false;
-
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-        id = event.getAuthor().getId();
-
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
-            } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return;
-        }
 
         result += "This server has no flags, " + event.getMember().getEffectiveName() + "!";
 
@@ -57,7 +28,13 @@ public class FlagCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String info() {
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "flag FLAG** - apply a flag to this server, if you are staff\n" +
+                "**" + bot.getPrefix() + "flag** - view all flags for this server - any user";
+    }
+
+    @Override
+    public String privateInfo() {
         return "**" + bot.getPrefix() + "flag FLAG** - apply a flag to this server, if you are staff\n" +
                 "**" + bot.getPrefix() + "flag** - view all flags for this server - any user";
     }

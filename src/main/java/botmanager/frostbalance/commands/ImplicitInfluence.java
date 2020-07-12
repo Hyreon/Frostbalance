@@ -1,6 +1,6 @@
 package botmanager.frostbalance.commands;
 
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ImplicitInfluence extends FrostbalanceCommandBase {
+public class ImplicitInfluence extends FrostbalanceHybridCommandBase {
 
     SimpleDateFormat sdf = new SimpleDateFormat("M/dd/yyyy hh:mm");
     ArrayList<Member> minuteMembers;
@@ -55,8 +55,13 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String info() {
+    public String publicInfo() {
         return "type in chat to gain influence gradually (0.05 per minute with a message); this is capped to 1.00 and does not stack with `.daily`.";
+    }
+
+    @Override
+    public String privateInfo() {
+        return null;
     }
 
 }

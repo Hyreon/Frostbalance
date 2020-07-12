@@ -1,9 +1,8 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.generic.BotBase;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.text.SimpleDateFormat;
@@ -14,29 +13,18 @@ import java.util.Date;
  * @author MC_2018 <mc2018.git@gmail.com>
  */
 
-public class DailyRewardCommand extends FrostbalanceCommandBase {
+public class DailyRewardCommand extends FrostbalanceHybridCommandBase {
 
     SimpleDateFormat hours = new SimpleDateFormat("HH");
     
     public DailyRewardCommand(BotBase bot) {
-        super(bot);
+        super(bot, new String[] {
+                bot.getPrefix() + "daily"
+        });
     }
 
     @Override
-    public void run(Event genericEvent) {
-        GuildMessageReceivedEvent event;
-        String message;
-        
-        if (!(genericEvent instanceof GuildMessageReceivedEvent)) {
-            return;
-        }
-        
-        event = (GuildMessageReceivedEvent) genericEvent;
-        message = event.getMessage().getContentRaw();
-        
-        if (!message.equalsIgnoreCase(bot.getPrefix() + "daily")) {
-            return;
-        }
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
 
         double gain = bot.gainDailyInfluence(event.getMember(), 1);
 
@@ -50,8 +38,13 @@ public class DailyRewardCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String info() {
+    public String publicInfo() {
         return "**" + bot.getPrefix() + "daily** - gives you all the influence you can get today, instantly";
+    }
+
+    @Override
+    public String privateInfo() {
+        return null;
     }
 
 }

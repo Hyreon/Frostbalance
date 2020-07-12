@@ -142,9 +142,13 @@ public class SupportCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    public String info() {
-        return "**" + bot.getPrefix() + "support USER AMOUNT** - gives your influence to someone else (don't @ them); can be done in a private " +
-                "message, but doing so causes 50% of the influence to simply disappear.";
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "support USER AMOUNT** - gives your influence to someone else (don't @ them)";
+    }
+
+    @Override
+    public String privateInfo() {
+        return "**" + bot.getPrefix() + "support USER AMOUNT** - gives your influence to someone else (don't @ them); 50% of what you send is lost";
     }
 
 }
