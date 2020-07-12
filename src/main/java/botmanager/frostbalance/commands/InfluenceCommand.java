@@ -1,7 +1,7 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
  *
  * @author MC_2018 <mc2018.git@gmail.com>
  */
-public class InfluenceCommand extends FrostbalanceHybridCommandBase {
+public class InfluenceCommand extends FrostbalanceCommandBase {
 
     public InfluenceCommand(BotBase bot) {
         super(bot, new String[] {

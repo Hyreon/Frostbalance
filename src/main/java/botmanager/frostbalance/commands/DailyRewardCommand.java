@@ -1,7 +1,7 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -13,7 +13,7 @@ import java.util.Date;
  * @author MC_2018 <mc2018.git@gmail.com>
  */
 
-public class DailyRewardCommand extends FrostbalanceHybridCommandBase {
+public class DailyRewardCommand extends FrostbalanceCommandBase {
 
     SimpleDateFormat hours = new SimpleDateFormat("HH");
     

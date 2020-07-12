@@ -1,12 +1,12 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 //TODO
-public class FlagCommand extends FrostbalanceHybridCommandBase {
+public class FlagCommand extends FrostbalanceCommandBase {
 
 
     public FlagCommand(BotBase bot) {

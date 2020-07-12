@@ -1,6 +1,6 @@
 package botmanager.frostbalance.commands;
 
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ImplicitInfluence extends FrostbalanceHybridCommandBase {
+public class ImplicitInfluence extends FrostbalanceCommandBase {
 
     SimpleDateFormat sdf = new SimpleDateFormat("M/dd/yyyy hh:mm");
     ArrayList<Member> minuteMembers;

@@ -1,13 +1,13 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class InterveneCommand extends FrostbalanceHybridCommandBase {
+public class InterveneCommand extends FrostbalanceCommandBase {
 
     public InterveneCommand(BotBase bot) {
         super(bot, new String[] {

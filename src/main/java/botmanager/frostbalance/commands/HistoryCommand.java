@@ -1,10 +1,9 @@
 package botmanager.frostbalance.commands;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.generic.BotBase;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,11 +16,11 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     public HistoryCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "history"
-        });
+        }, false);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
+    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
         String[] words;
         String result = "";
         int page = 1;
@@ -35,7 +34,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             } catch (NumberFormatException e) {
                 result += "Couldn't recognize the number '" + words[0] + "'.";
 
-                Utilities.sendGuildMessage(event.getChannel(), result);
+                eventWrapper.sendResponse(result);
 
                 return;
             }
@@ -44,12 +43,12 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
         if (page < 0) {
             result += "This number is too low, it must be at least 1.";
 
-            Utilities.sendGuildMessage(event.getChannel(), result);
+            eventWrapper.sendResponse(result);
 
             return;
         }
 
-        records = bot.readRecords(event.getGuild());
+        records = bot.readRecords(eventWrapper.getGuild());
         Collections.reverse(records);
 
         if (page > maxPages(records)) {
@@ -59,24 +58,20 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             } else {
                 result += "This number is too high, it must be at most " + maxPages(records) + ".";
             }
-            Utilities.sendGuildMessage(event.getChannel(), result);
+
+            eventWrapper.sendResponse(result);
             return;
         }
 
         result += displayRecords(records, page);
 
-        Utilities.sendGuildMessage(event.getChannel(), result);
+        eventWrapper.sendResponse(result);
 
     }
 
     @Override
     public String publicInfo() {
         return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes.";
-    }
-
-    @Override
-    public String privateInfo() {
-        return null;
     }
 
     private String displayRecords(List<RegimeData> records, int page) {

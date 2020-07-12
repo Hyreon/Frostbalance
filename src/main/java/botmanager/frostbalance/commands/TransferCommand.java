@@ -1,7 +1,7 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.io.File;
 
-public class TransferCommand extends FrostbalanceHybridCommandBase {
+public class TransferCommand extends FrostbalanceCommandBase {
 
     public TransferCommand(BotBase bot) {
         super(bot, new String[] {

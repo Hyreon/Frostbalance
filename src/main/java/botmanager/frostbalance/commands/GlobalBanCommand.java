@@ -1,12 +1,12 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GlobalBanCommand extends FrostbalanceHybridCommandBase {
+public class GlobalBanCommand extends FrostbalanceCommandBase {
 
     public GlobalBanCommand(BotBase bot) {
         super(bot, new String[] {

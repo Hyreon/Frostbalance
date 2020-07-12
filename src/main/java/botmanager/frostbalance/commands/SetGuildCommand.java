@@ -1,14 +1,14 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.List;
 
-public class SetGuildCommand extends FrostbalanceHybridCommandBase {
+public class SetGuildCommand extends FrostbalanceCommandBase {
 
     public SetGuildCommand(BotBase bot) {
         super(bot, new String[] {
