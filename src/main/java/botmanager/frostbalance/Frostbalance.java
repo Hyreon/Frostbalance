@@ -17,10 +17,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Frostbalance extends BotBase {
 
@@ -314,6 +311,57 @@ public class Frostbalance extends BotBase {
         logRegime(guild, regime);
     }
 
+    public Collection<OptionFlag> getDebugFlags(Guild guild) {
+        Collection<OptionFlag> debugFlags = new ArrayList<OptionFlag>();
+        List<String> flags = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/flags.csv"));
+        for (String flag : flags) {
+            debugFlags.add(OptionFlag.valueOf(flag));
+        }
+        return debugFlags;
+    }
+
+    /**
+     * Flips a flag for a guild.
+     * @param guild
+     * @param toggledFlag
+     * @return Whether the debug flag got turned on (TRUE) or off (FALSE)
+     */
+    public boolean flipFlag(Guild guild, OptionFlag toggledFlag) {
+        if (getDebugFlags(guild).contains(toggledFlag)) {
+            removeDebugFlag(guild, toggledFlag);
+            return false;
+        } else {
+            addDebugFlag(guild, toggledFlag);
+            return true;
+        }
+    }
+
+    public void addDebugFlag(Guild guild, OptionFlag debugFlag) {
+        File file = new File("data/" + getName() + "/" + guild.getId() + "/flags.csv");
+        Utilities.append(file, debugFlag.toString());
+    }
+
+    public void removeDebugFlag(Guild guild, OptionFlag debugFlag) {
+        File file = new File("data/" + getName() + "/" + guild.getId() + "/flags.csv");
+        List<String> lines = Utilities.readLines(file);
+
+        Iterator<String> i = lines.iterator();
+        while (i.hasNext()) {
+            String line = i.next();
+            if (debugFlag.equals(OptionFlag.valueOf(line))) {
+                i.remove();
+                break;
+            }
+        }
+
+        Utilities.write(file, "");
+
+        for (String line : lines) {
+            Utilities.append(file, line);
+        }
+
+    }
+
     public String getOwnerId(Guild guild) {
         String info = Utilities.read(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
         return Utilities.getCSVValueAtIndex(info, 0);
@@ -530,10 +578,5 @@ public class Frostbalance extends BotBase {
         } else {
             return AuthorityLevel.GENERIC;
         }
-    }
-
-    private Collection<OptionFlag> getDebugFlags(Guild guild) {
-        //TODO stub
-        return null;
     }
 }
