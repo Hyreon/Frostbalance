@@ -1,18 +1,19 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
-public class AdjustCommand extends FrostbalanceCommandBase {
+public class AdjustCommand extends FrostbalanceSplitCommandBase {
 
     public AdjustCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "adjust"
-        }, true);
+        }, AuthorityLevel.BOT_ADMIN);
     }
 
     @Override
@@ -121,12 +122,12 @@ public class AdjustCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String publicInfo() {
+    public String publicInfo(AuthorityLevel authorityLevel) {
         return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in this server";
     }
 
     @Override
-    public String privateInfo() {
+    public String privateInfo(AuthorityLevel authorityLevel) {
         return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in your default server";
     }
 

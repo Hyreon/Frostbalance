@@ -1,7 +1,8 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -13,7 +14,7 @@ import java.util.Date;
  * @author MC_2018 <mc2018.git@gmail.com>
  */
 
-public class DailyRewardCommand extends FrostbalanceCommandBase {
+public class DailyRewardCommand extends FrostbalanceSplitCommandBase {
 
     SimpleDateFormat hours = new SimpleDateFormat("HH");
     
@@ -38,12 +39,12 @@ public class DailyRewardCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String publicInfo() {
+    public String publicInfo(AuthorityLevel authorityLevel) {
         return "**" + bot.getPrefix() + "daily** - gives you all the influence you can get today, instantly";
     }
 
     @Override
-    public String privateInfo() {
+    public String privateInfo(AuthorityLevel authorityLevel) {
         return null;
     }
 

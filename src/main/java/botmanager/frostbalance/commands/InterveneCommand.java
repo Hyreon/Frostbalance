@@ -1,18 +1,19 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class InterveneCommand extends FrostbalanceCommandBase {
+public class InterveneCommand extends FrostbalanceSplitCommandBase {
 
     public InterveneCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "reset"
-        }, true);
+        }, AuthorityLevel.GUILD_ADMIN);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class InterveneCommand extends FrostbalanceCommandBase {
 
 
     @Override
-    public String publicInfo() {
+    public String publicInfo(AuthorityLevel authorityLevel) {
         return ""
                 + "**" + bot.getPrefix() + "reset** - Remove the current owner, unban all players, and reset all non-system roles. " +
                 "The current owner can't become owner until a new owner is in place.";
@@ -54,7 +55,7 @@ public class InterveneCommand extends FrostbalanceCommandBase {
 
 
     @Override
-    public String privateInfo() {
+    public String privateInfo(AuthorityLevel authorityLevel) {
         return null;
     }
 

@@ -1,17 +1,18 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GlobalBanCommand extends FrostbalanceCommandBase {
+public class GlobalBanCommand extends FrostbalanceSplitCommandBase {
 
     public GlobalBanCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "ban"
-        }, true);
+        }, AuthorityLevel.BOT_ADMIN);
     }
 
     @Override
@@ -44,12 +45,14 @@ public class GlobalBanCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String publicInfo() {
-        return "**" + bot.getPrefix() + "ban PLAYER** - bans a player across all servers.";
+    public String publicInfo(AuthorityLevel authorityLevel) {
+        if (authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
+            return "**" + bot.getPrefix() + "ban PLAYER** - bans a player across all servers.";
+        } else return null;
     }
 
     @Override
-    public String privateInfo() {
+    public String privateInfo(AuthorityLevel authorityLevel) {
         return null;
     }
 
