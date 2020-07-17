@@ -66,7 +66,7 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
         bot.changeUserInfluence(event.getMember(), -amount);
         bot.changeUserInfluence(event.getGuild().getMemberById(id), amount);
 
-        event.getMessage().delete();
+        event.getMessage().delete().complete();
         
         Utilities.sendGuildMessage(event.getChannel(),
                 event.getMember().getEffectiveName() + " has supported "

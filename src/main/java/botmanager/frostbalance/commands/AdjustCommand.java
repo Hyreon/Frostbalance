@@ -2,88 +2,36 @@ package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.generic.BotBase;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
-public class AdjustCommand extends FrostbalanceSplitCommandBase {
+public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
     public AdjustCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "adjust"
-        }, AuthorityLevel.BOT_ADMIN);
+        }, AuthorityLevel.GUILD_ADMIN);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
-        String[] words;
-        String id;
-        String name;
-        double amount;
-        words = message.split(" ");
-
-        if (words.length < 2) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
-            return;
-        }
-
-        try {
-            amount = Double.parseDouble(words[words.length - 1]);
-
-            if (amount == Double.NaN) {
-                Utilities.sendGuildMessage(event.getChannel(), "NOPE.");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
-            return;
-        }
-
-        name = Utilities.combineArrayStopAtIndex(words, words.length - 1);
-        id = Utilities.findUserId(event.getGuild(), name);
-
-        if (id == null) {
-            Utilities.sendGuildMessage(event.getChannel(), "Couldn't find user '" + name + "'.");
-            return;
-        }
-        bot.changeUserInfluence(event.getGuild().getMemberById(id), amount);
-
-        event.getMessage().delete();
-
-        Utilities.sendGuildMessage(event.getChannel(),
-                event.getMember().getEffectiveName() + " has adjusted the influence of "
-                        + event.getGuild().getMemberById(id).getEffectiveName()
-                        + ".");
-
-        if (amount != 0) {
-            Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                    event.getMember().getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + " in " +
-                            event.getGuild().getName() + ".");
-        }
-    }
-
-    @Override
-    public void runPrivate(PrivateMessageReceivedEvent event, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
         String[] words;
         String id;
         String name;
         String result;
         double amount;
 
-        Guild guild = bot.getUserDefaultGuild(event.getAuthor());
-
-        if (guild == null) {
+        if (eventWrapper.getGuild() == null) {
             result = "You need to set a default guild to adjust influence.";
-            Utilities.sendPrivateMessage(event.getAuthor(), result);
+            eventWrapper.sendResponse(result);
             return;
         }
 
         words = message.split(" ");
 
         if (words.length < 2) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
+            eventWrapper.sendResponse("Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
 
@@ -91,45 +39,43 @@ public class AdjustCommand extends FrostbalanceSplitCommandBase {
             amount = Double.parseDouble(words[words.length - 1]);
 
             if (amount == Double.NaN) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "NOPE.");
+                eventWrapper.sendResponse("NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
+            eventWrapper.sendResponse("Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
 
         name = Utilities.combineArrayStopAtIndex(words, words.length - 1);
-        id = Utilities.findUserId(guild, name);
+        id = Utilities.findUserId(eventWrapper.getGuild(), name);
 
         if (id == null) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Couldn't find user '" + name + "'.");
+            eventWrapper.sendResponse("Couldn't find user '" + name + "'.");
             return;
         }
 
-        bot.changeUserInfluence(guild.getMemberById(id), amount);
+        bot.changeUserInfluence(eventWrapper.getGuild().getMemberById(id), amount);
 
-        Utilities.sendPrivateMessage(event.getAuthor(),
-                "Your adjustment of "
-                        + guild.getMemberById(id).getEffectiveName()
+        if (eventWrapper.isPublic()) {
+            eventWrapper.getMessage().delete().complete();
+        }
+
+        eventWrapper.sendResponse("Your adjustment of "
+                        + eventWrapper.getGuild().getMemberById(id).getEffectiveName()
                         + " has been noted, giving them " + String.format("%.3f", amount) + " influence.");
 
         if (amount != 0) {
-            Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                    guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + " in " +
-                            guild.getName() + ".");
+            Utilities.sendPrivateMessage(eventWrapper.getGuild().getMemberById(id).getUser(),
+                    eventWrapper.getGuild().getMemberById(eventWrapper.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + " in " +
+                            eventWrapper.getGuild().getName() + ".");
         }
+
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
+    public String info(AuthorityLevel authorityLevel, boolean isPublic) {
         return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in this server";
     }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in your default server";
-    }
-
 }
 
