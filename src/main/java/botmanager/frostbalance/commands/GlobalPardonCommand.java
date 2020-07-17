@@ -1,18 +1,17 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GlobalPardonCommand extends FrostbalanceSplitCommandBase {
+public class GlobalPardonCommand extends FrostbalanceCommandBase {
 
     public GlobalPardonCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "pardon"
-        }, AuthorityLevel.BOT_ADMIN);
+        }, true);
     }
 
     @Override
@@ -42,16 +41,12 @@ public class GlobalPardonCommand extends FrostbalanceSplitCommandBase {
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
-        if (authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
-            return "**" + bot.getPrefix() + "pardon PLAYER** - pardons a player across all servers.";
-        } else {
-            return null;
-        }
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "pardon PLAYER** - pardons a player across all servers.";
     }
 
     @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
+    public String privateInfo() {
         return null;
     }
 

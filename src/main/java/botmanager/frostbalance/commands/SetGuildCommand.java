@@ -1,15 +1,14 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.List;
 
-public class SetGuildCommand extends FrostbalanceSplitCommandBase {
+public class SetGuildCommand extends FrostbalanceCommandBase {
 
     public SetGuildCommand(BotBase bot) {
         super(bot, new String[] {
@@ -51,12 +50,12 @@ public class SetGuildCommand extends FrostbalanceSplitCommandBase {
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
+    public String publicInfo() {
         return null;
     }
 
     @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
+    public String privateInfo() {
         return "**" + bot.getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
                 "**" + bot.getPrefix() + "guild** - resets your default guild.";
     }

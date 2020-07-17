@@ -1,8 +1,7 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
@@ -11,7 +10,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.io.File;
 
-public class TransferCommand extends FrostbalanceSplitCommandBase {
+public class TransferCommand extends FrostbalanceCommandBase {
 
     public TransferCommand(BotBase bot) {
         super(bot, new String[] {
@@ -44,7 +43,7 @@ public class TransferCommand extends FrostbalanceSplitCommandBase {
         }
 
         if (message.isEmpty()) {
-            result = info(bot.getAuthority(event.getGuild(), event.getAuthor()), true);
+            result = publicInfo();
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
@@ -79,13 +78,13 @@ public class TransferCommand extends FrostbalanceSplitCommandBase {
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
+    public String publicInfo() {
         return ""
                 + "**" + bot.getPrefix() + "transfer USER** - makes someone else server owner.";
     }
 
     @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
+    public String privateInfo() {
         return null;
     }
 

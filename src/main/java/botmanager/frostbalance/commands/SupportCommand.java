@@ -1,8 +1,7 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -12,7 +11,7 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
  *
  * @author MC_2018 <mc2018.git@gmail.com>
  */
-public class SupportCommand extends FrostbalanceSplitCommandBase {
+public class SupportCommand extends FrostbalanceCommandBase {
 
     private static final double PRIVATE_RATE = 0.5;
 
@@ -149,12 +148,12 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
+    public String publicInfo() {
         return "**" + bot.getPrefix() + "support USER AMOUNT** - gives your influence to someone else (don't @ them)";
     }
 
     @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
+    public String privateInfo() {
         return "**" + bot.getPrefix() + "support USER AMOUNT** - gives your influence to someone else (don't @ them); 50% of what you send is lost";
     }
 

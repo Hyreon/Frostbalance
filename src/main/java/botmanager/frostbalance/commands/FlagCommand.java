@@ -1,40 +1,42 @@
 package botmanager.frostbalance.commands;
 
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.Utilities;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.generic.BotBase;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 //TODO
-public class FlagCommand extends FrostbalanceHybridCommandBase {
+public class FlagCommand extends FrostbalanceCommandBase {
 
 
     public FlagCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "flag"
-        }, AuthorityLevel.BOT_ADMIN);
+        });
     }
 
     @Override
-    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    public void runPublic(GuildMessageReceivedEvent event, String message) {
+        String id = event.getAuthor().getId();
         String result = "";
+        boolean found = false;
 
-        result += "This server has no flags, " + eventWrapper.getMember().getEffectiveName() + "!";
+        result += "This server has no flags, " + event.getMember().getEffectiveName() + "!";
 
-        eventWrapper.sendResponse(result);
+        Utilities.sendGuildMessage(event.getChannel(), result);
 
     }
 
     @Override
-    public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        if (authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
-            return "**" + bot.getPrefix() + "flag FLAG** - toggle a debug flag to this server\n" +
-                    "**" + bot.getPrefix() + "flag** - view debug flags for this server";
-        } else if (authorityLevel.hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-            //anyone can do it, but lower ranks would be wholly uninterested
-            return "**" + bot.getPrefix() + "flag** - view debug flags for this server";
-        } else {
-            return null;
-        }
+    public String publicInfo() {
+        return "**" + bot.getPrefix() + "flag FLAG** - apply a flag to this server, if you are staff\n" +
+                "**" + bot.getPrefix() + "flag** - view all flags for this server - any user";
     }
+
+    @Override
+    public String privateInfo() {
+        return "**" + bot.getPrefix() + "flag FLAG** - apply a flag to this server, if you are staff\n" +
+                "**" + bot.getPrefix() + "flag** - view all flags for this server - any user";
+    }
+
 }
