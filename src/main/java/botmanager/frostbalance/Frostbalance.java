@@ -532,7 +532,7 @@ public class Frostbalance extends BotBase {
         }
     }
 
-    private Collection<DebugFlag> getDebugFlags(Guild guild) {
+    private Collection<OptionFlag> getDebugFlags(Guild guild) {
         //TODO stub
         return null;
     }
