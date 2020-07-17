@@ -1,5 +1,6 @@
 package botmanager.frostbalance.commands;
 
+import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.history.RegimeData;
@@ -16,7 +17,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     public HistoryCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "history"
-        }, false);
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
@@ -76,8 +77,8 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    public String publicInfo() {
-        return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes.";
+    public String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes on a server.";
     }
 
     private String displayRecords(List<RegimeData> records, int page) {
@@ -93,5 +94,4 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     private int maxPages(List<?> list) {
         return (int) Math.ceil(list.size() / (double) HISTORY_PAGE_SIZE);
     }
-
 }

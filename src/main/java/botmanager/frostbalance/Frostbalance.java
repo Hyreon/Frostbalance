@@ -2,11 +2,13 @@ package botmanager.frostbalance;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.*;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Guild.Ban;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -16,6 +18,7 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -434,12 +437,12 @@ public class Frostbalance extends BotBase {
     }
 
     @Override
-    public FrostbalanceCommandBase[] getCommands() {
+    public FrostbalanceSplitCommandBase[] getCommands() {
         ICommand[] commands = super.getCommands();
-        FrostbalanceCommandBase[] newCommands = new FrostbalanceCommandBase[commands.length];
+        FrostbalanceSplitCommandBase[] newCommands = new FrostbalanceSplitCommandBase[commands.length];
         
         for (int i = 0; i < commands.length; i++) {
-            newCommands[i] = (FrostbalanceCommandBase) commands[i];
+            newCommands[i] = (FrostbalanceSplitCommandBase) commands[i];
         }
         
         return newCommands;
@@ -501,5 +504,36 @@ public class Frostbalance extends BotBase {
      */
     public void hardReset(Guild guild) {
         softReset(guild);
+    }
+
+    /**
+     * Returns how much authority a user has in a given context.
+     * @param guild The server they are operating in
+     * @param user The user that is operating
+     * @return The authority level of the user
+     */
+    public AuthorityLevel getAuthority(Guild guild, User user) {
+        if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
+            return AuthorityLevel.BOT;
+        } if (hasSystemRoleEverywhere(user)) { //TODO temporary way to detect mod status
+            return AuthorityLevel.BOT_ADMIN;
+        } if (guild == null) {
+            return AuthorityLevel.GENERIC;
+        } else if (guild.getOwner().getUser().getId().equals(user.getId())) {
+            return AuthorityLevel.GUILD_OWNER;
+        } else if (guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
+            return AuthorityLevel.GUILD_ADMIN;
+        } else if (guild.getMember(user).getRoles().contains(getOwnerRole(guild))) {
+            return AuthorityLevel.SERVER_LEADER;
+        } else if (guild.getMember(user).hasPermission(Permission.ADMINISTRATOR)) {
+            return AuthorityLevel.SERVER_ADMIN;
+        } else {
+            return AuthorityLevel.GENERIC;
+        }
+    }
+
+    private Collection<DebugFlag> getDebugFlags(Guild guild) {
+        //TODO stub
+        return null;
     }
 }

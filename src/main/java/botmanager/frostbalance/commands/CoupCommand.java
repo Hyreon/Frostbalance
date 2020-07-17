@@ -1,13 +1,14 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class CoupCommand extends FrostbalanceCommandBase {
+public class CoupCommand extends FrostbalanceSplitCommandBase {
 
     final String[] KEYWORDS = {
             bot.getPrefix() + "coup"
@@ -89,14 +90,14 @@ public class CoupCommand extends FrostbalanceCommandBase {
     }
 
     @Override
-    public String publicInfo() {
+    public String publicInfo(AuthorityLevel authorityLevel) {
         return ""
                 + "**" + bot.getPrefix() + "coup** - become server owner; this will drain both your influence and the influence " +
                 "of the current owner until one (or both) of you run out. For ties, the existing owner is still owner.";
     }
 
     @Override
-    public String privateInfo() {
+    public String privateInfo(AuthorityLevel authorityLevel) {
         return null;
     }
 
