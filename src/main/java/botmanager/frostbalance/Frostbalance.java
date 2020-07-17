@@ -132,6 +132,10 @@ public class Frostbalance extends BotBase {
         Utilities.write(file, Utilities.buildCSV(newValues));
     }
 
+    private List<String> getAdminIds() {
+        return Utilities.readLines(new File("data/" + getName() + "/staff.csv"));
+    }
+
     public void loadRecords(Guild guild) {
 
         List<String> info = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"));
@@ -561,13 +565,16 @@ public class Frostbalance extends BotBase {
      * @return The authority level of the user
      */
     public AuthorityLevel getAuthority(Guild guild, User user) {
+
         if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
             return AuthorityLevel.BOT;
-        } if (hasSystemRoleEverywhere(user)) { //TODO temporary way to detect mod status
+        } else if (getAdminIds().contains(user.getId())) {
             return AuthorityLevel.BOT_ADMIN;
-        } if (guild == null) {
+        } else if (guild == null) {
             return AuthorityLevel.GENERIC;
-        } else if (guild.getOwner().getUser().getId().equals(user.getId())) {
+        }
+
+        if (guild.getOwner().getUser().getId().equals(user.getId())) {
             return AuthorityLevel.GUILD_OWNER;
         } else if (guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
             return AuthorityLevel.GUILD_ADMIN;
