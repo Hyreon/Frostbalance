@@ -101,4 +101,9 @@ public class GenericMessageReceivedEventWrapper {
     public AuthorityLevel getAuthority() {
         return bot.getAuthority(getGuild(), getAuthor());
     }
+
+    public Event getEvent() {
+        if (isPublic()) return publicEvent;
+        else return privateEvent;
+    }
 }

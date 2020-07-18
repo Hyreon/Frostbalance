@@ -21,37 +21,16 @@ public abstract class FrostbalanceSplitCommandBase extends FrostbalanceCommandBa
     }
 
     @Override
-    public void run(Event genericEvent) {
-        String message;
+    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
+        String message = String.join(" ", params);
 
-        if (genericEvent instanceof GuildMessageReceivedEvent) {
-            message = ((GuildMessageReceivedEvent)genericEvent).getMessage().getContentRaw();
-        } else if (genericEvent instanceof PrivateMessageReceivedEvent) {
-            message = ((PrivateMessageReceivedEvent)genericEvent).getMessage().getContentRaw();
-        } else {
-            return;
-        }
-
-        if (!hasKeywords(genericEvent)) return;
-        message = minifyMessage(message);
+        Event genericEvent = eventWrapper.getEvent();
 
         if (genericEvent instanceof GuildMessageReceivedEvent) {
             GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) genericEvent;
-
-            if (!wouldAuthorize(event.getGuild(), event.getAuthor())) {
-                Utilities.sendGuildMessage(event.getChannel(), "You need to have authority level " + AUTHORITY_LEVEL.name() + " to do this.");
-                return;
-            }
-
             runPublic(event, message);
         } else if (genericEvent instanceof PrivateMessageReceivedEvent) {
             PrivateMessageReceivedEvent event = (PrivateMessageReceivedEvent) genericEvent;
-
-            if (!wouldAuthorize(new GenericMessageReceivedEventWrapper(bot, event).getGuild(), event.getAuthor())) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "You need to have authority level " + AUTHORITY_LEVEL.name() + " to do this.");
-                return;
-            }
-
             runPrivate(event, message);
         }
     }

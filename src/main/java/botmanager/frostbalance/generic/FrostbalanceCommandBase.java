@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 public abstract class FrostbalanceCommandBase implements ICommand {
 
+    public static final boolean SPEEDTESTS = true;
+
     protected final String[] KEYWORDS;
 
     protected final AuthorityLevel AUTHORITY_LEVEL;
@@ -22,6 +24,49 @@ public abstract class FrostbalanceCommandBase implements ICommand {
         KEYWORDS = keywords;
         AUTHORITY_LEVEL = authorityLevel;
     }
+
+    /**
+     * Standard command strucuture. Execute can imply any number of things.
+     * @param genericEvent
+     */
+    @Override
+    public void run(Event genericEvent) {
+
+        String[] parameters;
+
+        GenericMessageReceivedEventWrapper eventWrapper;
+        try {
+            eventWrapper = new GenericMessageReceivedEventWrapper(bot, genericEvent);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getStackTrace());
+            return;
+        }
+
+        if (!hasKeywords(genericEvent)) return;
+        parameters = minifyMessage(eventWrapper.getMessage().getContentRaw()).split(" ");
+
+        if (!wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) {
+            eventWrapper.sendResponse("You don't have sufficient privileges to do this.");
+            return;
+        }
+
+        if (SPEEDTESTS) {
+
+            long startTime = System.nanoTime();
+
+            execute(eventWrapper, parameters);
+
+            long stopTime = System.nanoTime();
+            long elapsedTime = stopTime - startTime;
+            System.out.println(elapsedTime + " nanoseconds to execute " + getClass().getCanonicalName());
+        } else {
+
+            execute(eventWrapper, parameters);
+
+        }
+    }
+
+    public abstract void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params);
 
     public boolean hasKeywords(Event genericEvent) {
         String message;
@@ -68,6 +113,12 @@ public abstract class FrostbalanceCommandBase implements ICommand {
      */
     public boolean wouldAuthorize(Guild guild, User user) {
         return bot.getAuthority(guild, user).hasAuthority(AUTHORITY_LEVEL);
+    }
+
+    public String getInfo(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
+            return info(authorityLevel, isPublic);
+        } else return null;
     }
 
     public abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
