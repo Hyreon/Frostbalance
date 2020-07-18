@@ -75,7 +75,9 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in this server";
+        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL))
+            return "**" + bot.getPrefix() + "adjust USER AMOUNT** - changes influence of someone else (don't @ them) in this server";
+        else return null;
     }
 }
 

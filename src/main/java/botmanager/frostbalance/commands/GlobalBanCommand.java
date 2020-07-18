@@ -46,7 +46,7 @@ public class GlobalBanCommand extends FrostbalanceSplitCommandBase {
 
     @Override
     public String publicInfo(AuthorityLevel authorityLevel) {
-        if (authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
+        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
             return "**" + bot.getPrefix() + "ban PLAYER** - bans a player across all servers.";
         } else return null;
     }

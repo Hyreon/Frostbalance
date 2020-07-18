@@ -1,8 +1,8 @@
 package botmanager.frostbalance.commands;
 
 import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.generic.BotBase;
 
@@ -22,7 +22,7 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
     protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
         String result = "__**Frostbalance**__\n\n";
 
-        for (FrostbalanceSplitCommandBase command : bot.getCommands()) {
+        for (FrostbalanceCommandBase command : bot.getCommands()) {
             String info = command.info(eventWrapper.getAuthority(), eventWrapper.isPublic());
 
             if (!command.isAdminOnly() || command.wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) { //hide admin commands

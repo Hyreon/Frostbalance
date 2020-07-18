@@ -3,7 +3,7 @@ package botmanager.frostbalance;
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.*;
 import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
@@ -489,12 +489,12 @@ public class Frostbalance extends BotBase {
     }
 
     @Override
-    public FrostbalanceSplitCommandBase[] getCommands() {
+    public FrostbalanceCommandBase[] getCommands() {
         ICommand[] commands = super.getCommands();
-        FrostbalanceSplitCommandBase[] newCommands = new FrostbalanceSplitCommandBase[commands.length];
+        FrostbalanceCommandBase[] newCommands = new FrostbalanceCommandBase[commands.length];
         
         for (int i = 0; i < commands.length; i++) {
-            newCommands[i] = (FrostbalanceSplitCommandBase) commands[i];
+            newCommands[i] = (FrostbalanceCommandBase) commands[i];
         }
         
         return newCommands;
