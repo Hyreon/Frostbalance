@@ -23,6 +23,12 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
         String result = "";
         String stringFlag = message.split(" ")[0];
 
+        if (eventWrapper.getGuild() == null) {
+            result += "This command cannot run without a default guild.";
+            eventWrapper.sendResponse(result);
+            return;
+        }
+
         if (stringFlag.isEmpty()) {
             result += "Flags on this server: \n";
             result += String.join("\n",
@@ -33,7 +39,11 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
         } else {
             try {
                 OptionFlag toggledFlag = OptionFlag.valueOf(stringFlag);
-                if (bot.flipFlag(eventWrapper.getGuild(), toggledFlag));
+                if (bot.flipFlag(eventWrapper.getGuild(), toggledFlag)) {
+                    result += "Enabled " + toggledFlag;
+                } else {
+                    result += "Disabled " + toggledFlag;
+                }
             } catch (IllegalArgumentException e) {
                 result += "The flag '" + stringFlag + "' doesn't exist.";
             }

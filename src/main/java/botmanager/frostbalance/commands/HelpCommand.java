@@ -23,7 +23,7 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
         String result = "__**Frostbalance**__\n\n";
 
         for (FrostbalanceCommandBase command : bot.getCommands()) {
-            String info = command.info(eventWrapper.getAuthority(), eventWrapper.isPublic());
+            String info = command.getInfo(eventWrapper.getAuthority(), eventWrapper.isPublic());
 
             if (!command.isAdminOnly() || command.wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) { //hide admin commands
                 if (info != null) {

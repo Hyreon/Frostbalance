@@ -39,32 +39,35 @@ public class InfluenceCommand extends FrostbalanceHybridCommandBase {
 
             publicPost = "Your influence for all servers has been sent to you via PM.";
 
-        } else if (message.length() > 0) {
-            if (wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) {
-                id = Utilities.findUserId(eventWrapper.getGuild(), message);
+        } else {
 
-                if (id == null) {
-                    result = "Could not find user '" + message + "'.";
-                    eventWrapper.sendResponse(result);
-                    return;
+            if (message.length() > 0) {
+                if (wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) {
+                    id = Utilities.findUserId(eventWrapper.getGuild(), message);
+
+                    if (id == null) {
+                        result = "Could not find user '" + message + "'.";
+                        eventWrapper.sendResponse(result);
+                        return;
+                    } else {
+                        publicPost = "This user's influence has been sent to you via PM.";
+                    }
                 } else {
-                    publicPost = "This user's influence has been sent to you via PM.";
+                    publicPost = "If you want to find the influence of a different player, you must ask them.\n"
+                            + "Your influence has been sent to you via PM.";
                 }
             } else {
-                publicPost = "If you want to find the influence of a different player, you must ask them.\n"
-                        + "Your influence has been sent to you via PM.";
+                publicPost = "Your influence has been sent to you via PM.";
             }
-        } else {
-            publicPost = "Your influence has been sent to you via PM.";
-        }
 
-        Member member = eventWrapper.getGuild().getMemberById(id);
-        double influence = bot.getUserInfluence(member);
+            Member member = eventWrapper.getGuild().getMemberById(id);
+            double influence = bot.getUserInfluence(member);
 
-        if (influence <= 0) {
-            result = "You have *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
-        } else {
-            result = "You have **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+            if (influence <= 0) {
+                result = "You have *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
+            } else {
+                result = "You have **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+            }
         }
 
         if (eventWrapper.isPublic()) {

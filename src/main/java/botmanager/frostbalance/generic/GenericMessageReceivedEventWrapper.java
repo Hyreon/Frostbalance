@@ -29,12 +29,10 @@ public class GenericMessageReceivedEventWrapper {
         if (genericEvent instanceof PrivateMessageReceivedEvent) {
             this.bot = bot;
             this.privateEvent = (PrivateMessageReceivedEvent) genericEvent;
-        }
-        if (genericEvent instanceof GuildMessageReceivedEvent) {
+        } else if (genericEvent instanceof GuildMessageReceivedEvent) {
             this.bot = bot;
             this.publicEvent = (GuildMessageReceivedEvent) genericEvent;
-        }
-        throw new IllegalStateException("GenericMessageReceivedEventWrapper cannot be initialized with this sort of event!");
+        } else throw new IllegalStateException("GenericMessageReceivedEventWrapper cannot be initialized with this sort of event!");
     }
 
     public boolean isPublic() {

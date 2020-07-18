@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands;
 
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -53,6 +54,12 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
 
         bot.gainDailyInfluence(event.getMember(), 0.05);
         minuteMembers.add(member);
+    }
+
+    //TODO change how this is handled, as it has no execution behavior
+    @Override
+    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
+        return;
     }
 
     @Override

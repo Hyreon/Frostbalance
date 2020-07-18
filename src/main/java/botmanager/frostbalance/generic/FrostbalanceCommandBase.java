@@ -115,13 +115,20 @@ public abstract class FrostbalanceCommandBase implements ICommand {
         return bot.getAuthority(guild, user).hasAuthority(AUTHORITY_LEVEL);
     }
 
+    /**
+     * Gets the public info of a thing. This is predefined to actually use the internal info command
+     * and wrap around it, not showing anything the user doesn't have authority to see.
+     * @param authorityLevel
+     * @param isPublic
+     * @return
+     */
     public String getInfo(AuthorityLevel authorityLevel, boolean isPublic) {
         if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
             return info(authorityLevel, isPublic);
         } else return null;
     }
 
-    public abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
+    protected abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
 
     public boolean isAdminOnly() {
         return AUTHORITY_LEVEL.hasAuthority(AuthorityLevel.BOT_ADMIN);
