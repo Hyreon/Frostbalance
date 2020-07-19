@@ -24,3 +24,7 @@ hs_err_pid*
 /.nb-gradle/
 /build/
 .gradle/
+.idea/
+gradle/wrapper
+gradlew
+gradlew.bat
