@@ -2,11 +2,13 @@ package botmanager.frostbalance;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.*;
+import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Guild.Ban;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -15,9 +17,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Frostbalance extends BotBase {
 
@@ -130,6 +130,10 @@ public class Frostbalance extends BotBase {
         
         newValues[index] = newValue;
         Utilities.write(file, Utilities.buildCSV(newValues));
+    }
+
+    private List<String> getAdminIds() {
+        return Utilities.readLines(new File("data/" + getName() + "/staff.csv"));
     }
 
     public void loadRecords(Guild guild) {
@@ -309,6 +313,57 @@ public class Frostbalance extends BotBase {
         updateOwner(guild, user);
 
         logRegime(guild, regime);
+    }
+
+    public Collection<OptionFlag> getDebugFlags(Guild guild) {
+        Collection<OptionFlag> debugFlags = new ArrayList<OptionFlag>();
+        List<String> flags = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/flags.csv"));
+        for (String flag : flags) {
+            debugFlags.add(OptionFlag.valueOf(flag));
+        }
+        return debugFlags;
+    }
+
+    /**
+     * Flips a flag for a guild.
+     * @param guild
+     * @param toggledFlag
+     * @return Whether the debug flag got turned on (TRUE) or off (FALSE)
+     */
+    public boolean flipFlag(Guild guild, OptionFlag toggledFlag) {
+        if (getDebugFlags(guild).contains(toggledFlag)) {
+            removeDebugFlag(guild, toggledFlag);
+            return false;
+        } else {
+            addDebugFlag(guild, toggledFlag);
+            return true;
+        }
+    }
+
+    public void addDebugFlag(Guild guild, OptionFlag debugFlag) {
+        File file = new File("data/" + getName() + "/" + guild.getId() + "/flags.csv");
+        Utilities.append(file, debugFlag.toString());
+    }
+
+    public void removeDebugFlag(Guild guild, OptionFlag debugFlag) {
+        File file = new File("data/" + getName() + "/" + guild.getId() + "/flags.csv");
+        List<String> lines = Utilities.readLines(file);
+
+        Iterator<String> i = lines.iterator();
+        while (i.hasNext()) {
+            String line = i.next();
+            if (debugFlag.equals(OptionFlag.valueOf(line))) {
+                i.remove();
+                break;
+            }
+        }
+
+        Utilities.write(file, "");
+
+        for (String line : lines) {
+            Utilities.append(file, line);
+        }
+
     }
 
     public String getOwnerId(Guild guild) {
@@ -501,5 +556,34 @@ public class Frostbalance extends BotBase {
      */
     public void hardReset(Guild guild) {
         softReset(guild);
+    }
+
+    /**
+     * Returns how much authority a user has in a given context.
+     * @param guild The server they are operating in
+     * @param user The user that is operating
+     * @return The authority level of the user
+     */
+    public AuthorityLevel getAuthority(Guild guild, User user) {
+
+        if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
+            return AuthorityLevel.BOT;
+        } else if (getAdminIds().contains(user.getId())) {
+            return AuthorityLevel.BOT_ADMIN;
+        } else if (guild == null) {
+            return AuthorityLevel.GENERIC;
+        }
+
+        if (guild.getOwner().getUser().getId().equals(user.getId())) {
+            return AuthorityLevel.GUILD_OWNER;
+        } else if (guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
+            return AuthorityLevel.GUILD_ADMIN;
+        } else if (guild.getMember(user).getRoles().contains(getOwnerRole(guild))) {
+            return AuthorityLevel.SERVER_LEADER;
+        } else if (guild.getMember(user).hasPermission(Permission.ADMINISTRATOR)) {
+            return AuthorityLevel.SERVER_ADMIN;
+        } else {
+            return AuthorityLevel.GENERIC;
+        }
     }
 }

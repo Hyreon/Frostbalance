@@ -4,6 +4,7 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
@@ -24,7 +25,17 @@ public class GenericMessageReceivedEventWrapper {
         this.publicEvent = publicEvent;
     }
 
-    private boolean isPublic() {
+    public GenericMessageReceivedEventWrapper(Frostbalance bot, Event genericEvent) {
+        if (genericEvent instanceof PrivateMessageReceivedEvent) {
+            this.bot = bot;
+            this.privateEvent = (PrivateMessageReceivedEvent) genericEvent;
+        } else if (genericEvent instanceof GuildMessageReceivedEvent) {
+            this.bot = bot;
+            this.publicEvent = (GuildMessageReceivedEvent) genericEvent;
+        } else throw new IllegalStateException("GenericMessageReceivedEventWrapper cannot be initialized with this sort of event!");
+    }
+
+    public boolean isPublic() {
         if (publicEvent != null) return true;
         if (privateEvent != null) return false;
         throw new IllegalStateException("GenericMessageReceivedEventWrapper is neither public nor private, as no valid event was found!");
@@ -80,6 +91,17 @@ public class GenericMessageReceivedEventWrapper {
         }
     }
 
+    public void sendPrivateResponse(String message) {
+        Utilities.sendPrivateMessage(getAuthor(), message);
+    }
 
 
+    public AuthorityLevel getAuthority() {
+        return bot.getAuthority(getGuild(), getAuthor());
+    }
+
+    public Event getEvent() {
+        if (isPublic()) return publicEvent;
+        else return privateEvent;
+    }
 }

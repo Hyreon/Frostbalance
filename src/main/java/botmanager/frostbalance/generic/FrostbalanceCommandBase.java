@@ -1,11 +1,9 @@
 package botmanager.frostbalance.generic;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -13,85 +11,98 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 public abstract class FrostbalanceCommandBase implements ICommand {
 
+    public static final boolean SPEEDTESTS = true;
+
     protected final String[] KEYWORDS;
 
-    protected final boolean ADMIN_ONLY;
+    protected final AuthorityLevel AUTHORITY_LEVEL;
 
     protected Frostbalance bot;
 
-    public FrostbalanceCommandBase(BotBase bot, String[] keywords, boolean adminOnly) {
+    public FrostbalanceCommandBase(BotBase bot, String[] keywords, AuthorityLevel authorityLevel) {
         this.bot = (Frostbalance) bot;
         KEYWORDS = keywords;
-        ADMIN_ONLY = adminOnly;
+        AUTHORITY_LEVEL = authorityLevel;
     }
 
-    public FrostbalanceCommandBase(BotBase bot, String[] keywords) {
-        this(bot, keywords, false);
-    }
-
-    public FrostbalanceCommandBase(BotBase bot) {
-        this(bot, null, false);
-    }
-
+    /**
+     * Standard command strucuture. Execute can imply any number of things.
+     * @param genericEvent
+     */
     @Override
     public void run(Event genericEvent) {
+
+        String[] parameters;
+
+        GenericMessageReceivedEventWrapper eventWrapper;
+        try {
+            eventWrapper = new GenericMessageReceivedEventWrapper(bot, genericEvent);
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getStackTrace());
+            return;
+        }
+
+        if (!hasKeywords(genericEvent)) return;
+        parameters = minifyMessage(eventWrapper.getMessage().getContentRaw()).split(" ");
+
+        if (!wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) {
+            eventWrapper.sendResponse("You don't have sufficient privileges to do this.");
+            return;
+        }
+
+        if (SPEEDTESTS) {
+
+            long startTime = System.nanoTime();
+
+            execute(eventWrapper, parameters);
+
+            long stopTime = System.nanoTime();
+            long elapsedTime = stopTime - startTime;
+            System.out.println(elapsedTime + " nanoseconds to execute " + getClass().getCanonicalName());
+        } else {
+
+            execute(eventWrapper, parameters);
+
+        }
+    }
+
+    public abstract void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params);
+
+    public boolean hasKeywords(Event genericEvent) {
         String message;
-        boolean found = false;
 
         if (genericEvent instanceof GuildMessageReceivedEvent) {
-            message = ((GuildMessageReceivedEvent)genericEvent).getMessage().getContentRaw();
+            message = ((GuildMessageReceivedEvent) genericEvent).getMessage().getContentRaw();
         } else if (genericEvent instanceof PrivateMessageReceivedEvent) {
-            message = ((PrivateMessageReceivedEvent)genericEvent).getMessage().getContentRaw();
+            message = ((PrivateMessageReceivedEvent) genericEvent).getMessage().getContentRaw();
         } else {
-            return;
+            return false;
         }
 
         for (String keyword : KEYWORDS) {
             if (message.equalsIgnoreCase(keyword)) {
-                message = message.replace(keyword, "");
-                found = true;
-                break;
+                return true;
             } else if (message.startsWith(keyword + " ")) {
-                message = message.replace(keyword + " ", "");
-                found = true;
-                break;
+                return true;
             }
         }
 
-        if (!found) {
-            return;
-        }
+        return false;
 
-        if (genericEvent instanceof GuildMessageReceivedEvent) {
-            GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) genericEvent;
-            if (ADMIN_ONLY && !event.getMember().getRoles().contains(bot.getSystemRole(event.getGuild()))) {
-                Utilities.sendGuildMessage(event.getChannel(), "You must be a system administrator here to do this.");
-                return;
-            }
-            runPublic(event, message);
-        } else if (genericEvent instanceof PrivateMessageReceivedEvent) {
-            PrivateMessageReceivedEvent event = (PrivateMessageReceivedEvent) genericEvent;
-            if (ADMIN_ONLY && bot.hasSystemRoleEverywhere(event.getAuthor())) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "You must be a system administrator in all servers to do this.");
-                return;
-            }
-            runPrivate(event, message);
-        }
     }
 
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
-        Utilities.sendPrivateMessage(event.getAuthor(), "This command doesn't work in public guilds.");
-    };
+    public String minifyMessage(String message) {
 
-    public void runPrivate(PrivateMessageReceivedEvent event, String message) {
-        Utilities.sendPrivateMessage(event.getAuthor(), "This command doesn't work in private chat.");
-    };
+        for (String keyword : KEYWORDS) {
+            if (message.equalsIgnoreCase(keyword)) {
+                return message.replace(keyword, "");
+            } else if (message.startsWith(keyword + " ")) {
+                return message.replace(keyword + " ", "");
+            }
+        }
 
-    public abstract String publicInfo();
-    public abstract String privateInfo();
+        return null;
 
-    public boolean isAdminOnly() {
-        return ADMIN_ONLY;
     }
 
     /**
@@ -101,11 +112,26 @@ public abstract class FrostbalanceCommandBase implements ICommand {
      * @return Whether the user could run this command as system
      */
     public boolean wouldAuthorize(Guild guild, User user) {
-        if (guild != null) {
-            Member member = guild.getMember(user);
-            return member.getRoles().contains(bot.getSystemRole(guild));
-        } else {
-            return bot.hasSystemRoleEverywhere(user);
-        }
+        return bot.getAuthority(guild, user).hasAuthority(AUTHORITY_LEVEL);
     }
+
+    /**
+     * Gets the public info of a thing. This is predefined to actually use the internal info command
+     * and wrap around it, not showing anything the user doesn't have authority to see.
+     * @param authorityLevel
+     * @param isPublic
+     * @return
+     */
+    public String getInfo(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
+            return info(authorityLevel, isPublic);
+        } else return null;
+    }
+
+    protected abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
+
+    public boolean isAdminOnly() {
+        return AUTHORITY_LEVEL.hasAuthority(AuthorityLevel.BOT_ADMIN);
+    }
+
 }

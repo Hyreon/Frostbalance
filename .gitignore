@@ -26,3 +26,7 @@ hs_err_pid*
 .gradle/
 build.gradle
 data/
+.idea/
+gradle/wrapper
+gradlew
+gradlew.bat

@@ -1,6 +1,8 @@
 package botmanager.frostbalance.commands;
 
+import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,7 +20,7 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
     String cachedDate;
 
     public ImplicitInfluence(BotBase bot) {
-        super(bot);
+        super(bot, null, AuthorityLevel.GENERIC);
         minuteMembers = new ArrayList<>();
         cachedDate = sdf.format(new Date());
     }
@@ -54,14 +56,18 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
         minuteMembers.add(member);
     }
 
+    //TODO change how this is handled, as it has no execution behavior
     @Override
-    public String publicInfo() {
-        return "type in chat to gain influence gradually (0.05 per minute with a message); this is capped to 1.00 and does not stack with `.daily`.";
+    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
+        return;
     }
 
     @Override
-    public String privateInfo() {
-        return null;
+    public String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (isPublic) {
+            return "type in chat to gain influence gradually (0.05 per minute with a message); this is capped to 1.00 and does not stack with `.daily`.";
+        } else {
+            return null;
+        }
     }
-
 }
