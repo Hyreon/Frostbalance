@@ -8,9 +8,9 @@ import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
-public class InfluenceCommand extends FrostbalanceHybridCommandBase {
+public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
-    public InfluenceCommand(BotBase bot) {
+    public GetInfluenceCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "influence"
         }, AuthorityLevel.GENERIC);

@@ -57,7 +57,7 @@ public class TransferCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        if (event.getGuild().getMemberById(targetId).getRoles().contains(bot.getSystemRole(event.getGuild()))) {
+        if (bot.getAuthority(event.getGuild().getMemberById(targetId)).hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
             if (targetId.equals(event.getJDA().getSelfUser().getId())) {
                 result = "A very generous offer, but I can't accept.";
             } else {

@@ -22,7 +22,7 @@ import java.util.*;
 public class Frostbalance extends BotBase {
 
     private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
-    Map<Guild, List<RegimeData>> regimes = new HotMap();
+    Map<Guild, List<RegimeData>> regimes = new HotMap<>();
 
     public final double DAILY_INFLUENCE_CAP = 1.00;
 
@@ -35,19 +35,21 @@ public class Frostbalance extends BotBase {
 
         setCommands(new ICommand[] {
                 new HelpCommand(this),
+                new ImplicitInfluence(this),
                 new DailyRewardCommand(this),
-                new InfluenceCommand(this),
+                new GetInfluenceCommand(this),
                 new SupportCommand(this),
+                new OpposeCommand(this),
+                new CheckCommand(this),
                 new CoupCommand(this),
                 new TransferCommand(this),
                 new HistoryCommand(this),
-                new ImplicitInfluence(this),
                 new SetGuildCommand(this),
+                new InterveneCommand(this),
                 new AdjustCommand(this),
-                new FlagCommand(this),
                 new GlobalBanCommand(this),
                 new GlobalPardonCommand(this),
-                new InterveneCommand(this)
+                new FlagCommand(this),
         });
     }
 
@@ -585,5 +587,9 @@ public class Frostbalance extends BotBase {
         } else {
             return AuthorityLevel.GENERIC;
         }
+    }
+
+    public AuthorityLevel getAuthority(Member member) {
+        return getAuthority(member.getGuild(), member.getUser());
     }
 }
