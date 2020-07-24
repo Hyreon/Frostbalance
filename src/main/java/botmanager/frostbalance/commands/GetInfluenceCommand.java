@@ -34,7 +34,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 if (guild.getMember(eventWrapper.getAuthor()) == null) {
                     continue; //this user isn't in this guild.
                 }
-                result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(guild, eventWrapper.getAuthor())) + "\n";
+                result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(eventWrapper.getMember())) + "\n";
             }
 
             publicPost = "Your influence for all servers has been sent to you via PM.";
@@ -42,7 +42,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
         } else {
 
             if (message.length() > 0) {
-                if (wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) {
+                if (eventWrapper.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
                     id = Utilities.findUserId(eventWrapper.getGuild(), message);
 
                     if (id == null) {
@@ -63,11 +63,20 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
             Member member = eventWrapper.getGuild().getMemberById(id);
             double influence = bot.getUserInfluence(member);
 
-            if (influence <= 0) {
-                result = "You have *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
+            if (member.equals(eventWrapper.getMember())) {
+                if (influence <= 0) {
+                    result = "You have *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
+                } else {
+                    result = "You have **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                }
             } else {
-                result = "You have **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                if (influence <= 0) {
+                    result = member.getEffectiveName() + " has *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
+                } else {
+                    result = member.getEffectiveName() + " has **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                }
             }
+
         }
 
         if (eventWrapper.isPublic()) {

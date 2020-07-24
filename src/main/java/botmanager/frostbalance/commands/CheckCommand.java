@@ -5,18 +5,23 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.HotMap;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.menu.CheckMenu;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.internal.utils.tuple.Pair;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+//TODO remove text action
+//TODO delete old check requests when creating a duplicate
 public class CheckCommand extends FrostbalanceSplitCommandBase {
 
-    HotMap<TextChannel, Collection<Pair<User, User>>> checkRequests = new HotMap<>();
+    HotMap<TextChannel, Collection<Pair<User, User>>> privateCheckRequests = new HotMap<>();
+    HotMap<TextChannel, Collection<CheckMenu>> checkMenuCache = new HotMap<>();
 
     public CheckCommand(Frostbalance bot) {
         super(bot, new String[] {
@@ -30,7 +35,6 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
         String targetId;
         String result;
         User targetUser;
-        boolean newRequest;
 
         if (message.isEmpty()) {
             result = info(bot.getAuthority(event.getGuild(), event.getAuthor()), true);
@@ -47,49 +51,127 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
         }
 
         targetUser = event.getJDA().getUserById(targetId);
-        newRequest = addCheck(event.getChannel(), event.getAuthor(), event.getJDA().getUserById(targetId));
+
+        CheckMenu menu = new CheckMenu(bot, event.getGuild(), event.getAuthor());
+        menu.send(event.getChannel(), targetUser);
+        addToCheckCache(event.getChannel(), menu);
 
         if (bot.getAuthority(event.getGuild().getMemberById(targetId)).hasAuthority(AuthorityLevel.BOT)) {
             result = "Uh, sure?";
             Utilities.sendGuildMessage(event.getChannel(), result);
-            newRequest = addCheck(event.getChannel(), targetUser, event.getAuthor());
+            menu.PERFORM_CHECK.applyReaction();
+        }
+
+    }
+
+    @Override
+    public void runPrivate(PrivateMessageReceivedEvent event, String message) {
+
+        String targetId;
+        String result;
+        User targetUser;
+        boolean newRequest;
+
+        Guild guild = new GenericMessageReceivedEventWrapper(bot, event).getGuild();
+
+        if (guild == null) {
+            Utilities.sendPrivateMessage(event.getAuthor(), "You need to have a default guild to run this command.");
+            return;
+        }
+
+        if (message.isEmpty()) {
+            result = info(bot.getAuthority(guild, event.getAuthor()), true);
+            Utilities.sendPrivateMessage(event.getAuthor(), result);
+            return;
+        }
+
+        targetId = Utilities.findUserId(guild, message);
+
+        if (targetId == null) {
+            result = "Couldn't find user '" + message + "'.";
+            Utilities.sendPrivateMessage(event.getAuthor(), result);
+            return;
+        }
+
+        targetUser = event.getJDA().getUserById(targetId);
+        newRequest = addPrivateCheck(guild, event.getAuthor(), event.getJDA().getUserById(targetId));
+
+        if (targetUser.equals(bot.getJDA().getSelfUser())) {
+            result = "Uh, sure?";
+            Utilities.sendPrivateMessage(event.getAuthor(), result);
+            addPrivateCheck(guild, targetUser, event.getAuthor());
+            newRequest = false;
         }
 
         if (newRequest) {
-            Utilities.sendGuildMessage(event.getChannel(), targetUser.getAsMention() + ", " + event.getGuild().getMember(event.getAuthor()).getEffectiveName() + " would like to" +
+            Utilities.sendPrivateMessage(targetUser, targetUser.getAsMention() + ", " + guild.getMember(event.getAuthor()).getEffectiveName() + " would like to" +
                     " check if you have more influence than them. Send a check request to them to accept; ignore this to decline.");
         }
 
     }
 
-    private boolean addCheck(TextChannel channel, User firstUser, User targetUser) {
-        Collection<Pair<User, User>> channelCheckRequests = checkRequests.getOrDefault(channel, new HashSet<>());
+    private boolean addPrivateCheck(Guild guild, User firstUser, User targetUser) {
+        Collection<Pair<User, User>> channelCheckRequests = privateCheckRequests.getOrDefault(guild, new HashSet<>());
         if (channelCheckRequests.contains(Pair.of(targetUser, firstUser))) {
             channelCheckRequests.remove(Pair.of(targetUser, firstUser));
-            check(channel, targetUser, firstUser);
+            runPrivateCheck(guild, targetUser, firstUser);
             return false;
         } else {
             if (!channelCheckRequests.add(Pair.of(firstUser, targetUser))) {
-                Utilities.sendGuildMessage(channel, "You already have a check request with this user!");
+                Utilities.sendPrivateMessage(firstUser, "You already have a check request with this user!");
                 return false;
             }
             return true;
         }
     }
 
-    private void check(TextChannel channel, User firstUser, User targetUser) {
-        Member firstMember = channel.getGuild().getMember(firstUser);
-        Member targetMember = channel.getGuild().getMember(targetUser);
+    /**
+     * Adds an item to the checkMenu cache. If multiple menus with the same pair of players exist on a channel,
+     * the older prompt is disabled.
+     * @param channel
+     * @param menuToAdd
+     */
+    private void addToCheckCache(TextChannel channel, CheckMenu menuToAdd) {
+        Collection<CheckMenu> channelCheckRequests = checkMenuCache.getOrDefault(channel, new ArrayList<>());
+        CheckMenu menuToRemove = null;
+        for (CheckMenu menu : channelCheckRequests) {
+            if (menu.getActor().equals(menuToAdd.getActor()) && menu.getChallenger().equals(menuToAdd.getChallenger())) {
+                menuToRemove = menu;
+                break;
+            }
+        }
+        if (menuToRemove != null) {
+            if (!menuToRemove.isClosed()) {
+                menuToRemove.EXPIRE_CHECK.reactEvent();
+            }
+            channelCheckRequests.remove(menuToRemove);
+        }
+        channelCheckRequests.add(menuToAdd);
+    }
+
+    private void runPrivateCheck(Guild guild, User firstUser, User targetUser) {
+        Member firstMember = guild.getMember(firstUser);
+        Member targetMember = guild.getMember(targetUser);
         if (bot.getUserInfluence(firstMember) > bot.getUserInfluence(targetMember)) {
-            Utilities.sendGuildMessage(channel, firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".");
-        } else if (bot.getUserInfluence(firstMember) == bot.getUserInfluence(targetMember)) {
+            Utilities.sendPrivateMessage(firstUser, firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".");
+
+            if (!targetUser.equals(bot.getJDA().getSelfUser())) {
+                Utilities.sendPrivateMessage(targetUser, firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".");
+            }
+            } else if (bot.getUserInfluence(firstMember) == bot.getUserInfluence(targetMember)) {
             if (firstMember.equals(targetMember)) {
-                Utilities.sendGuildMessage(channel, "To everyone's surprise, " + targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
+                Utilities.sendPrivateMessage(firstUser, "To everyone's surprise, " + targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
             } else {
-                Utilities.sendGuildMessage(channel, targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
+                Utilities.sendPrivateMessage(firstUser, targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
+                if (!targetUser.equals(bot.getJDA().getSelfUser())) {
+                    Utilities.sendPrivateMessage(targetUser, targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
+                }
             }
         } else {
-            Utilities.sendGuildMessage(channel, targetMember.getEffectiveName() + " has **more** influence than " + firstMember.getEffectiveName() + ".");
+            Utilities.sendPrivateMessage(firstUser, targetMember.getEffectiveName() + " has **more** influence than " + firstMember.getEffectiveName() + ".");
+            if (!targetUser.equals(bot.getJDA().getSelfUser())) {
+                Utilities.sendPrivateMessage(targetUser, targetMember.getEffectiveName() + " has **more** influence than " + firstMember.getEffectiveName() + ".");
+            }
         }
     }
 

@@ -106,7 +106,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
     }
 
     /**
-     * Does this user, with this guild, have the authority to run this command as system?
+     * Does this user, with this guild, have the authority to run this command at its lowest authority level?
      * @param guild The guild where the command would be run at
      * @param user The user running this command
      * @return Whether the user could run this command as system

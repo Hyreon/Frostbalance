@@ -7,6 +7,7 @@ import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
+//TODO create a menu for global/guild bans/pardons
 public class GlobalBanCommand extends FrostbalanceSplitCommandBase {
 
     public GlobalBanCommand(BotBase bot) {

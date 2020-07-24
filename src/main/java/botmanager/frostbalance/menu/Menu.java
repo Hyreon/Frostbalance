@@ -57,6 +57,10 @@ public abstract class Menu {
         }
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     public void close(boolean delete) {
         closed = true;
         bot.removeMenu(this);
