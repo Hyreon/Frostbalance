@@ -31,6 +31,9 @@ public class DailyRewardCommand extends FrostbalanceSplitCommandBase {
 
         if (gain > 0) {
             Utilities.sendGuildMessage(event.getChannel(), event.getMember().getEffectiveName() + ", your influence increases.");
+
+            double influence = bot.getUserInfluence(event.getMember());
+            Utilities.sendPrivateMessage(event.getAuthor(), "You now have **" + String.format("%.3f", influence) + "** influence in **" + event.getGuild().getName() + "**.");
         } else {
             int hrsDelay = (24 - Integer.parseInt(hours.format(new Date())));
             Utilities.sendGuildMessage(event.getChannel(), event.getMember().getEffectiveName() + ", try again at midnight EST "

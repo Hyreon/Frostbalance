@@ -34,7 +34,15 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 if (guild.getMember(eventWrapper.getAuthor()) == null) {
                     continue; //this user isn't in this guild.
                 }
-                result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(eventWrapper.getMember())) + "\n";
+
+                result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
+
+                double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserInfluence(guild, eventWrapper.getAuthor());
+                if (remaining > 0) {
+                    result += " (**+" + String.format("%.2f", remaining) + "** from unclaimed daily)";
+                }
+
+                result += "\n";
             }
 
             publicPost = "Your influence for all servers has been sent to you via PM.";
@@ -62,6 +70,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
             Member member = eventWrapper.getGuild().getMemberById(id);
             double influence = bot.getUserInfluence(member);
+            double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserDailyAmount(member);
 
             if (member.equals(eventWrapper.getMember())) {
                 if (influence <= 0) {
@@ -75,6 +84,10 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 } else {
                     result = member.getEffectiveName() + " has **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
                 }
+            }
+
+            if (remaining > 0) {
+                result += " (**+" + String.format("%.2f", remaining) + "** from unclaimed daily)";
             }
 
         }

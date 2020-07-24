@@ -42,7 +42,7 @@ public enum OptionFlag {
     }
 
     public boolean isExclusiveWith(OptionFlag toggledFlag) {
-        return (exclusivityGroup != null && toggledFlag.exclusivityGroup.equals(exclusivityGroup));
+        return (exclusivityGroup != null && exclusivityGroup.equals(toggledFlag.exclusivityGroup));
     }
 
     private enum ExclusivityGroup {
