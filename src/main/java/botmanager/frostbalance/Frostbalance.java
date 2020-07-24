@@ -119,18 +119,16 @@ public class Frostbalance extends BotBase {
 
     @Override
     public void onGuildMemberLeave(GuildMemberLeaveEvent event) {
-        System.out.println("CURRENT OWNER: " + getOwnerId(event.getGuild()));
         System.out.println("PLAYER LEAVING: " + event.getUser().getId());
         if (getOwnerId(event.getGuild()).equals(event.getUser().getId())) {
-            System.out.println("Event fired!");
+            System.out.println("Leader left, making a note here");
             endRegime(event.getGuild(), TerminationCondition.LEFT);
         }
     }
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        System.out.println("CURRENT OWNER: " + getOwnerId(event.getGuild()));
-        System.out.println("PLAYER LEAVING: " + event.getUser().getId());
+        System.out.println("PLAYER JOINING: " + event.getUser().getId());
         if (isGloballyBanned(event.getUser())) {
             System.out.println("Found a banned player, banning them once again");
             event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE).complete();
@@ -387,6 +385,11 @@ public class Frostbalance extends BotBase {
             removeDebugFlag(guild, toggledFlag);
             return false;
         } else {
+            for (OptionFlag previousFlag : getDebugFlags(guild)) {
+                if (previousFlag.isExclusiveWith(toggledFlag)) {
+                    removeDebugFlag(guild, previousFlag);
+                }
+            }
             addDebugFlag(guild, toggledFlag);
             return true;
         }

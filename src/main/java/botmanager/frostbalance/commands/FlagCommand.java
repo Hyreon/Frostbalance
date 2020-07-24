@@ -1,12 +1,10 @@
 package botmanager.frostbalance.commands;
 
-import botmanager.frostbalance.OptionFlag;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.menu.FlagMenu;
 import botmanager.generic.BotBase;
-
-import java.util.stream.Collectors;
 
 //TODO
 public class FlagCommand extends FrostbalanceHybridCommandBase {
@@ -29,27 +27,7 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        if (stringFlag.isEmpty()) {
-            result += "Flags on this server: \n";
-            result += String.join("\n",
-                    bot.getDebugFlags(eventWrapper.getGuild())
-                            .stream()
-                            .map(o -> o.toString())
-                            .collect(Collectors.toList()));
-        } else {
-            try {
-                OptionFlag toggledFlag = OptionFlag.valueOf(stringFlag);
-                if (bot.flipFlag(eventWrapper.getGuild(), toggledFlag)) {
-                    result += "Enabled " + toggledFlag;
-                } else {
-                    result += "Disabled " + toggledFlag;
-                }
-            } catch (IllegalArgumentException e) {
-                result += "The flag '" + stringFlag + "' doesn't exist.";
-            }
-        }
-
-        eventWrapper.sendResponse(result);
+        new FlagMenu(bot, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 

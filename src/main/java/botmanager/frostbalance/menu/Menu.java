@@ -33,7 +33,6 @@ public abstract class Menu {
     }
 
     public void updateMessage() {
-        System.out.println("Updating message");
         message = message.editMessage(getME()).complete();
 
         updateEmojis();
@@ -81,7 +80,7 @@ public abstract class Menu {
                     description += menuResponse.emoji + " " + menuResponse.name + "\n";
                 }
             }
-            embedBuilder.addField("", description, false);
+            embedBuilder.addField("Options", description, false);
         }
         return embedBuilder.build();
     }

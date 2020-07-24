@@ -4,10 +4,12 @@ import botmanager.frostbalance.generic.AuthorityLevel;
 
 public enum OptionFlag {
 
+    MAIN("Main Server Network", "\uD83C\uDF10", AuthorityLevel.BOT_ADMIN),
+
     RED("Red Color Scheme", "\uD83D\uDFE5", AuthorityLevel.GUILD_ADMIN, ExclusivityGroup.COLOR),
     GREEN("Green Color Scheme", "\uD83D\uDFE9", AuthorityLevel.GUILD_ADMIN, ExclusivityGroup.COLOR),
     BLUE("Blue Color Scheme", "\uD83D\uDFE6", AuthorityLevel.GUILD_ADMIN, ExclusivityGroup.COLOR),
-    MAIN("Main Server Network", "\uD83C\uDF10", AuthorityLevel.BOT_ADMIN),
+    
     TUTORIAL("Tutorial Server", "\uD83D\uDCDA", AuthorityLevel.GUILD_ADMIN),
     TEST("Experimental Content", "⚠️", AuthorityLevel.GUILD_ADMIN);
 
@@ -17,7 +19,7 @@ public enum OptionFlag {
     ExclusivityGroup exclusivityGroup;
 
     OptionFlag(String label, String emoji, AuthorityLevel authorityToChange, ExclusivityGroup exclusivityGroup) {
-        this.label = label.toUpperCase();
+        this.label = label;
         this.emoji = emoji;
         this.authorityToChange = authorityToChange;
         this.exclusivityGroup = exclusivityGroup;
@@ -25,6 +27,22 @@ public enum OptionFlag {
 
     OptionFlag(String label, String emoji, AuthorityLevel authorityToChange) {
         this(label, emoji, authorityToChange, null);
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getEmoji() {
+        return emoji;
+    }
+
+    public AuthorityLevel getAuthorityToChange() {
+        return authorityToChange;
+    }
+
+    public boolean isExclusiveWith(OptionFlag toggledFlag) {
+        return (exclusivityGroup != null && toggledFlag.exclusivityGroup.equals(exclusivityGroup));
     }
 
     private enum ExclusivityGroup {

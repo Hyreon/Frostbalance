@@ -62,7 +62,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
         if (page > maxPages(records)) {
 
             if (page == 1) {
-                result += "**This server has no history. This is likely an error, and you should inform staff.**";
+                result += "**This server has no history.**";
             } else {
                 result += "This number is too high, it must be at most " + maxPages(records) + ".";
             }
@@ -70,8 +70,6 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             eventWrapper.sendResponse(result);
             return;
         }
-
-        result += displayRecords(records, page);
 
         new HistoryMenu(bot, records, page, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
