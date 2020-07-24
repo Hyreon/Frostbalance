@@ -1,7 +1,6 @@
 package botmanager.frostbalance.history;
 
 import botmanager.Utilities;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -91,8 +90,8 @@ public class RegimeData {
         return lastKnownUserName;
     }
 
-    public String forHumans(JDA jda) {
-        return jda.getUserById(userId).getName() + ": " +
+    public String forHumans() {
+        return getRulerDisplayName() + ": " +
                 (startDay != 0 ? LocalDate.ofEpochDay(startDay).format(FORMAT) : "???") + " - " +
                 (endDay != 0 ? LocalDate.ofEpochDay(endDay).format(FORMAT) + " (" : "(") +
                 terminationCondition.name + ")";

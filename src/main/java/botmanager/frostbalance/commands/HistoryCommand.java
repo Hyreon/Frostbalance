@@ -4,6 +4,7 @@ import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.history.RegimeData;
+import botmanager.frostbalance.menu.HistoryMenu;
 import botmanager.generic.BotBase;
 
 import java.util.Collections;
@@ -72,7 +73,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
 
         result += displayRecords(records, page);
 
-        eventWrapper.sendResponse(result);
+        new HistoryMenu(bot, records, page, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 
@@ -84,7 +85,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     private String displayRecords(List<RegimeData> records, int page) {
 
         List<RegimeData> sublist = records.subList((page - 1) * HISTORY_PAGE_SIZE, Math.min(page * HISTORY_PAGE_SIZE, records.size()));
-        List<String> displayList = sublist.stream().map(regimeData -> regimeData.forHumans(bot.getJDA())).collect(Collectors.toList());
+        List<String> displayList = sublist.stream().map(regimeData -> regimeData.forHumans()).collect(Collectors.toList());
 
         return String.join("\n", displayList)
                 + "\nPage " + page + "/" + maxPages(records);

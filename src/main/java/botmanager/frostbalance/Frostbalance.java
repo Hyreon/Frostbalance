@@ -6,6 +6,7 @@ import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.history.TerminationCondition;
+import botmanager.frostbalance.menu.Menu;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
 import net.dv8tion.jda.api.Permission;
@@ -14,9 +15,13 @@ import net.dv8tion.jda.api.entities.Guild.Ban;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEvent;
 
+import java.awt.*;
 import java.io.File;
+import java.util.List;
 import java.util.*;
 
 public class Frostbalance extends BotBase {
@@ -25,6 +30,7 @@ public class Frostbalance extends BotBase {
     Map<Guild, List<RegimeData>> regimes = new HotMap<>();
 
     public final double DAILY_INFLUENCE_CAP = 1.00;
+    private List<Menu> activeMenus = new ArrayList<>();
 
     public Frostbalance(String botToken, String name) {
         super(botToken, name);
@@ -65,6 +71,50 @@ public class Frostbalance extends BotBase {
         for (ICommand command : getCommands()) {
             command.run(event);
         }
+    }
+
+    @Override
+    public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
+        Menu targetMenu = null;
+        for (Menu menu : getActiveMenus()) {
+            if (event.getUser().equals(menu.getActor())) {
+                if (menu.getMessage().getId().equals(event.getMessageId())) {
+                    targetMenu = menu;
+                    break;
+                }
+            }
+        }
+        if (targetMenu != null) {
+            targetMenu.applyResponse(event.getReactionEmote());
+        }
+    }
+
+    @Override
+    public void onPrivateMessageReactionAdd(PrivateMessageReactionAddEvent event) {
+        Menu targetMenu = null;
+        for (Menu menu : getActiveMenus()) {
+            if (event.getUser().equals(menu.getActor())) {
+                if (menu.getMessage().getId().equals(event.getMessageId())) {
+                    targetMenu = menu;
+                    break;
+                }
+            }
+        }
+        if (targetMenu != null) {
+            targetMenu.applyResponse(event.getReactionEmote());
+        }
+    }
+
+    private List<Menu> getActiveMenus() {
+        return activeMenus;
+    }
+
+    public void addMenu(Menu menu) {
+        activeMenus.add(menu);
+    }
+
+    public void removeMenu(Menu menu) {
+        activeMenus.remove(menu);
     }
 
     @Override
@@ -591,5 +641,18 @@ public class Frostbalance extends BotBase {
 
     public AuthorityLevel getAuthority(Member member) {
         return getAuthority(member.getGuild(), member.getUser());
+    }
+
+    public Color getGuildColor(Guild guild) {
+        Collection<OptionFlag> flags = getDebugFlags(guild);
+        if (flags.contains(OptionFlag.RED)) {
+            return Color.RED;
+        } else if (flags.contains(OptionFlag.GREEN)) {
+            return Color.GREEN;
+        } else if (flags.contains(OptionFlag.BLUE)) {
+            return Color.BLUE;
+        } else {
+            return Color.LIGHT_GRAY;
+        }
     }
 }
