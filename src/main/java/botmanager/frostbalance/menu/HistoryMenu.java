@@ -53,7 +53,7 @@ public class HistoryMenu extends Menu {
 
         });
 
-        menuResponses.add(new MenuResponse("❎", "Exit") {
+        menuResponses.add(new MenuResponse("✅", "Exit") {
 
             @Override
             public void reactEvent() {
@@ -67,7 +67,7 @@ public class HistoryMenu extends Menu {
 
         });
 
-        menuResponses.add(new MenuResponse("✅", "Display") {
+        menuResponses.add(new MenuResponse("\uD83D\uDCCC", "Display") {
 
             @Override
             public void reactEvent() {

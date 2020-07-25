@@ -3,25 +3,32 @@ package botmanager.frostbalance.commands;
 import botmanager.Utilities;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.menu.BanManageMenu;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
 
 //TODO create a menu for global/guild bans/pardons
-public class GlobalBanCommand extends FrostbalanceSplitCommandBase {
+public class SystemBanCommand extends FrostbalanceSplitCommandBase {
 
-    public GlobalBanCommand(BotBase bot) {
+    public SystemBanCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "ban"
-        }, AuthorityLevel.BOT_ADMIN);
+        }, AuthorityLevel.GUILD_ADMIN);
     }
 
     @Override
     public void runPublic(GuildMessageReceivedEvent event, String message) {
         String result = "";
         boolean found = false;
+        String targetId;
 
-        String targetId = Utilities.findUserId(event.getGuild(), message);
+        targetId = Utilities.findUserId(event.getGuild(), message);
+
+        if (targetId == null) {
+            targetId = Utilities.findBannedUserId(event.getGuild(), message);
+        }
 
         if (targetId == null) {
             result += "Could not find user " + message + ".";
@@ -31,17 +38,11 @@ public class GlobalBanCommand extends FrostbalanceSplitCommandBase {
 
         User targetUser = event.getJDA().getUserById(targetId);
 
-        if (targetUser == null) {
-            result += "Could not find user " + message + ".";
-            Utilities.sendGuildMessage(event.getChannel(), result);
-            return;
+        try {
+            new BanManageMenu(bot, event.getGuild(), targetUser).send(event.getChannel(), event.getAuthor());
+        } catch (HierarchyException e) {
+            Utilities.sendGuildMessage(event.getChannel(), "You can't ban system admins with this command. Demote them first.");
         }
-
-        bot.globallyBanUser(targetUser);
-
-        result += "Removed player '" + targetUser.getAsMention() + "' from all servers. They will not return until pardoned.";
-
-        Utilities.sendGuildMessage(event.getChannel(), result);
 
     }
 

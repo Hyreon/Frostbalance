@@ -6,14 +6,14 @@ import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.menu.FlagMenu;
 import botmanager.generic.BotBase;
 
-//TODO
 public class FlagCommand extends FrostbalanceHybridCommandBase {
 
 
     public FlagCommand(BotBase bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "flag"
-        }, AuthorityLevel.GUILD_ADMIN);
+                bot.getPrefix() + "flags",
+                bot.getPrefix() + "settings"
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
@@ -33,13 +33,10 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        if (authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
-            return "**" + bot.getPrefix() + "flag FLAG** - toggle a debug flag to this server\n" +
-                    "**" + bot.getPrefix() + "flag** - view debug flags for this server";
-        } else if (authorityLevel.hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-            return "**" + bot.getPrefix() + "flag** - view debug flags for this server";
+        if (authorityLevel.hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
+            return "**" + bot.getPrefix() + "settings** - view/edit settings for this server";
         } else {
-            return null;
+            return "**" + bot.getPrefix() + "settings** - view settings for this server";
         }
     }
 }

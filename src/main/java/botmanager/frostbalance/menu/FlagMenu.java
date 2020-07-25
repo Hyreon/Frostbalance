@@ -2,6 +2,7 @@ package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.OptionFlag;
+import botmanager.frostbalance.generic.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
@@ -46,7 +47,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return !enabling;
+                return !enabling && bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -60,7 +61,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return enabling;
+                return enabling && bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -90,7 +91,7 @@ public class FlagMenu extends Menu {
         } else {
             builder.setColor(bot.getGuildColor(guild));
         }
-        builder.setTitle("Flags");
+        builder.setTitle(guild.getName() + ": Flags");
         String flagsEnabled = "";
         for (OptionFlag flag : bot.getDebugFlags(guild)) {
             flagsEnabled += flag.getEmoji() + " " + flag.getLabel() + "\n";

@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-//TODO remove text action
-//TODO delete old check requests when creating a duplicate
 public class CheckCommand extends FrostbalanceSplitCommandBase {
 
     HotMap<TextChannel, Collection<Pair<User, User>>> privateCheckRequests = new HotMap<>();

@@ -3,16 +3,17 @@ package botmanager.frostbalance.commands;
 import botmanager.Utilities;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.menu.PardonManageMenu;
 import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class GlobalPardonCommand extends FrostbalanceSplitCommandBase {
+public class SystemPardonCommand extends FrostbalanceSplitCommandBase {
 
-    public GlobalPardonCommand(BotBase bot) {
+    public SystemPardonCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "pardon"
-        }, AuthorityLevel.BOT_ADMIN);
+        }, AuthorityLevel.GUILD_ADMIN);
     }
 
     @Override
@@ -20,24 +21,23 @@ public class GlobalPardonCommand extends FrostbalanceSplitCommandBase {
 
         String result = "";
         User targetUser;
+        String targetId;
 
-        targetUser = Utilities.findBannedUser(event.getGuild(), message);
+        targetId = Utilities.findBannedUserId(event.getGuild(), message);
 
-        if (targetUser == null) {
+        if (targetId == null) {
+            targetId = Utilities.findUserId(event.getGuild(), message);
+        }
+
+        if (targetId == null) {
             result += "Could not find user " + message + ".";
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
 
-        boolean success = bot.globallyPardonUser(targetUser);
+        targetUser = bot.getJDA().getUserById(targetId);
 
-        if (success) {
-            result += "Pardoned player '" + targetUser.getAsMention() + "' from all servers.";
-        } else {
-            result += "Unable to pardon '" + targetUser.getAsMention() + "'; they are not banned.";
-        }
-
-        Utilities.sendGuildMessage(event.getChannel(), result);
+        new PardonManageMenu(bot, event.getGuild(), targetUser).send(event.getChannel(), event.getAuthor());
 
     }
 

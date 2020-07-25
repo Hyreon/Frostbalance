@@ -18,6 +18,8 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
 
 import java.awt.*;
 import java.io.File;
@@ -53,8 +55,8 @@ public class Frostbalance extends BotBase {
                 new SetGuildCommand(this),
                 new InterveneCommand(this),
                 new AdjustCommand(this),
-                new GlobalBanCommand(this),
-                new GlobalPardonCommand(this),
+                new SystemBanCommand(this),
+                new SystemPardonCommand(this),
                 new FlagCommand(this),
         });
     }
@@ -129,9 +131,9 @@ public class Frostbalance extends BotBase {
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         System.out.println("PLAYER JOINING: " + event.getUser().getId());
-        if (isGloballyBanned(event.getUser())) {
+        if (isBanned(event.getGuild(), event.getUser())) {
             System.out.println("Found a banned player, banning them once again");
-            event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE).complete();
+            event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE).queue();
         }
     }
 
@@ -239,12 +241,40 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    public void banUser(Guild guild, User user) {
+
+        setUserCSVAtIndex(guild, user, 1, Boolean.TRUE.toString());
+        try {
+            guild.ban(user, 0).queue();
+        } catch (HierarchyException e) {
+            System.err.println("Unable to ban admin user " + user.getName() + ".");
+            e.printStackTrace();
+        }
+
+    }
+
+    public void pardonUser(Guild guild, User user) {
+
+        setUserCSVAtIndex(guild, user, 1, Boolean.FALSE.toString());
+        try {
+            guild.unban(user).queue();
+        } catch (ErrorResponseException e) {
+            //nothing
+        }
+
+    }
+
     public void globallyBanUser(User user) {
 
         Utilities.append(new File("data/" + getName() + "/global/bans.csv"), user.getId());
         for (Guild guild : getJDA().getGuilds()) {
             if (guild.isMember(user)) {
-                guild.ban(user, 0).complete();
+                try {
+                    guild.ban(user, 0).queue();
+                } catch (HierarchyException e) {
+                    System.err.println("Unable to fully ban user " + user.getName() + " because they have admin privileges in some servers!");
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -264,7 +294,11 @@ public class Frostbalance extends BotBase {
                 found = true;
 
                 for (Guild guild : getJDA().getGuilds()) {
-                    guild.unban(user).complete();
+                    try {
+                        guild.unban(user).queue();
+                    } catch (ErrorResponseException e) {
+                        //nothing
+                    }
                 }
 
             }
@@ -277,12 +311,36 @@ public class Frostbalance extends BotBase {
     }
 
     /**
+     * Returns if the player is banned from this guild.
+     * @param guild The guild to check
+     * @param user The user to check
+     * @return Whether this user is banned from this guild, or banned globally
+     */
+    public boolean isBanned(Guild guild, User user) {
+
+        return isGloballyBanned(user) || isLocallyBanned(guild, user);
+
+    }
+
+    /**
+     * Returns if the player is banned from this guild.
+     * @param guild The guild to check
+     * @param user The user to check
+     * @return Whether this user is banned from this guild, or banned globally
+     */
+    public boolean isLocallyBanned(Guild guild, User user) {
+
+        return Boolean.parseBoolean(getUserCSVAtIndex(guild, user, 1));
+
+    }
+
+    /**
      * Returns if the player is globally banned.
      * This function is expensive and should not be fired often.
      * @param user The user to check
      * @return Whether this user is banned globally
      */
-    private boolean isGloballyBanned(User user) {
+    public boolean isGloballyBanned(User user) {
 
         List<String> bannedUserIds = Utilities.readLines(new File("data/" + getName() + "/global/bans.csv"));
         for (String bannedUserId : bannedUserIds) {
@@ -333,7 +391,7 @@ public class Frostbalance extends BotBase {
         Member currentOwner = getOwner(guild);
 
         if (currentOwner != null) {
-            guild.removeRoleFromMember(currentOwner, getOwnerRole(guild)).complete();
+            guild.removeRoleFromMember(currentOwner, getOwnerRole(guild)).queue();
         }
 
         if (currentOwnerId != null && !currentOwnerId.isEmpty()) {
@@ -359,7 +417,7 @@ public class Frostbalance extends BotBase {
         RegimeData regime = new RegimeData(guild, user.getId(), Utilities.todayAsLong());
         getRecords(guild).add(regime);
 
-        guild.addRoleToMember(guild.getMember(user), getOwnerRole(guild)).complete();
+        guild.addRoleToMember(guild.getMember(user), getOwnerRole(guild)).queue();
         updateOwner(guild, user);
 
         logRegime(guild, regime);

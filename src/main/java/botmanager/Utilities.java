@@ -310,11 +310,11 @@ public class Utilities {
         return LocalDate.now().toEpochDay();
     }
 
-    public static User findBannedUser(Guild guild, String name) {
+    public static String findBannedUserId(Guild guild, String name) {
 
         for (Guild.Ban ban : guild.retrieveBanList().complete()) {
             if (ban.getUser().getName().equals(name)) {
-                return ban.getUser();
+                return ban.getUser().getId();
             }
         }
 
