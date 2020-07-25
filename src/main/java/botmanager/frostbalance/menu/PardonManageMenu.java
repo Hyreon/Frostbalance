@@ -11,7 +11,7 @@ public class PardonManageMenu extends Menu {
     Guild guild;
     User target;
     String knownName;
-    Alternative outcome = Alternative.LOCAL;
+    Alternative outcome = Alternative.CONFIRM;
 
     public PardonManageMenu(Frostbalance bot, Guild guild, User target) {
         super(bot);
@@ -51,12 +51,10 @@ public class PardonManageMenu extends Menu {
             }
         });
 
-        menuResponses.add(new MenuResponse("✅", getMenuResponseName(Alternative.LOCAL)) {
+        menuResponses.add(new MenuResponse("✅", getMenuResponseName(Alternative.CONFIRM)) {
 
             @Override
             public void reactEvent() {
-                outcome = Alternative.LOCAL;
-                bot.pardonUser(guild, target);
                 close(false);
             }
 
@@ -95,7 +93,7 @@ public class PardonManageMenu extends Menu {
                     default:
                         return "Globally pardon";
                 }
-            case LOCAL:
+            case CONFIRM:
                 switch (this.outcome) {
                     case INCOMPLETE:
                         return "Keep pardon only local";
@@ -121,14 +119,9 @@ public class PardonManageMenu extends Menu {
         if (outcome.equals(Alternative.GLOBAL)) {
             builder.setTitle("**" + knownName + " globally pardoned**");
             builder.setDescription("This player has been allowed into **all** Frostbalance guilds, and all bans have been lifted.");
-        } else if (outcome.equals(Alternative.LOCAL)) {
-            if (bot.isGloballyBanned(target)) {
-                builder.setTitle("*" + knownName + " globally banned*");
-                builder.setDescription("This player remains banned from all Frostbalance servers.");
-            } else {
-                builder.setTitle(knownName + " pardoned");
-                builder.setDescription("This player has been allowed into this Frostbalance guild and can now re-join it.");
-            }
+        } else if (outcome.equals(Alternative.CONFIRM)) {
+            builder.setTitle(knownName + " pardoned");
+            builder.setDescription("This player has been allowed into this Frostbalance guild and can now re-join it.");
         } else if (outcome.equals(Alternative.UNDONE)) {
             builder.setTitle(knownName + " banned");
             builder.setDescription("This player has been removed from this Frostbalance guild and can no longer re-join it.");
@@ -144,7 +137,7 @@ public class PardonManageMenu extends Menu {
 
     private enum Alternative {
         UNDONE,
-        LOCAL,
+        CONFIRM,
         GLOBAL,
         FAILED, //ban failed because the player wasn't banned, globally or locally.
         INCOMPLETE; //ban failed because the player has a global ban, but no local one.

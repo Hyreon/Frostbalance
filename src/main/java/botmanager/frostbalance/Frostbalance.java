@@ -260,14 +260,21 @@ public class Frostbalance extends BotBase {
 
     }
 
-    public void pardonUser(Guild guild, User user) {
+    /**
+     *
+     * @param guild
+     * @param user
+     * @return Whether the user had a ban from the server when pardoned.
+     */
+    public boolean pardonUser(Guild guild, User user) {
 
         setUserCSVAtIndex(guild, user, 1, Boolean.FALSE.toString());
         try {
             guild.unban(user).queue();
         } catch (ErrorResponseException e) {
-            //nothing
+            return false;
         }
+        return true;
 
     }
 
