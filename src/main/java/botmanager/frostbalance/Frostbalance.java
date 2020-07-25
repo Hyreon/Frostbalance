@@ -135,6 +135,13 @@ public class Frostbalance extends BotBase {
             System.out.println("Found a banned player, banning them once again");
             event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE).queue();
         }
+        for (Guild guild : event.getUser().getMutualGuilds()) {
+            if (getDebugFlags(guild).contains(OptionFlag.MAIN)
+                    && getOwner(guild) != null
+                    && getOwner(guild).getUser().equals(event.getUser())) {
+                grantDiplomatStatus(guild);
+            }
+        }
     }
 
     public String getUserCSVAtIndex(Guild guild, User user, int index) {
@@ -390,6 +397,8 @@ public class Frostbalance extends BotBase {
         String currentOwnerId = getOwnerId(guild);
         Member currentOwner = getOwner(guild);
 
+        revokeDiplomatStatus(guild);
+
         if (currentOwner != null) {
             guild.removeRoleFromMember(currentOwner, getOwnerRole(guild)).queue();
         }
@@ -413,6 +422,27 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    /**
+     * Revoke diplomat status of the current leader of a guild.
+     * This is used during the end of a regime.
+     * @param guild
+     */
+    private void revokeDiplomatStatus(Guild guild) {
+        System.out.println("Revoking diplomat status of previous leader in " + guild.getName() + " (" + guild.getOwner().getEffectiveName() + ")");
+        if (getDebugFlags(guild).contains(OptionFlag.MAIN)) {
+            for (Guild foreignGuild : getJDA().getGuilds()) {
+                if (getDebugFlags(guild).contains(OptionFlag.MAIN) && !guild.equals(foreignGuild)) {
+                    System.out.println("Found relevant guild to test: " + foreignGuild.getName());
+                    Member ownerAsForeignMember = foreignGuild.getMember(guild.getOwner().getUser());
+                    if (ownerAsForeignMember != null) {
+                        System.out.println("Removing role in" + foreignGuild.getName());
+                        foreignGuild.removeRoleFromMember(ownerAsForeignMember, getForeignOwnerRole(foreignGuild, guild)).queue();
+                    }
+                }
+            }
+        }
+    }
+
     public void startRegime(Guild guild, User user) {
         RegimeData regime = new RegimeData(guild, user.getId(), Utilities.todayAsLong());
         getRecords(guild).add(regime);
@@ -421,6 +451,29 @@ public class Frostbalance extends BotBase {
         updateOwner(guild, user);
 
         logRegime(guild, regime);
+
+        grantDiplomatStatus(guild);
+    }
+
+    /**
+     * Grants diplomat status to the leader in charge of a regime.
+     * This can be run at any time to ensure diplomat status is in place.
+     * @param fromGuild
+     */
+    private void grantDiplomatStatus(Guild fromGuild) {
+        System.out.println("Granting diplomat status of new leader in " + fromGuild.getName() + " (" + fromGuild.getOwner().getEffectiveName() + ")");
+        if (getDebugFlags(fromGuild).contains(OptionFlag.MAIN)) {
+            for (Guild foreignGuild : getJDA().getGuilds()) {
+                if (getDebugFlags(fromGuild).contains(OptionFlag.MAIN) && !fromGuild.equals(foreignGuild)) {
+                    System.out.println("Found relevant guild " + foreignGuild.getName());
+                    Member ownerAsForeignMember = foreignGuild.getMember(getOwner(fromGuild).getUser());
+                    if (ownerAsForeignMember != null) {
+                        System.out.println("Adding role in " + foreignGuild.getName());
+                        foreignGuild.addRoleToMember(ownerAsForeignMember, getForeignOwnerRole(foreignGuild, fromGuild)).queue();
+                    }
+                }
+            }
+        }
     }
 
     public Collection<OptionFlag> getDebugFlags(Guild guild) {
@@ -615,7 +668,7 @@ public class Frostbalance extends BotBase {
 
     public Role getOwnerRole(Guild guild) {
         try {
-            return guild.getRolesByName("OWNER", true).get(0);
+            return guild.getRolesByName("LEADER", true).get(0);
         } catch (IndexOutOfBoundsException e) {
             System.err.println(guild.getName() + " doesn't have a valid owner role!");
             return null;
@@ -629,6 +682,41 @@ public class Frostbalance extends BotBase {
             System.err.println(guild.getName() + " doesn't have a valid frostbalance role!");
             return null;
         }
+    }
+
+    public Role getForeignOwnerRole(Guild inGuild, Guild fromGuild) {
+
+        if (!getDebugFlags(inGuild).contains(OptionFlag.MAIN)) {
+            return null;
+        } else if (!getDebugFlags(fromGuild).contains(OptionFlag.MAIN)) {
+            return null;
+        }
+
+        Collection<OptionFlag> foreignOptions = getDebugFlags(fromGuild);
+        if (foreignOptions.contains(OptionFlag.RED)) {
+            try {
+                return inGuild.getRolesByName("RED LEADER", true).get(0);
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println(inGuild.getName() + " doesn't have a valid red owner role!");
+                return null;
+            }
+        } else if (foreignOptions.contains(OptionFlag.GREEN)) {
+            try {
+                return inGuild.getRolesByName("GREEN LEADER", true).get(0);
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println(inGuild.getName() + " doesn't have a valid green owner role!");
+                return null;
+            }
+        } else if (foreignOptions.contains(OptionFlag.BLUE)) {
+            try {
+                return inGuild.getRolesByName("BLUE LEADER", true).get(0);
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println(inGuild.getName() + " doesn't have a valid blue owner role!");
+                return null;
+            }
+        }
+
+        throw new IllegalStateException("Main server exists without a color scheme!");
     }
 
     public boolean hasSystemRoleEverywhere(User user) {
