@@ -2,6 +2,8 @@ package botmanager.frostbalance;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.*;
+import botmanager.frostbalance.commands.admin.*;
+import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.RegimeData;
@@ -14,6 +16,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Guild.Ban;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateIconEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -107,6 +110,13 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    //TODO add the effect to the icon
+    @Override
+    public void onGuildUpdateIcon(GuildUpdateIconEvent event) {
+        event.getNewIconUrl();
+        //new GuildManagerImpl(event.getGuild()).setIcon(null).queue();
+    }
+
     private List<Menu> getActiveMenus() {
         return activeMenus;
     }
@@ -126,6 +136,19 @@ public class Frostbalance extends BotBase {
             System.out.println("Leader left, making a note here");
             endRegime(event.getGuild(), TerminationCondition.LEFT);
         }
+        try {
+            event.getGuild().retrieveBan(event.getUser()).complete(); //verify this player was banned and didn't just leave
+            if (hasDiplomatStatus(event.getUser())
+                    && !isBanned(event.getGuild(), event.getUser())
+                    && getDebugFlags(event.getGuild()).contains(OptionFlag.MAIN)) {
+                event.getGuild().unban(event.getUser()).complete();
+                Utilities.sendGuildMessage(event.getGuild().getDefaultChannel(),
+                        event.getUser().getName() + " has been unbanned because they are the leader of a main server.");
+            }
+        } catch (ErrorResponseException e) {
+            //nothing, there was no ban.
+            //TODO ask for permission, not forgiveness
+        }
     }
 
     @Override
@@ -134,13 +157,6 @@ public class Frostbalance extends BotBase {
         if (isBanned(event.getGuild(), event.getUser())) {
             System.out.println("Found a banned player, banning them once again");
             event.getGuild().ban(event.getUser(), 0, BAN_MESSAGE).queue();
-        }
-        for (Guild guild : event.getUser().getMutualGuilds()) {
-            if (getDebugFlags(guild).contains(OptionFlag.MAIN)
-                    && getOwner(guild) != null
-                    && getOwner(guild).getUser().equals(event.getUser())) {
-                grantDiplomatStatus(guild);
-            }
         }
     }
 
@@ -404,8 +420,6 @@ public class Frostbalance extends BotBase {
         String currentOwnerId = getOwnerId(guild);
         Member currentOwner = getOwner(guild);
 
-        revokeDiplomatStatus(guild);
-
         if (currentOwner != null) {
             guild.removeRoleFromMember(currentOwner, getOwnerRole(guild)).queue();
         }
@@ -430,24 +444,17 @@ public class Frostbalance extends BotBase {
     }
 
     /**
-     * Revoke diplomat status of the current leader of a guild.
-     * This is used during the end of a regime.
-     * @param guild
+     * Returns true if the player is a leader in a main server.
+     * @param user The user in question
+     * @return True if a guild can be found where this player is the same as the owner of that server.
      */
-    private void revokeDiplomatStatus(Guild guild) {
-        System.out.println("Revoking diplomat status of previous leader in " + guild.getName() + " (" + guild.getOwner().getEffectiveName() + ")");
-        if (getDebugFlags(guild).contains(OptionFlag.MAIN)) {
-            for (Guild foreignGuild : getJDA().getGuilds()) {
-                if (getDebugFlags(guild).contains(OptionFlag.MAIN) && !guild.equals(foreignGuild)) {
-                    System.out.println("Found relevant guild to test: " + foreignGuild.getName());
-                    Member ownerAsForeignMember = foreignGuild.getMember(guild.getOwner().getUser());
-                    if (ownerAsForeignMember != null) {
-                        System.out.println("Removing role in" + foreignGuild.getName());
-                        foreignGuild.removeRoleFromMember(ownerAsForeignMember, getForeignOwnerRole(foreignGuild, guild)).queue();
-                    }
-                }
+    public boolean hasDiplomatStatus(User user) {
+        for (Guild guild : getJDA().getGuilds()) {
+            if (getDebugFlags(guild).contains(OptionFlag.MAIN) && getOwner(guild).getUser().equals(user)) {
+                return true;
             }
         }
+        return false;
     }
 
     public void startRegime(Guild guild, User user) {
@@ -458,29 +465,6 @@ public class Frostbalance extends BotBase {
         updateOwner(guild, user);
 
         logRegime(guild, regime);
-
-        grantDiplomatStatus(guild);
-    }
-
-    /**
-     * Grants diplomat status to the leader in charge of a regime.
-     * This can be run at any time to ensure diplomat status is in place.
-     * @param fromGuild
-     */
-    private void grantDiplomatStatus(Guild fromGuild) {
-        System.out.println("Granting diplomat status of new leader in " + fromGuild.getName() + " (" + fromGuild.getOwner().getEffectiveName() + ")");
-        if (getDebugFlags(fromGuild).contains(OptionFlag.MAIN)) {
-            for (Guild foreignGuild : getJDA().getGuilds()) {
-                if (getDebugFlags(fromGuild).contains(OptionFlag.MAIN) && !fromGuild.equals(foreignGuild)) {
-                    System.out.println("Found relevant guild " + foreignGuild.getName());
-                    Member ownerAsForeignMember = foreignGuild.getMember(getOwner(fromGuild).getUser());
-                    if (ownerAsForeignMember != null) {
-                        System.out.println("Adding role in " + foreignGuild.getName());
-                        foreignGuild.addRoleToMember(ownerAsForeignMember, getForeignOwnerRole(foreignGuild, fromGuild)).queue();
-                    }
-                }
-            }
-        }
     }
 
     public Collection<OptionFlag> getDebugFlags(Guild guild) {

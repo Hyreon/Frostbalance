@@ -1,4 +1,4 @@
-package botmanager.frostbalance.commands;
+package botmanager.frostbalance.commands.admin;
 
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
