@@ -1,8 +1,8 @@
 package botmanager.frostbalance;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.commands.*;
 import botmanager.frostbalance.commands.admin.*;
+import botmanager.frostbalance.commands.influence.*;
 import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
@@ -114,6 +114,7 @@ public class Frostbalance extends BotBase {
     @Override
     public void onGuildUpdateIcon(GuildUpdateIconEvent event) {
         event.getNewIconUrl();
+        
         //new GuildManagerImpl(event.getGuild()).setIcon(null).queue();
     }
 
