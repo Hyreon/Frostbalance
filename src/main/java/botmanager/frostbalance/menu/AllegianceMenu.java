@@ -9,10 +9,12 @@ import java.awt.*;
 public class AllegianceMenu extends Menu {
 
     private static final String ADDENDUM = "\n*Note: If you change your allegiance later, your claims will cease to be valid until you return to your original nation. You **cannot** move claims from one nation to another!*";
-    Cause cause = Cause.NOT_SET;
+    Cause cause;
 
-    public AllegianceMenu(Frostbalance bot) {
+    public AllegianceMenu(Frostbalance bot, Cause cause) {
         super(bot);
+
+        this.cause = cause;
 
         menuResponses.add(new MenuResponse("\uD83D\uDFE5", "Red") {
 
@@ -68,6 +70,10 @@ public class AllegianceMenu extends Menu {
                 return true;
             }
         });
+    }
+
+    public AllegianceMenu(Frostbalance bot) {
+        this(bot, Cause.NOT_SET);
     }
 
     @Override

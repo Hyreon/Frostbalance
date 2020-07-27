@@ -89,9 +89,23 @@ public class PlayerCharacter extends TileObject {
 
     public Member getMember() {
         if (map.getGuild() == null) {
-            return Frostbalance.bot.getGuildFor(getNation()).getMember(getUser());
+            Guild guild = Frostbalance.bot.getGuildFor(getNation());
+            if (guild == null) {
+                return null;
+            } else {
+                return guild.getMember(getUser());
+            }
         } else {
             return map.getGuild().getMember(getUser());
+        }
+    }
+
+    public String getName() {
+        Member member = getMember();
+        if (member == null) {
+            return getUser().getName();
+        } else {
+            return member.getEffectiveName();
         }
     }
 }

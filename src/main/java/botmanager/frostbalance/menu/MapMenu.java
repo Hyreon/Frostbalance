@@ -1,11 +1,16 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.grid.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
+import botmanager.frostbalance.grid.Tile;
 import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.render.MapRenderer;
 import net.dv8tion.jda.api.EmbedBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapMenu extends Menu {
 
@@ -103,10 +108,31 @@ public class MapMenu extends Menu {
         } else {
             builder.setTitle("Map of " + map.getGuild().getName());
         }
-        builder.setDescription(player.getMember().getEffectiveName() + " at " + player.getLocation().toString());
+        builder.setDescription(player.getName() + " at " + player.getLocation().toString() + "\n" + claimList());
         builder.setImage(MapRenderer.render(map, location()));
 
         return builder;
+    }
+
+    private String claimList() {
+
+        Tile tile = map.getTileLazy(player.getLocation());
+
+        List<String> lines = new ArrayList<>();
+        Nation owningNation = tile.getOwningNation();
+        if (owningNation != null) {
+            for (Nation nation : Nation.getNations()) {
+                Double strength = tile.getNationalStrength(nation);
+                if (strength == 0.0) continue;
+                String effectiveString = bot.getGuildFor(nation).getName() + ": " + strength;
+                if (owningNation == nation) {
+                    lines.add("**" + effectiveString + "**");
+                } else {
+                    lines.add(effectiveString);
+                }
+            }
+        }
+        return String.join("\n", lines);
     }
 
     private class MapMoveResponse extends MenuResponse {

@@ -38,7 +38,7 @@ public class Tile {
         getOwningNation();
         PlayerCharacter selectedPlayer = null;
         Double selectedStrength = 0.0;
-        for (Claim claim : claims) {
+        for (Claim claim : getActiveClaims()) {
             if (claim.getNation() != lastOwningNation) continue;
             if (!claim.isActive()) continue;
             if (claim.getStrength() > selectedStrength ||
@@ -57,17 +57,16 @@ public class Tile {
      * @return The nation that owns this tile (or null if there are no national claims).
      */
     public Nation getOwningNation() {
-        HashMap<Nation, Double> nationalClaimStrengths = new HashMap<>();
-        for (Claim claim : claims) {
-            nationalClaimStrengths.put(claim.getNation(), nationalClaimStrengths.getOrDefault(claim.getNation(), 0.0) + claim.getStrength());
-        }
+        //if (getClaims().isEmpty()) return null;
         Nation selectedNation = null;
-        Double selectedStrength = 0.0;
-        for (Nation nation : nationalClaimStrengths.keySet()) {
-            if (nationalClaimStrengths.get(nation) > selectedStrength ||
-                    (lastOwningNation != null && lastOwningNation.equals(nation) && selectedStrength == nationalClaimStrengths.get(nation))) {
+        Double selectedStrength = getNationalStrength(lastOwningNation);
+
+        for (Nation nation : Nation.getNations()) {
+            Double nationalStrength = getNationalStrength(nation);
+            if (nationalStrength > selectedStrength ||
+                    (lastOwningNation != null && lastOwningNation.equals(nation))) {
                 selectedNation = nation;
-                selectedStrength = nationalClaimStrengths.get(nation);
+                selectedStrength = nationalStrength;
             }
         }
         lastOwningNation = selectedNation;
@@ -81,7 +80,7 @@ public class Tile {
      * @param strength
      */
     public Claim addClaim(PlayerCharacter player, Nation nation, Double strength) {
-        for (Claim claim : claims) {
+        for (Claim claim : getClaims()) {
             if (claim.overlaps(this, player, nation)) {
                 claim.add(strength);
                 getOwningNation();
@@ -91,7 +90,6 @@ public class Tile {
         }
 
         Claim newClaim = new Claim(this, player, nation, strength);
-        claims.add(newClaim);
         getOwningNation();
         map.updateStrongestClaim();
         return newClaim;
@@ -102,7 +100,7 @@ public class Tile {
     }
 
     public Claim addClaim(Claim newClaim) {
-        for (Claim claim : claims) {
+        for (Claim claim : getClaims()) {
             if (newClaim.overlaps(claim)) {
                 throw new IllegalArgumentException("This claim overlaps an existing claim!");
             }
@@ -114,7 +112,7 @@ public class Tile {
     }
 
     public Claim getClaim(PlayerCharacter player, Nation nation) {
-        for (Claim claim : claims) {
+        for (Claim claim : getClaims()) {
             if (claim.overlaps(this, player, nation)) {
                 return claim;
             }
@@ -141,7 +139,7 @@ public class Tile {
 
     public Double getNationalStrength(Nation nation) {
         Double nationalStrength = 0.0;
-        for (Claim claim : claims) {
+        for (Claim claim : getActiveClaims()) {
             if (claim.getNation() == nation) {
                 nationalStrength += claim.getStrength();
             }
@@ -152,7 +150,7 @@ public class Tile {
 
     public Double getNationalStrength() {
         HashMap<Nation, Double> nationalClaimStrengths = new HashMap<>();
-        for (Claim claim : claims) {
+        for (Claim claim : getActiveClaims()) {
             nationalClaimStrengths.put(claim.getNation(), nationalClaimStrengths.getOrDefault(claim.getNation(), 0.0) + claim.getStrength());
         }
         Double selectedStrength = 0.0;
@@ -179,5 +177,17 @@ public class Tile {
 
     public WorldMap getMap() {
         return map;
+    }
+
+    public Collection<Claim> getClaims() {
+        return claims;
+    }
+
+    public Collection<Claim> getActiveClaims() {
+        List<Claim> activeClaims = new ArrayList<>();
+        for (Claim claim : claims) {
+            if (claim.isActive()) activeClaims.add(claim);
+        }
+        return activeClaims;
     }
 }

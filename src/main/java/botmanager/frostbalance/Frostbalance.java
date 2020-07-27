@@ -5,10 +5,7 @@ import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
 import botmanager.frostbalance.commands.map.ClaimTileCommand;
 import botmanager.frostbalance.commands.map.ViewMapCommand;
-import botmanager.frostbalance.commands.meta.GetInfluenceCommand;
-import botmanager.frostbalance.commands.meta.HelpCommand;
-import botmanager.frostbalance.commands.meta.HistoryCommand;
-import botmanager.frostbalance.commands.meta.SetGuildCommand;
+import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.RegimeData;
@@ -78,6 +75,7 @@ public class Frostbalance extends BotBase {
                 new FlagCommand(this),
                 new ViewMapCommand(this),
                 new ClaimTileCommand(this),
+                new AllegianceCommand(this),
         });
 
         bot = this;
@@ -102,9 +100,13 @@ public class Frostbalance extends BotBase {
         Menu targetMenu = null;
         for (Menu menu : getActiveMenus()) {
             if (event.getUser().equals(menu.getActor())) {
-                if (menu.getMessage().getId().equals(event.getMessageId())) {
-                    targetMenu = menu;
-                    break;
+                try {
+                    if (menu.getMessage().getId().equals(event.getMessageId())) {
+                        targetMenu = menu;
+                        break;
+                    }
+                } catch (NullPointerException e) {
+                    //these happen often enough. let's not have them ruin other menus when they do
                 }
             }
         }

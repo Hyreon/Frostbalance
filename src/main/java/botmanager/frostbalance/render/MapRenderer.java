@@ -8,7 +8,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 public class MapRenderer {
 
@@ -20,7 +19,6 @@ public class MapRenderer {
     public static String render(WorldMap map, Hex center) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
-        renderTile(g, map.getTileLazy(center), center);
         for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
             renderTile(g, map.getTileLazy(drawHex), center);
         }
@@ -37,14 +35,14 @@ public class MapRenderer {
     }
 
     private static void renderTile(Graphics g, Tile tile, Hex center) {
+        System.out.println("Rendering " + tile.getLocation());
         Hex drawnHex = tile.getLocation().subtract(center);
         g.setColor(getPoliticalColor(tile));
         g.fillPolygon(getHex(drawnHex));
         for (TileObject object : tile.getObjects()) {
-            URL url = object.getRender();
-            if (url == null) continue;
             try {
-                BufferedImage image = ImageIO.read(url);
+                BufferedImage image = object.getImage();
+                if (image == null) continue;
                 g.drawImage(image, (int) (drawnHex.drawX() - Hex.X_SCALE/2 + DEFAULT_WIDTH/2),
                         (int) (drawnHex.drawY() - Hex.Y_SCALE/2 + DEFAULT_HEIGHT/2),
                         (int) Hex.X_SCALE,
@@ -83,16 +81,16 @@ public class MapRenderer {
                         / tile.getMap().getStrongestClaim();
                 int drawValue;
                 if (nation != owningNation) {
-                    drawValue = BCOLOR + (int) ((128 - BCOLOR) * ratio);
+                    drawValue = (BCOLOR + (int) ((255 - BCOLOR) * ratio)) / 2;
                 } else {
                     drawValue = BCOLOR + (int) ((255 - BCOLOR) * ratio);
                 }
                 System.out.println("Ratio: " + ratio);
                 System.out.println("DrawValue: " + drawValue);
-                color = nation.adjust(color, drawValue);
+                color = nation.adjustDisplayColor(color, drawValue);
             }
         } else {
-            color = Color.DARK_GRAY;
+            color = new Color(BCOLOR, BCOLOR, BCOLOR);
         }
         return color;
     }

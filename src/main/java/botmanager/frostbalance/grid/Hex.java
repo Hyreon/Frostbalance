@@ -11,6 +11,7 @@ package botmanager.frostbalance.grid;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,6 +38,12 @@ public class Hex {
     long y;
     long z;
 
+    /**
+     * An internal cache value to speed up performance.
+     * Normal hexes won't have the expensive normalize() function applied to them.
+     */
+    private boolean isNormal = false;
+
     public Hex() {
         this.x = 0;
         this.y = 0;
@@ -47,6 +54,7 @@ public class Hex {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.isNormal = getMedian() == 0;
     }
 
     public Hex move(Direction direction, long value) {
@@ -143,21 +151,34 @@ public class Hex {
      * @return
      */
     public Hex normalize() {
+        if (isNormal) return this;
         return new Hex(x - getMedian(), y - getMedian(), z - getMedian());
     }
 
     public Collection<Hex> getHexesToDrawAround(int width, int height) {
         Set<Hex> hexes = new HashSet<>();
-        for (double j = - height / Y_SCALE / 2 - 1; j < height / Y_SCALE / 2 + 1; j++) {
-            for (double i = -1; i > - width / X_SCALE / 4 - 2; i--) {
-                hexes.add(add(new Hex( (int) i, -(int) i-1, (int) j)));
-                hexes.add(add(new Hex( (int) i, -(int) i, (int) j)));
+        for (int j = (int) (- height / Y_SCALE / 2 - 1); j < height / Y_SCALE / 2 + 1; j++) {
+            for (int i = -1; i > - width / X_SCALE / 4 - 2; i--) {
+
+                if (!hexes.add(add(new Hex( i, -i-1, j)))) {
+                    System.out.printf("Duplicate at i=%i, j=%i in pass 1/4", i, j);
+                }
+                if (!hexes.add(add(new Hex( i, -i, j)))) {
+                    System.out.printf("Duplicate at i=%i, j=%i in pass 2/4", i, j);
+                }
             }
-            for (double i = 1; i < width / X_SCALE / 4 + 2; i++) {
-                hexes.add(add(new Hex((int) i - 1, - (int) i, (int) j)));
-                hexes.add(add(new Hex((int) i, - (int) i, (int) j)));
+            for (int i = 1; i < width / X_SCALE / 4 + 2; i++) {
+
+                if (!hexes.add(add(new Hex(i - 1, -i, j)))) {
+                    System.out.printf("Duplicate at i=%i, j=%i in pass 3/4", i, j);
+                }
+                if (!hexes.add(add(new Hex(i, -i, j)))) {
+                    System.out.printf("Duplicate at i=%i, j=%i in pass 4/4", i, j);
+                }
             }
-            hexes.add(add(new Hex(0, 0, (int) j)));
+            if (!hexes.add(add(new Hex(0, 0, j)))) {
+                System.out.println("Duplicate at j=" + j);
+            }
         }
         return hexes;
     }
@@ -204,6 +225,11 @@ public class Hex {
         return other.x == selfForComparison.x
                 && other.y == selfForComparison.y
                 && other.z == selfForComparison.z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getX(), getY(), getZ());
     }
 
 

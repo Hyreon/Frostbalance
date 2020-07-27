@@ -29,7 +29,7 @@ public enum Nation {
         return color;
     }
 
-    public Color adjust(Color color, int drawValue) {
+    public Color adjustDisplayColor(Color color, int drawValue) {
         switch (this) {
             case RED:
                 return new Color(drawValue, color.getGreen(), color.getBlue());
