@@ -769,50 +769,6 @@ public class Frostbalance extends BotBase {
         }
     }
 
-    public Role getForeignOwnerRole(Guild inGuild, Guild fromGuild) {
-
-        if (!getDebugFlags(inGuild).contains(OptionFlag.MAIN)) {
-            return null;
-        } else if (!getDebugFlags(fromGuild).contains(OptionFlag.MAIN)) {
-            return null;
-        }
-
-        Collection<OptionFlag> foreignOptions = getDebugFlags(fromGuild);
-        if (foreignOptions.contains(OptionFlag.RED)) {
-            try {
-                return inGuild.getRolesByName("RED LEADER", true).get(0);
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println(inGuild.getName() + " doesn't have a valid red owner role!");
-                return null;
-            }
-        } else if (foreignOptions.contains(OptionFlag.GREEN)) {
-            try {
-                return inGuild.getRolesByName("GREEN LEADER", true).get(0);
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println(inGuild.getName() + " doesn't have a valid green owner role!");
-                return null;
-            }
-        } else if (foreignOptions.contains(OptionFlag.BLUE)) {
-            try {
-                return inGuild.getRolesByName("BLUE LEADER", true).get(0);
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println(inGuild.getName() + " doesn't have a valid blue owner role!");
-                return null;
-            }
-        }
-
-        throw new IllegalStateException("Main server exists without a color scheme!");
-    }
-
-    public boolean hasSystemRoleEverywhere(User user) {
-        for (Guild guild : getJDA().getGuilds()) {
-            if (guild.getMember(user) == null || guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     /**
      * Performs a soft reset on a guild. This will set reset all player roles and lift all bans.
      * In the future, it will also reset the server icon and name.
