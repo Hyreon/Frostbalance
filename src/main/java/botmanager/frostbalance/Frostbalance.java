@@ -169,6 +169,8 @@ public class Frostbalance extends BotBase {
                 BufferedImage baseImage = ImageIO.read(url);
                 BufferedImage effect = ImageIO.read(new File(effectToUse.getFile()));
 
+                //FIXME cause this to work on smaller images
+                //FIXME increase image intensity
                 {
                     Graphics2D effectChanges = effect.createGraphics();
                     effectChanges.scale((float) baseImage.getWidth() / (float) effect.getWidth(), (float) baseImage.getHeight() / (float) effect.getHeight());
