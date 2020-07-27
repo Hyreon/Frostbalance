@@ -4,6 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,12 +29,25 @@ public abstract class Menu {
     public void send(MessageChannel channel, User actor) {
         bot.addMenu(this);
         this.actor = actor;
-        message = channel.sendMessage(getME()).complete();
+        MessageEmbed me = getME();
+        if (me.getImage() != null) {
+            String fileName = me.getImage().getUrl().replace("attachment://", "");
+            message = channel.sendFile(new File(fileName)).embed(me).complete();
+        } else {
+            message = channel.sendMessage(me).complete();
+        }
         updateEmojis();
     }
 
     public void updateMessage() {
-        message = message.editMessage(getME()).complete();
+        MessageEmbed me = getME();
+        if (me.getImage() != null) {
+            String fileName = me.getImage().getUrl().replace("attachment://", "");
+            message.delete().queue();
+            message = message.getChannel().sendFile(new File(fileName)).embed(me).complete();
+        } else {
+            message = message.editMessage(getME()).complete();
+        }
 
         updateEmojis();
     }
@@ -51,6 +65,7 @@ public abstract class Menu {
         if (!closed) {
             for (MenuResponse menuResponse: menuResponses) {
                 if (menuResponse.validConditions() || (!message.isFromGuild() && !message.isEdited())) {
+                    //TODO don't try to add reactions if the message has been deleted.
                     message.addReaction(menuResponse.emoji).queue();
                 }
             }

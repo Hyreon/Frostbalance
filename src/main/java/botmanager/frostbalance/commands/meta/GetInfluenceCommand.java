@@ -37,7 +37,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
                 result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
 
-                double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserInfluence(guild, eventWrapper.getAuthor());
+                double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserDailyAmount(guild, eventWrapper.getAuthor());
                 if (remaining > 0) {
                     result += " (**+" + String.format("%.2f", remaining) + "** from unclaimed daily)";
                 }

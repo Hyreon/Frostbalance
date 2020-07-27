@@ -3,7 +3,12 @@ package botmanager.frostbalance;
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
-import botmanager.frostbalance.commands.meta.*;
+import botmanager.frostbalance.commands.map.ClaimTileCommand;
+import botmanager.frostbalance.commands.map.ViewMapCommand;
+import botmanager.frostbalance.commands.meta.GetInfluenceCommand;
+import botmanager.frostbalance.commands.meta.HelpCommand;
+import botmanager.frostbalance.commands.meta.HistoryCommand;
+import botmanager.frostbalance.commands.meta.SetGuildCommand;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.history.RegimeData;
@@ -30,6 +35,8 @@ import java.util.List;
 import java.util.*;
 
 public class Frostbalance extends BotBase {
+
+    public static Frostbalance bot;
 
     private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
     Map<Guild, List<RegimeData>> regimes = new HotMap<>();
@@ -61,7 +68,11 @@ public class Frostbalance extends BotBase {
                 new SystemBanCommand(this),
                 new SystemPardonCommand(this),
                 new FlagCommand(this),
+                new ViewMapCommand(this),
+                new ClaimTileCommand(this),
         });
+
+        bot = this;
     }
 
     @Override
@@ -638,6 +649,16 @@ public class Frostbalance extends BotBase {
         setUserCSVAtIndex(null, user, 0, guild.getId());
     }
 
+    public void setMainAllegiance(User user, Nation nation) {
+        setUserCSVAtIndex(null, user, 1, nation.toString());
+    }
+
+    public Nation getMainAllegiance(User user) {
+        String allegiance = getUserCSVAtIndex(null, user, 1);
+        if (allegiance == null) return null;
+        return Nation.valueOf(allegiance);
+    }
+
     public Guild getUserDefaultGuild(User user) {
         try {
             return getJDA().getGuildById(getUserCSVAtIndex(null, user, 0));
@@ -784,6 +805,22 @@ public class Frostbalance extends BotBase {
         return getAuthority(member.getGuild(), member.getUser());
     }
 
+    public Nation getAllegianceIn(Guild guild) {
+        Collection<OptionFlag> flags = getDebugFlags(guild);
+        if (!flags.contains(OptionFlag.MAIN)) {
+            return Nation.NONE;
+        }
+        if (flags.contains(OptionFlag.RED)) {
+            return Nation.RED;
+        } else if (flags.contains(OptionFlag.GREEN)) {
+            return Nation.GREEN;
+        } else if (flags.contains(OptionFlag.BLUE)) {
+            return Nation.BLUE;
+        } else {
+            return Nation.NONE;
+        }
+    }
+
     public Color getGuildColor(Guild guild) {
         Collection<OptionFlag> flags = getDebugFlags(guild);
         if (flags.contains(OptionFlag.RED)) {
@@ -795,5 +832,21 @@ public class Frostbalance extends BotBase {
         } else {
             return Color.LIGHT_GRAY;
         }
+    }
+
+    /**
+     *
+     * @param nation
+     * @return Null if no guild exists for this nation
+     */
+    public Guild getGuildFor(Nation nation) {
+        for (Guild guild : getJDA().getGuilds()) {
+            if (getDebugFlags(guild).contains(OptionFlag.MAIN)) {
+                if (nation.equals(getAllegianceIn(guild))) {
+                    return guild;
+                }
+            }
+        }
+        return null;
     }
 }
