@@ -28,9 +28,16 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
+import net.dv8tion.jda.internal.managers.GuildManagerImpl;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.*;
 
@@ -43,6 +50,7 @@ public class Frostbalance extends BotBase {
 
     public final double DAILY_INFLUENCE_CAP = 1.00;
     private List<Menu> activeMenus = new ArrayList<>();
+    private List<Guild> guildIconCache = new ArrayList<>();
 
     public Frostbalance(String botToken, String name) {
         super(botToken, name);
@@ -121,12 +129,94 @@ public class Frostbalance extends BotBase {
         }
     }
 
-    //TODO add the effect to the icon
     @Override
     public void onGuildUpdateIcon(GuildUpdateIconEvent event) {
-        event.getNewIconUrl();
-        
-        //new GuildManagerImpl(event.getGuild()).setIcon(null).queue();
+
+        if (guildIconCache(event.getGuild())) return;
+
+        String urlString = event.getNewIconUrl();
+        Collection<OptionFlag> guildFlags = getDebugFlags(event.getGuild());
+
+        if (urlString == null) {
+            String iconNameToUse;
+            if (!guildFlags.contains(OptionFlag.MAIN)) {
+                iconNameToUse = "icon_tweak/snowflake.png";
+            } else if (guildFlags.contains(OptionFlag.RED)) {
+                iconNameToUse = "icon_tweak/snowflake_r.png";
+            } else if (guildFlags.contains(OptionFlag.GREEN)) {
+                iconNameToUse = "icon_tweak/snowflake_g.png";
+            } else if (guildFlags.contains(OptionFlag.BLUE)) {
+                iconNameToUse = "icon_tweak/snowflake_b.png";
+            } else {
+                iconNameToUse = "icon_tweak/snowflake_w.png";
+            }
+            System.out.println(iconNameToUse);
+            URL iconToUse = getClass().getClassLoader().getResource(iconNameToUse);
+            try {
+                Icon defaultIcon = Icon.from(new File(iconToUse.getFile()));
+                new GuildManagerImpl(event.getGuild()).setIcon(defaultIcon).queue();
+                return;
+            } catch (IOException e) {
+                System.err.println("Cannot put in the default guild icon: the file " + iconToUse + "didn't load correctly!");
+                e.printStackTrace();
+            }
+        } else if (guildFlags.contains(OptionFlag.MAIN)) {
+
+            URL url = null;
+            try {
+                url = new URL(urlString);
+            } catch (MalformedURLException e) {
+                System.err.println("Cannot update the new guild icon: the url is invalid!");
+                e.printStackTrace();
+                guildIconCache(event.getGuild());
+                return;
+            }
+            try {
+                URL effectToUse = getClass().getClassLoader().getResource("icon_tweak/effect.png");
+
+                BufferedImage baseImage = ImageIO.read(url);
+                BufferedImage effect = ImageIO.read(new File(effectToUse.getFile()));
+
+                //FIXME cause this to work on smaller images
+                //FIXME increase image intensity
+                {
+                    Graphics2D effectChanges = effect.createGraphics();
+                    effectChanges.scale((float) baseImage.getWidth() / (float) effect.getWidth(), (float) baseImage.getHeight() / (float) effect.getHeight());
+                    effectChanges.setComposite(AlphaComposite.SrcAtop);
+                    effectChanges.setColor(getGuildColor(event.getGuild()));
+                    effectChanges.fillRect(0, 0, effect.getWidth(), effect.getHeight());
+                    effectChanges.dispose();
+                }
+
+                Graphics2D g = baseImage.createGraphics();
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+                g.drawImage(effect, (baseImage.getWidth() - effect.getWidth()) / 2,
+                        (baseImage.getHeight() - effect.getHeight()) / 2, null);
+                g.dispose();
+
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                ImageIO.write(baseImage, "png", os);
+
+                Icon icon = Icon.from(os.toByteArray());
+                new GuildManagerImpl(event.getGuild()).setIcon(icon).queue();
+                return;
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        guildIconCache(event.getGuild());
+    }
+
+    private boolean guildIconCache(Guild guild) {
+        if (guildIconCache.contains(guild)) {
+            guildIconCache.remove(guild);
+            return true;
+        } else {
+            guildIconCache.add(guild);
+            return false;
+        }
     }
 
     private List<Menu> getActiveMenus() {
@@ -695,50 +785,6 @@ public class Frostbalance extends BotBase {
             System.err.println(guild.getName() + " doesn't have a valid frostbalance role!");
             return null;
         }
-    }
-
-    public Role getForeignOwnerRole(Guild inGuild, Guild fromGuild) {
-
-        if (!getDebugFlags(inGuild).contains(OptionFlag.MAIN)) {
-            return null;
-        } else if (!getDebugFlags(fromGuild).contains(OptionFlag.MAIN)) {
-            return null;
-        }
-
-        Collection<OptionFlag> foreignOptions = getDebugFlags(fromGuild);
-        if (foreignOptions.contains(OptionFlag.RED)) {
-            try {
-                return inGuild.getRolesByName("RED LEADER", true).get(0);
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println(inGuild.getName() + " doesn't have a valid red owner role!");
-                return null;
-            }
-        } else if (foreignOptions.contains(OptionFlag.GREEN)) {
-            try {
-                return inGuild.getRolesByName("GREEN LEADER", true).get(0);
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println(inGuild.getName() + " doesn't have a valid green owner role!");
-                return null;
-            }
-        } else if (foreignOptions.contains(OptionFlag.BLUE)) {
-            try {
-                return inGuild.getRolesByName("BLUE LEADER", true).get(0);
-            } catch (IndexOutOfBoundsException e) {
-                System.err.println(inGuild.getName() + " doesn't have a valid blue owner role!");
-                return null;
-            }
-        }
-
-        throw new IllegalStateException("Main server exists without a color scheme!");
-    }
-
-    public boolean hasSystemRoleEverywhere(User user) {
-        for (Guild guild : getJDA().getGuilds()) {
-            if (guild.getMember(user) == null || guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
