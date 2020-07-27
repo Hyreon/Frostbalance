@@ -52,8 +52,6 @@ public class Frostbalance extends BotBase {
     public Frostbalance(String botToken, String name) {
         super(botToken, name);
 
-        setPrefix(".");
-
         getJDA().getPresence().setActivity(Activity.of(Activity.ActivityType.DEFAULT,getPrefix() + "help for help!"));
 
         setCommands(new ICommand[] {
@@ -79,6 +77,10 @@ public class Frostbalance extends BotBase {
         });
 
         bot = this;
+    }
+
+    public String getPrefix() {
+        return ".";
     }
 
     @Override

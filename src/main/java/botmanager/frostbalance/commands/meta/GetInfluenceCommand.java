@@ -1,16 +1,16 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.Utilities;
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
-import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
 public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
-    public GetInfluenceCommand(BotBase bot) {
+    public GetInfluenceCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "influence"
         }, AuthorityLevel.GENERIC);

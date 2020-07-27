@@ -1,16 +1,16 @@
 package botmanager.frostbalance.commands.map;
 
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.menu.MapMenu;
-import botmanager.generic.BotBase;
 
 public class ViewMapCommand extends FrostbalanceHybridCommandBase {
 
-    public ViewMapCommand(BotBase bot) {
+    public ViewMapCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "map"
         }, AuthorityLevel.GENERIC);

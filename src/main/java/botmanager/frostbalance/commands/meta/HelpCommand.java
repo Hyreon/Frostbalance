@@ -1,10 +1,10 @@
 package botmanager.frostbalance.commands.meta;
 
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
-import botmanager.generic.BotBase;
 
 /**
  *
@@ -12,7 +12,7 @@ import botmanager.generic.BotBase;
  */
 public class HelpCommand extends FrostbalanceHybridCommandBase {
 
-    public HelpCommand(BotBase bot) {
+    public HelpCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "help"
         }, AuthorityLevel.GENERIC);
