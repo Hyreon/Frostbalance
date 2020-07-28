@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.Utilities;
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
-import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
@@ -11,7 +11,7 @@ import java.util.List;
 
 public class SetGuildCommand extends FrostbalanceSplitCommandBase {
 
-    public SetGuildCommand(BotBase bot) {
+    public SetGuildCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "guild"
         });

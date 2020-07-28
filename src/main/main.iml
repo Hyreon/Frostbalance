@@ -12,5 +12,6 @@
     <orderEntry type="library" name="BotManager" level="project" />
     <orderEntry type="library" name="Gradle: com.google.guava:guava:25.0-jre" level="project" />
     <orderEntry type="library" name="Gradle: net.dv8tion:JDA:4.1.1_104" level="project" />
+    <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.8.6" level="project" />
   </component>
 </module>

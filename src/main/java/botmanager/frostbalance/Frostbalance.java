@@ -3,12 +3,12 @@ package botmanager.frostbalance;
 import botmanager.Utilities;
 import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
-import botmanager.frostbalance.commands.meta.GetInfluenceCommand;
-import botmanager.frostbalance.commands.meta.HelpCommand;
-import botmanager.frostbalance.commands.meta.HistoryCommand;
-import botmanager.frostbalance.commands.meta.SetGuildCommand;
+import botmanager.frostbalance.commands.map.ClaimTileCommand;
+import botmanager.frostbalance.commands.map.ViewMapCommand;
+import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.frostbalance.menu.Menu;
@@ -35,14 +35,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class Frostbalance extends BotBase {
+
+    public static Frostbalance bot;
 
     private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
     Map<Guild, List<RegimeData>> regimes = new HotMap<>();
@@ -51,10 +52,12 @@ public class Frostbalance extends BotBase {
     private List<Menu> activeMenus = new ArrayList<>();
     private List<Guild> guildIconCache = new ArrayList<>();
 
+    private final Timer mapSaverTimer = new Timer();
+
     public Frostbalance(String botToken, String name) {
         super(botToken, name);
 
-        setPrefix(".");
+        bot = this;
 
         getJDA().getPresence().setActivity(Activity.of(Activity.ActivityType.DEFAULT,getPrefix() + "help for help!"));
 
@@ -75,7 +78,40 @@ public class Frostbalance extends BotBase {
                 new SystemBanCommand(this),
                 new SystemPardonCommand(this),
                 new FlagCommand(this),
+                new ViewMapCommand(this),
+                new ClaimTileCommand(this),
+                new AllegianceCommand(this),
         });
+
+        ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
+
+        exec.schedule(new Runnable() {
+            public void run() {
+                loadMaps();
+            }
+        }, 1, TimeUnit.SECONDS);
+
+        mapSaverTimer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+
+                saveMaps();
+
+            }
+
+        }, 300000, 300000);
+
+
+    }
+
+    @Override
+    public void shutdown() {
+        saveMaps();
+    }
+
+    public String getPrefix() {
+        return ".";
     }
 
     @Override
@@ -97,9 +133,13 @@ public class Frostbalance extends BotBase {
         Menu targetMenu = null;
         for (Menu menu : getActiveMenus()) {
             if (event.getUser().equals(menu.getActor())) {
-                if (menu.getMessage().getId().equals(event.getMessageId())) {
-                    targetMenu = menu;
-                    break;
+                try {
+                    if (menu.getMessage().getId().equals(event.getMessageId())) {
+                        targetMenu = menu;
+                        break;
+                    }
+                } catch (NullPointerException e) {
+                    //these happen often enough. let's not have them ruin other menus when they do
                 }
             }
         }
@@ -130,7 +170,7 @@ public class Frostbalance extends BotBase {
         if (guildIconCache(event.getGuild())) return;
 
         String urlString = event.getNewIconUrl();
-        Collection<OptionFlag> guildFlags = getDebugFlags(event.getGuild());
+        Collection<OptionFlag> guildFlags = getSettings(event.getGuild());
 
         if (urlString == null) {
             String iconNameToUse;
@@ -240,7 +280,7 @@ public class Frostbalance extends BotBase {
             event.getGuild().retrieveBan(event.getUser()).complete(); //verify this player was banned and didn't just leave
             if (hasDiplomatStatus(event.getUser())
                     && !isBanned(event.getGuild(), event.getUser())
-                    && getDebugFlags(event.getGuild()).contains(OptionFlag.MAIN)) {
+                    && getSettings(event.getGuild()).contains(OptionFlag.MAIN)) {
                 event.getGuild().unban(event.getUser()).complete();
                 Utilities.sendGuildMessage(event.getGuild().getDefaultChannel(),
                         event.getUser().getName() + " has been unbanned because they are the leader of a main server.");
@@ -550,7 +590,7 @@ public class Frostbalance extends BotBase {
      */
     public boolean hasDiplomatStatus(User user) {
         for (Guild guild : getJDA().getGuilds()) {
-            if (getDebugFlags(guild).contains(OptionFlag.MAIN) && getOwner(guild).getUser().equals(user)) {
+            if (getSettings(guild).contains(OptionFlag.MAIN) && getOwner(guild).getUser().equals(user)) {
                 return true;
             }
         }
@@ -567,7 +607,7 @@ public class Frostbalance extends BotBase {
         logRegime(guild, regime);
     }
 
-    public Collection<OptionFlag> getDebugFlags(Guild guild) {
+    public Collection<OptionFlag> getSettings(Guild guild) {
         Collection<OptionFlag> debugFlags = new ArrayList<OptionFlag>();
         List<String> flags = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/flags.csv"));
         for (String flag : flags) {
@@ -583,11 +623,11 @@ public class Frostbalance extends BotBase {
      * @return Whether the debug flag got turned on (TRUE) or off (FALSE)
      */
     public boolean flipFlag(Guild guild, OptionFlag toggledFlag) {
-        if (getDebugFlags(guild).contains(toggledFlag)) {
+        if (getSettings(guild).contains(toggledFlag)) {
             removeDebugFlag(guild, toggledFlag);
             return false;
         } else {
-            for (OptionFlag previousFlag : getDebugFlags(guild)) {
+            for (OptionFlag previousFlag : getSettings(guild)) {
                 if (previousFlag.isExclusiveWith(toggledFlag)) {
                     removeDebugFlag(guild, previousFlag);
                 }
@@ -737,6 +777,16 @@ public class Frostbalance extends BotBase {
         setUserCSVAtIndex(null, user, 0, guild.getId());
     }
 
+    public void setMainAllegiance(User user, Nation nation) {
+        setUserCSVAtIndex(null, user, 1, nation.toString());
+    }
+
+    public Nation getMainAllegiance(User user) {
+        String allegiance = getUserCSVAtIndex(null, user, 1);
+        if (allegiance == null) return Nation.NONE;
+        return Nation.valueOf(allegiance);
+    }
+
     public Guild getUserDefaultGuild(User user) {
         try {
             return getJDA().getGuildById(getUserCSVAtIndex(null, user, 0));
@@ -839,8 +889,24 @@ public class Frostbalance extends BotBase {
         return getAuthority(member.getGuild(), member.getUser());
     }
 
+    public Nation getAllegianceIn(Guild guild) {
+        Collection<OptionFlag> flags = getSettings(guild);
+        if (!flags.contains(OptionFlag.MAIN)) {
+            return Nation.NONE;
+        }
+        if (flags.contains(OptionFlag.RED)) {
+            return Nation.RED;
+        } else if (flags.contains(OptionFlag.GREEN)) {
+            return Nation.GREEN;
+        } else if (flags.contains(OptionFlag.BLUE)) {
+            return Nation.BLUE;
+        } else {
+            return Nation.NONE;
+        }
+    }
+
     public Color getGuildColor(Guild guild) {
-        Collection<OptionFlag> flags = getDebugFlags(guild);
+        Collection<OptionFlag> flags = getSettings(guild);
         if (flags.contains(OptionFlag.RED)) {
             return Color.RED;
         } else if (flags.contains(OptionFlag.GREEN)) {
@@ -850,5 +916,36 @@ public class Frostbalance extends BotBase {
         } else {
             return Color.LIGHT_GRAY;
         }
+    }
+
+    /**
+     *
+     * @param nation
+     * @return Null if no guild exists for this nation
+     */
+    public Guild getGuildFor(Nation nation) {
+        for (Guild guild : getJDA().getGuilds()) {
+            if (getSettings(guild).contains(OptionFlag.MAIN)) {
+                if (nation.equals(getAllegianceIn(guild))) {
+                    return guild;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void saveMaps() {
+        for (WorldMap map : WorldMap.getMaps()) {
+            WorldMap.writeWorld(map.getGuild(), map);
+        }
+    }
+
+    public void loadMaps() {
+        for (Guild guild : getJDA().getGuilds()) {
+            if (!getSettings(guild).contains(OptionFlag.MAIN)) {
+                WorldMap.readWorld(guild);
+            }
+        }
+        WorldMap.readWorld(null);
     }
 }
