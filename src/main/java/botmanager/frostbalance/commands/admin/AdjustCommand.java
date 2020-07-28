@@ -1,14 +1,14 @@
 package botmanager.frostbalance.commands.admin;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.generic.BotBase;
 
 public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
-    public AdjustCommand(Frostbalance bot) {
+    public AdjustCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "adjust"
         }, AuthorityLevel.GUILD_ADMIN);

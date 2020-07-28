@@ -80,7 +80,7 @@ public class FlagMenu extends Menu {
     }
 
     private boolean isToggleable(OptionFlag flag) {
-        return (bot.getSettings(guild).contains(flag) ^ enabling) && bot.getAuthority(guild, getActor()).hasAuthority(flag.getAuthorityToChange());
+        return (bot.getDebugFlags(guild).contains(flag) ^ enabling) && bot.getAuthority(guild, getActor()).hasAuthority(flag.getAuthorityToChange());
     }
 
     @Override
@@ -93,7 +93,7 @@ public class FlagMenu extends Menu {
         }
         builder.setTitle(guild.getName() + ": Flags");
         String flagsEnabled = "";
-        for (OptionFlag flag : bot.getSettings(guild)) {
+        for (OptionFlag flag : bot.getDebugFlags(guild)) {
             flagsEnabled += flag.getEmoji() + " " + flag.getLabel() + "\n";
         }
         builder.setDescription(flagsEnabled);

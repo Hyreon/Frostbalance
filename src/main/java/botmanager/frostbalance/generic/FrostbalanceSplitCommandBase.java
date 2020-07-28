@@ -1,22 +1,22 @@
 package botmanager.frostbalance.generic;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.Frostbalance;
+import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 public abstract class FrostbalanceSplitCommandBase extends FrostbalanceCommandBase {
 
-    public FrostbalanceSplitCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel) {
+    public FrostbalanceSplitCommandBase(BotBase bot, String[] keywords, AuthorityLevel authorityLevel) {
         super(bot, keywords, authorityLevel);
     }
 
-    public FrostbalanceSplitCommandBase(Frostbalance bot, String[] keywords) {
+    public FrostbalanceSplitCommandBase(BotBase bot, String[] keywords) {
         this(bot, keywords, AuthorityLevel.GENERIC);
     }
 
-    public FrostbalanceSplitCommandBase(Frostbalance bot) {
+    public FrostbalanceSplitCommandBase(BotBase bot) {
         this(bot, null, AuthorityLevel.GENERIC);
     }
 

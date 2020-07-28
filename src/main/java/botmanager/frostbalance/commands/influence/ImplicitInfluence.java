@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.influence;
 
-import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
@@ -19,7 +19,7 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
     ArrayList<Member> minuteMembers;
     String cachedDate;
 
-    public ImplicitInfluence(Frostbalance bot) {
+    public ImplicitInfluence(BotBase bot) {
         super(bot, null, AuthorityLevel.GENERIC);
         minuteMembers = new ArrayList<>();
         cachedDate = sdf.format(new Date());

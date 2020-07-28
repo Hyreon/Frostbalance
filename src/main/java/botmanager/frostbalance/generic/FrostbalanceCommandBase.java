@@ -1,6 +1,7 @@
 package botmanager.frostbalance.generic;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
@@ -18,8 +19,8 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
     protected Frostbalance bot;
 
-    public FrostbalanceCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel) {
-        this.bot = bot;
+    public FrostbalanceCommandBase(BotBase bot, String[] keywords, AuthorityLevel authorityLevel) {
+        this.bot = (Frostbalance) bot;
         KEYWORDS = keywords;
         AUTHORITY_LEVEL = authorityLevel;
     }

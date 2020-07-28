@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.text.SimpleDateFormat;
@@ -18,7 +18,7 @@ public class DailyRewardCommand extends FrostbalanceSplitCommandBase {
 
     SimpleDateFormat hours = new SimpleDateFormat("HH");
     
-    public DailyRewardCommand(Frostbalance bot) {
+    public DailyRewardCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "daily"
         });

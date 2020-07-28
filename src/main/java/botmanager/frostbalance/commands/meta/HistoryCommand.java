@@ -1,11 +1,11 @@
 package botmanager.frostbalance.commands.meta;
 
-import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.history.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
+import botmanager.generic.BotBase;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +15,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
 
     private static final int HISTORY_PAGE_SIZE = 6;
 
-    public HistoryCommand(Frostbalance bot) {
+    public HistoryCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "history"
         }, AuthorityLevel.GENERIC);

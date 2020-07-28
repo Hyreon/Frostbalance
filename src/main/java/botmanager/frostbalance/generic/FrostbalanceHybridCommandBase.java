@@ -1,10 +1,10 @@
 package botmanager.frostbalance.generic;
 
-import botmanager.frostbalance.Frostbalance;
+import botmanager.generic.BotBase;
 
 public abstract class FrostbalanceHybridCommandBase extends FrostbalanceCommandBase {
 
-    public FrostbalanceHybridCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel) {
+    public FrostbalanceHybridCommandBase(BotBase bot, String[] keywords, AuthorityLevel authorityLevel) {
         super(bot, keywords, authorityLevel);
     }
 

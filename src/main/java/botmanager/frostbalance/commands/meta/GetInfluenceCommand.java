@@ -1,16 +1,16 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
 public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
-    public GetInfluenceCommand(Frostbalance bot) {
+    public GetInfluenceCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "influence"
         }, AuthorityLevel.GENERIC);
@@ -37,7 +37,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
                 result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
 
-                double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserDailyAmount(guild, eventWrapper.getAuthor());
+                double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserInfluence(guild, eventWrapper.getAuthor());
                 if (remaining > 0) {
                     result += " (**+" + String.format("%.2f", remaining) + "** from unclaimed daily)";
                 }

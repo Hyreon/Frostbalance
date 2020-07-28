@@ -10,7 +10,7 @@ import java.util.HashMap;
 public class HotMap<K, V> extends HashMap<K, V> {
 
     @Override
-    public V getOrDefault(Object key, V defaultValue) throws ClassCastException {
+    public V getOrDefault(Object key, V defaultValue) {
         V result = super.getOrDefault(key, defaultValue);
         if (super.get(key) == null) {
             super.put((K) key, result);

@@ -1,10 +1,10 @@
 package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
-import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
+import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -14,7 +14,7 @@ public class CoupCommand extends FrostbalanceSplitCommandBase {
             bot.getPrefix() + "coup"
     };
 
-    public CoupCommand(Frostbalance bot) {
+    public CoupCommand(BotBase bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "coup"
         });
