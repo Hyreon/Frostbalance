@@ -34,10 +34,13 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Frostbalance extends BotBase {
 
@@ -154,11 +157,14 @@ public class Frostbalance extends BotBase {
             }
         } else if (guildFlags.contains(OptionFlag.MAIN)) {
 
-            URL url = null;
+            HttpURLConnection connection = null;
             try {
-                url = new URL(urlString);
-            } catch (MalformedURLException e) {
-                System.err.println("Cannot update the new guild icon: the url is invalid!");
+                URL url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("User-Agent", "");
+                System.out.println(url);
+            } catch (IOException e) {
+                System.err.println("Cannot update the new guild icon!");
                 e.printStackTrace();
                 guildIconCache(event.getGuild());
                 return;
@@ -166,7 +172,7 @@ public class Frostbalance extends BotBase {
             try {
                 URL effectToUse = getClass().getClassLoader().getResource("icon_tweak/effect.png");
 
-                BufferedImage baseImage = ImageIO.read(url);
+                BufferedImage baseImage = ImageIO.read(connection.getInputStream());
                 BufferedImage effect = ImageIO.read(new File(effectToUse.getFile()));
 
                 //FIXME cause this to work on smaller images
