@@ -48,13 +48,14 @@ public class Hex {
         this.x = 0;
         this.y = 0;
         this.z = 0;
+        isNormal = true;
     }
 
     public Hex(long x, long y, long z) {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.isNormal = getMedian() == 0;
+        isNormal = getMedian() == 0;
     }
 
     public Hex move(Direction direction, long value) {

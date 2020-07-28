@@ -3,10 +3,10 @@ package botmanager.frostbalance.commands.map;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.OptionFlag;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.menu.AllegianceMenu;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -53,16 +53,18 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
 
             new AllegianceMenu(bot).send(event.getChannel(), event.getAuthor());
 
-        } else if (bot.getAllegianceIn(event.getGuild()) != Nation.NONE && allegiance != bot.getAllegianceIn(event.getGuild())) {
+        } else if (bot.getAllegianceIn(event.getGuild()) != Nation.NONE &&
+                allegiance != bot.getAllegianceIn(event.getGuild())) {
 
             Utilities.sendGuildMessage(event.getChannel(), "You're in the wrong server for this!");
 
         } else {
 
             bot.changeUserInfluence(event.getMember(), -amount);
-            WorldMap.get(event.getGuild()).getTile(player.getLocation()).addClaim(player, amount);
+            player.getTile().getClaimData().addClaim(player, amount);
 
-            Utilities.sendGuildMessage(event.getChannel(), "You have added " + amount + " to your nations' claim on this tile.");
+            Utilities.sendGuildMessage(event.getChannel(), "You have added " + String.format("%.3f", amount) + " to your nations' claim on this tile.\n" +
+                    player.getTile().getClaimData().getClaimList(bot.getSettings(event.getGuild()).contains(OptionFlag.TUTORIAL)));
 
         }
 
@@ -70,7 +72,7 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
 
     @Override
     public String publicInfo(AuthorityLevel authorityLevel) {
-        return null;
+        return "**" + bot.getPrefix() + "claim** - claim the map tile you are on";
     }
 
     @Override

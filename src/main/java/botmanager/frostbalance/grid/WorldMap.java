@@ -1,23 +1,26 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.IOUtils;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.OptionFlag;
+import com.google.gson.*;
 import net.dv8tion.jda.api.entities.Guild;
 
+import java.io.File;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */
-public class WorldMap {
+public class WorldMap implements Container<Tile> {
 
     static List<WorldMap> worldMaps = new ArrayList<>();
 
-    Double strongestNationalClaim = Double.MIN_NORMAL;
-
     public static WorldMap get(Guild guild) {
-        if (Frostbalance.bot.getDebugFlags(guild).contains(OptionFlag.MAIN)) {
+        if (Frostbalance.bot.getSettings(guild).contains(OptionFlag.MAIN)) {
             guild = null;
         }
         for (WorldMap map : worldMaps) {
@@ -32,16 +35,69 @@ public class WorldMap {
         return newMap;
     }
 
+    transient Double strongestNationalClaim = Double.MIN_NORMAL;
+
     List<Tile> loadedTiles = new ArrayList<>();
 
     /**
      * The guild this map is tied to.
      * If null, that means this is the main/global map.
      */
-    Guild guild;
+    transient Guild guild;
 
     public WorldMap(Guild guild) {
         this.guild = guild;
+    }
+
+    public static Collection<WorldMap> getMaps() {
+        return worldMaps;
+    }
+
+
+    public static void readWorld(Guild guild) {
+
+        String guildId;
+        if (guild == null) {
+            guildId = "global";
+        } else {
+            guildId = guild.getId();
+        }
+
+        File file = new File("data/" + Frostbalance.bot.getName() + "/" + guildId + "/map.json");
+        if (file.exists()) {
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.registerTypeAdapter(TileObject.class, new TileObjectAdapter());
+            Gson gson = gsonBuilder.create();
+            WorldMap worldMap = gson.fromJson(IOUtils.read(file), WorldMap.class);
+            worldMap.guild = guild;
+            for (Tile tile : worldMap.loadedTiles) {
+                tile.map = worldMap;
+                for (TileData tileData : tile.getObjects()) {
+                    tileData.tile = tile;
+                }
+                tile.claimData.tile = tile;
+                for (Claim claim : tile.claimData.claims) {
+                    claim.claimData = tile.claimData;
+                }
+            }
+            worldMaps.add(worldMap);
+        }
+
+    }
+
+    public static void writeWorld(Guild guild, WorldMap map) {
+        String guildId;
+        if (guild == null) {
+            guildId = "global";
+        } else {
+            guildId = guild.getId();
+        }
+
+        File file = new File("data/" + Frostbalance.bot.getName() + "/" + guildId + "/map.json");
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(TileObject.class, new TileObjectAdapter());
+        Gson gson = gsonBuilder.create();
+        IOUtils.write(file, gson.toJson(map));
     }
 
     /**
@@ -73,6 +129,7 @@ public class WorldMap {
     }
 
     public double getStrongestClaim() {
+        updateStrongestClaim();
         System.out.println("Strongest claim: " + strongestNationalClaim);
         return strongestNationalClaim;
     }
@@ -80,7 +137,7 @@ public class WorldMap {
     protected void updateStrongestClaim() {
         strongestNationalClaim = Double.MIN_NORMAL;
         for (Tile tile : loadedTiles) {
-            Double nationalStrength = tile.getNationalStrength();
+            Double nationalStrength = tile.getClaimData().getNationalStrength();
             if (nationalStrength > strongestNationalClaim) {
                 strongestNationalClaim = nationalStrength;
             }
@@ -98,7 +155,20 @@ public class WorldMap {
         } else return false;
     }
 
+    public boolean isTutorialMap() {
+        if (guild != null && Frostbalance.bot.getSettings(guild).contains(OptionFlag.TUTORIAL)) {
+            return true;
+        } else return false;
+    }
+
     public Guild getGuild() {
         return guild;
+    }
+
+    @Override
+    public Tile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        Tile tile = context.deserialize(json, Tile.class);
+        tile.map = this;
+        return tile;
     }
 }

@@ -8,20 +8,21 @@ import botmanager.frostbalance.Nation;
  * Claims can also be revoked by a leader, reducing the strength to 0. However this
  * can always be undone by that guilds' current leader.
  */
-public class Claim {
+public class Claim implements Containable<ClaimData> {
 
-    Tile tile;
-    PlayerCharacter player;
+    transient ClaimData claimData;
+    String userId;
     Nation nation;
+
     Double strength;
     Double evictionStrength = 0.0;
 
-    Claim(Tile tile, PlayerCharacter player, Nation nation, Double strength) {
-        this.tile = tile;
-        this.player = player;
+    Claim(PlayerCharacter player, Nation nation, Double strength) {
+        this.claimData = player.getTile().getClaimData();
+        this.userId = player.getUserId();
         this.nation = nation;
         this.strength = strength;
-        tile.addClaim(this);
+        claimData.addClaim(this);
     }
 
     /**
@@ -32,8 +33,8 @@ public class Claim {
      * @return True if the claims overlap.
      */
     public boolean overlaps(Claim claim) {
-        return this.tile.equals(claim.tile) &&
-                this.player.equals(claim.player) &&
+        return this.claimData.equals(claim.claimData) &&
+                this.userId.equals(claim.userId) &&
                 this.nation.equals(claim.nation);
     }
 
@@ -41,9 +42,9 @@ public class Claim {
      * Tests if a claim's parameters are already extant.
      * @return True if the claims overlap.
      */
-    public boolean overlaps(Tile tile, PlayerCharacter player, Nation nation) {
-        return this.tile.equals(tile) &&
-                this.player.equals(player) &&
+    public boolean overlaps(ClaimData claimData, PlayerCharacter player, Nation nation) {
+        return this.claimData.equals(claimData) &&
+                this.userId.equals(player.getUserId()) &&
                 this.nation.equals(nation);
     }
 
@@ -71,7 +72,7 @@ public class Claim {
     }
 
     public PlayerCharacter getPlayer() {
-        return player;
+        return PlayerCharacter.get(userId, claimData.getTile().getMap());
     }
 
     public boolean isActive() {
@@ -79,7 +80,7 @@ public class Claim {
     }
 
     private boolean ownerIsInNation() {
-        return player.getNation() == nation;
+        return getPlayer().getNation() == nation;
     }
 
     /**
@@ -87,7 +88,7 @@ public class Claim {
      * Any player can do this to their own claims at no cost, but with no refund.
      */
     public double transferToClaim(PlayerCharacter player, Nation nation, Double amount) {
-        Claim claim = tile.getClaim(player, nation);
+        Claim claim = claimData.getClaim(player, nation);
         if (claim == null) {
             return 0.0;
         }
@@ -95,5 +96,9 @@ public class Claim {
         claim.add(amount);
         return amount;
 
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }

@@ -20,7 +20,7 @@ public class ViewMapCommand extends FrostbalanceHybridCommandBase {
     protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
 
         WorldMap map = WorldMap.get(eventWrapper.getGuild());
-        new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor(), map)).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor().getId(), map)).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 

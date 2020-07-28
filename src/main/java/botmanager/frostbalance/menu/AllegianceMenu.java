@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class AllegianceMenu extends Menu {
 
-    private static final String ADDENDUM = "\n*Note: If you change your allegiance later, your claims will cease to be valid until you return to your original nation. You **cannot** move claims from one nation to another!*";
+    private static final String ADDENDUM = "\n*Note: If you change your allegiance, your claims will cease to be valid until you return to your original nation. You **cannot** move claims from one nation to another!*";
     Cause cause;
 
     public AllegianceMenu(Frostbalance bot, Cause cause) {
@@ -81,15 +81,19 @@ public class AllegianceMenu extends Menu {
         EmbedBuilder builder = new EmbedBuilder();
         if (isClosed()) {
             builder.setTitle("Allegiance set");
-            builder.setDescription("Your allegiance has been moved to " + bot.getMainAllegiance(getActor()));
+            if (cause == Cause.NOT_SET) {
+                builder.setDescription("You will now claim tiles in the name of " + bot.getMainAllegiance(getActor()).getEffectiveName() + ". You may now make claims.");
+            } else if (cause == Cause.CHANGE) {
+                builder.setDescription("Your allegiance has been moved to " + bot.getMainAllegiance(getActor()).getEffectiveName());
+            }
             builder.setColor(bot.getMainAllegiance(getActor()).getColor());
         } else {
             builder.setTitle("Set allegiance");
             if (cause == Cause.NOT_SET) {
-                builder.setDescription("In order to claim tiles, you must first set your allegiance." + ADDENDUM);
+                builder.setDescription("This claim cannot be made. In order to claim tiles, you must first set your allegiance." + ADDENDUM);
                 builder.setColor(Color.GRAY);
             } else if (cause == Cause.CHANGE) {
-                builder.setDescription("Pick your new allegiance. Current allegiance: " + bot.getMainAllegiance(getActor()) + ADDENDUM);
+                builder.setDescription("Pick your new allegiance. Current allegiance: " + bot.getMainAllegiance(getActor()).getEffectiveName() + ADDENDUM);
                 builder.setColor(bot.getMainAllegiance(getActor()).getColor());
             }
         }

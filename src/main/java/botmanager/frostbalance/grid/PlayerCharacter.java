@@ -15,39 +15,43 @@ public class PlayerCharacter extends TileObject {
 
     static List<PlayerCharacter> cache = new ArrayList<>();
 
-    public static PlayerCharacter get(User user, WorldMap map) {
+    public static PlayerCharacter get(String userId, WorldMap map) {
         for (PlayerCharacter player : cache) {
-            if (player.getUser().equals(user) && player.getMap().equals(map)) {
+            if (player.getUserId().equals(userId) && player.getTile().getMap().equals(map)) {
                 return player;
             }
         }
-        PlayerCharacter newPlayer = new PlayerCharacter(user, map);
+        PlayerCharacter newPlayer = new PlayerCharacter(userId, map);
         cache.add(newPlayer);
-        System.out.println("Creating new character");
+        System.out.println("Creating new character for user with id " + userId);
         return newPlayer;
     }
 
     public static PlayerCharacter get(User user, Guild guild) {
-        return get(user, WorldMap.get(guild));
+        return get(user.getId(), WorldMap.get(guild));
     }
 
     /**
      * The user this character is tied to.
      */
-    User user;
+    String userId;
 
     /**
      * The queued destination that the player is currently approaching via the fastest known route.
      */
     Hex destination;
 
-    public PlayerCharacter(User user, WorldMap map) {
-        super(map, new Hex());
-        this.user = user;
+    public PlayerCharacter(String userId, WorldMap map) {
+        super(map.getTile(new Hex()));
+        this.userId = userId;
     }
 
     public User getUser() {
-        return user;
+        return Frostbalance.bot.getJDA().getUserById(userId);
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     /**
@@ -56,8 +60,8 @@ public class PlayerCharacter extends TileObject {
      * Note the user can change this at any time.
      */
     public Nation getNation() {
-        if (map.isMainMap()) {
-            return Frostbalance.bot.getMainAllegiance(user);
+        if (getMap().isMainMap() || getMap().isTutorialMap()) {
+            return Frostbalance.bot.getMainAllegiance(getUser());
         } else {
             return Nation.NONE;
         }
@@ -88,7 +92,7 @@ public class PlayerCharacter extends TileObject {
     }
 
     public Member getMember() {
-        if (map.getGuild() == null) {
+        if (getMap().getGuild() == null) {
             Guild guild = Frostbalance.bot.getGuildFor(getNation());
             if (guild == null) {
                 return null;
@@ -96,7 +100,7 @@ public class PlayerCharacter extends TileObject {
                 return guild.getMember(getUser());
             }
         } else {
-            return map.getGuild().getMember(getUser());
+            return getMap().getGuild().getMember(getUser());
         }
     }
 
@@ -108,4 +112,6 @@ public class PlayerCharacter extends TileObject {
             return member.getEffectiveName();
         }
     }
+
+
 }

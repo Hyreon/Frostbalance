@@ -1,5 +1,7 @@
 package botmanager.frostbalance;
 
+import net.dv8tion.jda.api.entities.Guild;
+
 import java.awt.*;
 
 /**
@@ -40,5 +42,11 @@ public enum Nation {
             default:
                 return color;
         }
+    }
+
+    public String getEffectiveName() {
+        Guild guild = Frostbalance.bot.getGuildFor(this);
+        if (guild != null) return guild.getName();
+        else return this.toString();
     }
 }

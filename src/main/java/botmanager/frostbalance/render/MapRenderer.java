@@ -60,24 +60,24 @@ public class MapRenderer {
 
     private static Polygon getHex(Hex hex) {
 
-        double xDist = Hex.X_SCALE/Hex.WIDTH_RATIO/2.0;
-        double yDist = Hex.Y_SCALE/Hex.WIDTH_RATIO/2.0;
+        double xDist = Hex.X_SCALE / Hex.WIDTH_RATIO / 2.0;
+        double yDist = Hex.Y_SCALE / Hex.WIDTH_RATIO / 2.0;
 
         Polygon p = new Polygon();
         for (int i = 0; i < 6; i++) {
-            p.addPoint((int) (hex.drawX() - xDist * Math.cos(i * 2 * Math.PI / 6) + DEFAULT_WIDTH/2),
-                    (int) (hex.drawY() - yDist * Math.sin(i * 2 * Math.PI / 6) + DEFAULT_HEIGHT/2));
+            p.addPoint((int) (hex.drawX() - xDist * Math.cos(i * 2 * Math.PI / 6) + DEFAULT_WIDTH / 2),
+                    (int) (hex.drawY() - yDist * Math.sin(i * 2 * Math.PI / 6) + DEFAULT_HEIGHT / 2));
         }
         return p;
     }
 
     private static Color getPoliticalColor(Tile tile) {
-        Nation owningNation = tile.getOwningNation();
+        Nation owningNation = tile.getClaimData().getOwningNation();
         Color color = Color.BLACK;
         if (owningNation != null) {
             //darken according to fraction of strongest political color.
             for (Nation nation : Nation.getNations()) {
-                double ratio = tile.getNationalStrength(nation)
+                double ratio = tile.getClaimData().getNationalStrength(nation)
                         / tile.getMap().getStrongestClaim();
                 int drawValue;
                 if (nation != owningNation) {

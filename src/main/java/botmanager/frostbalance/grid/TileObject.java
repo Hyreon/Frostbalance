@@ -5,37 +5,25 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 
-public abstract class TileObject {
+public abstract class TileObject extends TileData {
 
-    /**
-     * The map this item is connected to.
-     */
-    protected WorldMap map;
+    transient private BufferedImage cachedImage;
 
-    /**
-     * The location on the map's grid.
-     */
-    private Hex location;
-
-    private BufferedImage cachedImage;
-
-    protected TileObject(WorldMap map, Hex location) {
-        this.map = map;
-        this.location = location;
-        map.getTile(location).addObject(this);
+    protected TileObject(Tile tile) {
+        super(tile);
+        tile.addObject(this);
     }
 
-    public WorldMap getMap() {
-        return map;
-    }
-
-    public Hex getLocation() {
-        return location;
+    public Tile getTile() {
+        return tile;
     }
 
     public void setLocation(Hex hex) {
-        map.getTile(location).moveObject(this, hex);
-        this.location = hex;
+        setTile(getTile().moveObject(this, hex));
+    }
+
+    protected void setTile(Tile tile) {
+        this.tile = tile;
     }
 
     public BufferedImage getImage() throws IOException {
@@ -44,5 +32,13 @@ public abstract class TileObject {
     }
 
     public abstract URL getRender();
+
+    public Hex getLocation() {
+        return tile.getLocation();
+    }
+
+    public WorldMap getMap() {
+        return tile.getMap();
+    }
 
 }
