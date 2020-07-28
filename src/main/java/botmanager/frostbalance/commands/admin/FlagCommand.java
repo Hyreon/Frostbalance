@@ -1,15 +1,15 @@
 package botmanager.frostbalance.commands.admin;
 
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.menu.FlagMenu;
-import botmanager.generic.BotBase;
 
 public class FlagCommand extends FrostbalanceHybridCommandBase {
 
 
-    public FlagCommand(BotBase bot) {
+    public FlagCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "flags",
                 bot.getPrefix() + "settings"

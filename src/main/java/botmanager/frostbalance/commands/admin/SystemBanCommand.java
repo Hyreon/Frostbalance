@@ -1,10 +1,10 @@
 package botmanager.frostbalance.commands.admin;
 
 import botmanager.Utilities;
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.menu.BanManageMenu;
-import botmanager.generic.BotBase;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.exceptions.HierarchyException;
 //TODO create a menu for global/guild bans/pardons
 public class SystemBanCommand extends FrostbalanceSplitCommandBase {
 
-    public SystemBanCommand(BotBase bot) {
+    public SystemBanCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "ban"
         }, AuthorityLevel.GUILD_ADMIN);
