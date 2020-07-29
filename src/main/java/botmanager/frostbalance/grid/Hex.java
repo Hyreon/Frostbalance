@@ -194,14 +194,15 @@ public class Hex {
         return Y_SCALE * (z - y/2.0 - x/2.0);
     }
 
-    public long getX() { normalize(); return x; }
+    public long getX() { return x; }
 
-    public long getY() { normalize(); return y; }
+    public long getY() { return y; }
 
-    public long getZ() { normalize(); return z; }
+    public long getZ() { return z; }
 
     @Override
     public boolean equals(Object object) {
+        normalize();
         if (!(object instanceof Hex)) return false;
         Hex other = ((Hex) object);
         return other.x == x
@@ -211,6 +212,8 @@ public class Hex {
 
     @Override
     public int hashCode() {
+
+        normalize();
         return Objects.hash(getX(), getY(), getZ());
     }
 
