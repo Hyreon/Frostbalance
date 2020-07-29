@@ -9,13 +9,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+//TODO make the map renderer more sane.
 public class MapRenderer {
 
     private static final int DEFAULT_HEIGHT = 300;
     private static final int DEFAULT_WIDTH = 400;
     private static final int BCOLOR = 48;
 
-    //TODO
     public static String render(WorldMap map, Hex center) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();

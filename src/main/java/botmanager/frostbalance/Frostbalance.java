@@ -70,7 +70,7 @@ public class Frostbalance extends BotBase {
                 new OpposeCommand(this),
                 new CheckCommand(this),
                 new CoupCommand(this),
-                new TransferCommand(this),
+                new InaugurateCommand(this),
                 new HistoryCommand(this),
                 new SetGuildCommand(this),
                 new InterveneCommand(this),
@@ -130,21 +130,20 @@ public class Frostbalance extends BotBase {
 
     @Override
     public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
-        Menu targetMenu = null;
+        Menu targetMenu;
         for (Menu menu : getActiveMenus()) {
             if (event.getUser().equals(menu.getActor())) {
                 try {
                     if (menu.getMessage().getId().equals(event.getMessageId())) {
                         targetMenu = menu;
+                        targetMenu.applyResponse(event.getReactionEmote());
                         break;
                     }
                 } catch (NullPointerException e) {
+                    e.printStackTrace();
                     //these happen often enough. let's not have them ruin other menus when they do
                 }
             }
-        }
-        if (targetMenu != null) {
-            targetMenu.applyResponse(event.getReactionEmote());
         }
     }
 

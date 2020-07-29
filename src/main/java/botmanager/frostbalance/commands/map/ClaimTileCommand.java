@@ -49,7 +49,7 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        if (allegiance == null) {
+        if ((player.getMap().isMainMap() || player.getMap().isTutorialMap()) && allegiance == Nation.NONE) {
 
             new AllegianceMenu(bot).send(event.getChannel(), event.getAuthor());
 

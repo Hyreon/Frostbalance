@@ -11,10 +11,11 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.io.File;
 
-public class TransferCommand extends FrostbalanceSplitCommandBase {
+public class InaugurateCommand extends FrostbalanceSplitCommandBase {
 
-    public TransferCommand(Frostbalance bot) {
+    public InaugurateCommand(Frostbalance bot) {
         super(bot, new String[] {
+                bot.getPrefix() + "inaugurate",
                 bot.getPrefix() + "transfer"
         });
     }
@@ -81,7 +82,7 @@ public class TransferCommand extends FrostbalanceSplitCommandBase {
     @Override
     public String publicInfo(AuthorityLevel authorityLevel) {
         return ""
-                + "**" + bot.getPrefix() + "transfer USER** - makes someone else server owner.";
+                + "**" + bot.getPrefix() + "inaugurate USER** - makes someone else server owner.";
     }
 
     @Override
