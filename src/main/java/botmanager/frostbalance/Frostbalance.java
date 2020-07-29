@@ -5,6 +5,7 @@ import botmanager.Utils;
 import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
 import botmanager.frostbalance.commands.map.ClaimTileCommand;
+import botmanager.frostbalance.commands.map.MoveCommand;
 import botmanager.frostbalance.commands.map.ViewMapCommand;
 import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.generic.AuthorityLevel;
@@ -82,6 +83,7 @@ public class Frostbalance extends BotBase {
                 new ViewMapCommand(this),
                 new ClaimTileCommand(this),
                 new AllegianceCommand(this),
+                new MoveCommand(this),
         });
 
         ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);

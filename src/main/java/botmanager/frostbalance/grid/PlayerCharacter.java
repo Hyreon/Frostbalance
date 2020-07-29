@@ -28,6 +28,10 @@ public class PlayerCharacter extends TileObject {
 
     public static PlayerCharacter get(String userId, WorldMap map) {
         for (PlayerCharacter player : cache) {
+            System.out.println(player);
+            System.out.println(player.getUserId());
+            System.out.println(player.getTile());
+            System.out.println(player.getTile().getMap());
             if (player.getUserId().equals(userId) && player.getTile().getMap().equals(map)) {
                 return player;
             }
@@ -84,9 +88,14 @@ public class PlayerCharacter extends TileObject {
         }
     }
 
+
+    public void setDestination(Hex destination) {
+        this.destination = destination;
+        updateMovement();
+    }
+
     public void adjustDestination(Hex.Direction direction) {
-        if (destination == null) destination = getLocation();
-        destination = destination.move(direction);
+        destination = getDestination().move(direction);
         updateMovement();
     }
 
@@ -95,7 +104,7 @@ public class PlayerCharacter extends TileObject {
      */
     private void updateMovement() {
 
-        if (!scheduledFuture.isDone()) return;
+        if (scheduledFuture != null && !scheduledFuture.isDone()) return;
 
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -109,15 +118,19 @@ public class PlayerCharacter extends TileObject {
                 System.out.printf("%s now at %s\n", getName(), getLocation());
                 //TODO reschedule this event.
 
+            } else {
+                System.out.printf("It is finished");
+                executor.shutdown();
             }
 
         };
 
-        scheduledFuture = executor.schedule(task, MOVEMENT_SPEED, TimeUnit.MILLISECONDS);
+        scheduledFuture = executor.scheduleAtFixedRate(task, MOVEMENT_SPEED, MOVEMENT_SPEED, TimeUnit.MILLISECONDS);
 
     }
 
     public Hex getDestination() {
+        if (destination == null) destination = getLocation();
         return destination;
     }
 
@@ -167,5 +180,7 @@ public class PlayerCharacter extends TileObject {
         }
     }
 
-
+    public String getTravelTime() {
+        return getLocation().minimumDistance(getDestination()) * 2 + " minutes";
+    }
 }

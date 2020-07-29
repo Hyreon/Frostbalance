@@ -9,10 +9,7 @@ package botmanager.frostbalance.grid;
  *   ^^^^
  */
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Hexagonal Coordinate.
@@ -221,13 +218,28 @@ public class Hex {
     }
 
     public Direction crawlDirection() {
-        if (getX() < 0) return Direction.UPPER_LEFT;
-        else if (getX() > 0) return Direction.LOWER_RIGHT;
-        else if (getY() < 0) return Direction.UPPER_RIGHT;
-        else if (getY() > 0) return Direction.LOWER_LEFT;
+        if (getX() > 0) return Direction.UPPER_LEFT;
+        else if (getX() < 0) return Direction.LOWER_RIGHT;
+        else if (getY() > 0) return Direction.UPPER_RIGHT;
+        else if (getY() < 0) return Direction.LOWER_LEFT;
         else if (getZ() > 0) return Direction.DOWN;
         else if (getZ() < 0) return Direction.UP;
         else throw new IllegalStateException("Origin hex asked to crawl!");
+    }
+
+    public Iterator<Direction> crawlDirections() {
+        List<Direction> directions = new ArrayList<>();
+        Hex instructionHex = new Hex(this.x, this.y, this.z);
+        while (!instructionHex.equals(origin())) {
+            directions.add(instructionHex.crawlDirection());
+            instructionHex = instructionHex.move(instructionHex.crawlDirection(), -1);
+            System.out.println(instructionHex);
+        }
+        return directions.iterator();
+    }
+
+    public static Hex origin() {
+        return new Hex();
     }
 
     public enum Coordinate {

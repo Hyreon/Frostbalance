@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 
 //TODO make the map renderer more sane.
 public class MapRenderer {
@@ -22,6 +23,9 @@ public class MapRenderer {
         for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
             renderTile(g, map.getTileLazy(drawHex), center);
         }
+        for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
+            renderTileObjects(g, map.getTileLazy(drawHex), center);
+        }
         g.dispose();
 
         try {
@@ -34,10 +38,8 @@ public class MapRenderer {
 
     }
 
-    private static void renderTile(Graphics g, Tile tile, Hex center) {
+    private static void renderTileObjects(Graphics2D g, Tile tile, Hex center) {
         Hex drawnHex = tile.getLocation().subtract(center);
-        g.setColor(getPoliticalColor(tile));
-        g.fillPolygon(getHex(drawnHex));
         for (TileObject object : tile.getObjects()) {
             try {
                 BufferedImage image = object.getImage();
@@ -47,14 +49,46 @@ public class MapRenderer {
                         (int) Hex.X_SCALE,
                         (int) Hex.Y_SCALE,
                         null);
+                if (object instanceof PlayerCharacter) {
+                    PlayerCharacter player = (PlayerCharacter) object;
+                    if (player.getDestination() != player.getLocation()) {
+                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center));
+                    }
+                }
                 System.out.println("Draw object at " + tile.getLocation());
             } catch (IOException e) {
                 System.err.println("IOException when trying to render a tile object");
                 e.printStackTrace();
             }
         }
+    }
+
+    private static void renderTile(Graphics g, Tile tile, Hex center) {
+        Hex drawnHex = tile.getLocation().subtract(center);
+        g.setColor(getPoliticalColor(tile));
+        g.fillPolygon(getHex(drawnHex));
         g.setColor(Color.BLACK);
         g.drawPolygon(getHex(drawnHex));
+    }
+
+    /**
+     * The values put in here must already be offset, using the center as the origin.
+     * @param g
+     * @param location
+     * @param destination
+     */
+    private static void renderMovementLine(Graphics g, Hex location, Hex destination) {
+        Hex offset = Hex.origin();
+        System.out.println("Movement line: " + destination.subtract(location));
+        Iterator<Hex.Direction> instructions = destination.subtract(location).crawlDirections();
+        while (instructions.hasNext()) {
+            Hex.Direction nextDirection = instructions.next();
+            g.drawLine((int)location.add(offset).drawX() + DEFAULT_WIDTH/2,
+                    (int)location.add(offset).drawY() + DEFAULT_HEIGHT/2,
+                    (int)location.add(offset.move(nextDirection)).drawX() + DEFAULT_WIDTH/2,
+                    (int)location.add(offset.move(nextDirection)).drawY() + DEFAULT_HEIGHT/2);
+            offset = offset.move(nextDirection);
+        }
     }
 
     private static Polygon getHex(Hex hex) {

@@ -60,7 +60,7 @@ public class MapMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                cameraLocation = location();
+                cameraLocation = drawLocation();
                 cameraBehavior = CameraBehavior.CUSTOM;
                 updateMessage();
             }
@@ -76,7 +76,7 @@ public class MapMenu extends Menu {
             @Override
             public void reactEvent() {
                 cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
-                cameraLocation = location();
+                cameraLocation = drawLocation();
                 updateMessage();
             }
 
@@ -100,7 +100,7 @@ public class MapMenu extends Menu {
         }
     }
 
-    public Hex location() {
+    public Hex drawLocation() {
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
             return player.getDestination();
         } else {
@@ -120,12 +120,15 @@ public class MapMenu extends Menu {
         String description = "";
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
             description += player.getName() + " at ";
+            if (!drawLocation().equals(player.getLocation())) {
+                description += player.getLocation() + " ➤ ";
+            }
         } else {
             description += player.getName() + "'s view of ";
         }
-        description += location()+ "\n" + player.getTile().getClaimData().getClaimList(map.isTutorialMap());
+        description += drawLocation() + "\n" + player.getTile().getClaimData().getClaimList(map.isTutorialMap());
         builder.setDescription(description);
-        builder.setImage(MapRenderer.render(map, location()));
+        builder.setImage(MapRenderer.render(map, drawLocation()));
 
         return builder;
     }
