@@ -69,7 +69,6 @@ public class ClaimData extends TileData implements Container<Claim> {
             }
         }
         lastOwningNation = selectedNation;
-        System.out.println("Owning nation: " + selectedNation);
         return selectedNation;
     }
 
@@ -138,11 +137,9 @@ public class ClaimData extends TileData implements Container<Claim> {
         Double nationalStrength = 0.0;
         for (Claim claim : getActiveClaims()) {
             if (claim.getNation() == nation) {
-                System.out.println(claim.nation + " " + claim.getStrength() + " added");
                 nationalStrength += claim.getStrength();
             }
         }
-        System.out.println("National strength of " + nation + " on " + getTile().getLocation() + " : " + nationalStrength);
         return nationalStrength;
     }
 

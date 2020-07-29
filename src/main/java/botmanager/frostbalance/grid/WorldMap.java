@@ -131,7 +131,6 @@ public class WorldMap implements Container<Tile> {
 
     public double getStrongestClaim() {
         updateStrongestClaim();
-        System.out.println("Strongest claim: " + strongestNationalClaim);
         return strongestNationalClaim;
     }
 

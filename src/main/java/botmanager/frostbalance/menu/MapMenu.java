@@ -56,6 +56,40 @@ public class MapMenu extends Menu {
             }
         });
 
+        menuResponses.add(new MenuResponse("\uD83D\uDCF9", "Freecam") {
+
+            @Override
+            public void reactEvent() {
+                cameraLocation = location();
+                cameraBehavior = CameraBehavior.CUSTOM;
+                updateMessage();
+            }
+
+            @Override
+            public boolean validConditions() {
+                return getCameraBehavior() != CameraBehavior.CUSTOM;
+            }
+        });
+
+        menuResponses.add(new MenuResponse("♟️", "Snap to self") {
+
+            @Override
+            public void reactEvent() {
+                cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
+                cameraLocation = location();
+                updateMessage();
+            }
+
+            @Override
+            public boolean validConditions() {
+                return getCameraBehavior() != CameraBehavior.SNAP_TO_PLAYER;
+            }
+        });
+
+    }
+
+    private CameraBehavior getCameraBehavior() {
+        return cameraBehavior;
     }
 
     private void move(Hex.Direction direction) {

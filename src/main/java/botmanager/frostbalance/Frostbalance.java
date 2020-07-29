@@ -185,7 +185,6 @@ public class Frostbalance extends BotBase {
             } else {
                 iconNameToUse = "icon_tweak/snowflake_w.png";
             }
-            System.out.println(iconNameToUse);
             URL iconToUse = getClass().getClassLoader().getResource(iconNameToUse);
             try {
                 Icon defaultIcon = Icon.from(new File(iconToUse.getFile()));
@@ -202,7 +201,6 @@ public class Frostbalance extends BotBase {
                 URL url = new URL(urlString);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("User-Agent", "");
-                System.out.println(url);
             } catch (IOException e) {
                 System.err.println("Cannot update the new guild icon!");
                 e.printStackTrace();
@@ -358,7 +356,6 @@ public class Frostbalance extends BotBase {
         List<String> info = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"));
         if (info != null && !info.isEmpty()) {
             for (String line : info) {
-                System.out.println(line);
 
                 if (line.isEmpty()) {
                     regimes.getOrDefault(guild, new ArrayList<>());

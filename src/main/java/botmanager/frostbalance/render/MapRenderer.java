@@ -35,7 +35,6 @@ public class MapRenderer {
     }
 
     private static void renderTile(Graphics g, Tile tile, Hex center) {
-        System.out.println("Rendering " + tile.getLocation());
         Hex drawnHex = tile.getLocation().subtract(center);
         g.setColor(getPoliticalColor(tile));
         g.fillPolygon(getHex(drawnHex));
@@ -85,7 +84,6 @@ public class MapRenderer {
                 } else {
                     drawValue = BCOLOR + (int) ((255 - BCOLOR) * ratio);
                 }
-                System.out.println("Ratio: " + ratio);
                 System.out.println("DrawValue: " + drawValue);
                 color = nation.adjustDisplayColor(color, drawValue);
             }
