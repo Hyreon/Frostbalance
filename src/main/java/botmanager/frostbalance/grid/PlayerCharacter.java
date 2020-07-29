@@ -87,7 +87,10 @@ public class PlayerCharacter extends TileObject {
     @Override
     public URL getRender() {
         try {
-            return new URL(getUser().getEffectiveAvatarUrl());
+            if (getUser() != null) { //user is accessible
+                return new URL(getUser().getEffectiveAvatarUrl());
+            }
+            else return null;
         } catch (MalformedURLException e) {
             System.err.println("Effective avatar URL is malformed!");
             e.printStackTrace();
