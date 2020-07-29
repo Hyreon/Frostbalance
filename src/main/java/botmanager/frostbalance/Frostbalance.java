@@ -1,6 +1,7 @@
 package botmanager.frostbalance;
 
 import botmanager.Utilities;
+import botmanager.Utils;
 import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
 import botmanager.frostbalance.commands.map.ClaimTileCommand;
@@ -783,7 +784,7 @@ public class Frostbalance extends BotBase {
 
     public Nation getMainAllegiance(User user) {
         String allegiance = getUserCSVAtIndex(null, user, 1);
-        if (allegiance == null) return Nation.NONE;
+        if (Utils.isNullOrEmpty(allegiance)) return Nation.NONE;
         return Nation.valueOf(allegiance);
     }
 

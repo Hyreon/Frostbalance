@@ -3,6 +3,7 @@ package botmanager.frostbalance.grid;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 public abstract class TileObject extends TileData {
@@ -28,10 +29,13 @@ public abstract class TileObject extends TileData {
 
     public BufferedImage getImage() throws IOException {
         if (cachedImage != null) return cachedImage;
-        else return ImageIO.read(getRender());
+        else {
+            cachedImage = ImageIO.read(getRender());
+            return cachedImage;
+        }
     }
 
-    public abstract URL getRender();
+    public abstract InputStream getRender();
 
     public Hex getLocation() {
         return tile.getLocation();
