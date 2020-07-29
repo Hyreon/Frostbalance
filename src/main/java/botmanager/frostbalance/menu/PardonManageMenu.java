@@ -1,5 +1,6 @@
 package botmanager.frostbalance.menu;
 
+import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -19,11 +20,7 @@ public class PardonManageMenu extends Menu {
         this.guild = guild;
         this.target = target;
 
-        if (guild.getMember(target) != null) {
-            knownName = guild.getMember(target).getEffectiveName();
-        } else {
-            knownName = target.getName();
-        }
+        knownName = Utilities.getEffectiveName(guild, target);
 
         if (!bot.isBanned(guild, target)) {
             outcome = Alternative.FAILED;

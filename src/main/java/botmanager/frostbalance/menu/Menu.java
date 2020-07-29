@@ -41,6 +41,7 @@ public abstract class Menu {
 
     public void updateMessage() {
         MessageEmbed me = getME();
+        //TODO handle general support for non-attachment images
         if (me.getImage() != null) {
             String fileName = me.getImage().getUrl().replace("attachment://", "");
             message.delete().queue();

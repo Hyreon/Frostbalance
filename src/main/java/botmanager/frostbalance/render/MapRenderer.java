@@ -74,7 +74,7 @@ public class MapRenderer {
     private static Color getPoliticalColor(Tile tile) {
         Nation owningNation = tile.getClaimData().getOwningNation();
         Color color = Color.BLACK;
-        if (owningNation != null) {
+        if (owningNation != Nation.NONE) {
             //darken according to fraction of strongest political color.
             for (Nation nation : Nation.getNations()) {
                 double ratio = tile.getClaimData().getNationalStrength(nation)

@@ -62,4 +62,8 @@ public class Tile implements Containable<WorldMap>, Container<TileData> {
         tileData.tile = this;
         return tileData;
     }
+
+    public void removeObject(TileObject tileObject) {
+        this.objects.remove(tileObject);
+    }
 }

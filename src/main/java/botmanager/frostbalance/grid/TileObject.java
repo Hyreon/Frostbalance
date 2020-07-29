@@ -26,8 +26,16 @@ public abstract class TileObject extends TileData {
         this.tile = tile;
     }
 
+    public boolean isImageCacheValid() {
+        return cachedImage != null;
+    }
+
+    protected void invalidateCache() {
+        cachedImage = null;
+    }
+
     public BufferedImage getImage() throws IOException {
-        if (cachedImage != null) return cachedImage;
+        if (isImageCacheValid()) return cachedImage;
         else return ImageIO.read(getRender());
     }
 

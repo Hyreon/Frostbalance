@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+//TODO change worldMap to split into different types based on whether it's a main map, tutorial map, or private guild map.
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */
@@ -156,7 +157,7 @@ public class WorldMap implements Container<Tile> {
     }
 
     public boolean isTutorialMap() {
-        if (guild != null && Frostbalance.bot.getSettings(guild).contains(OptionFlag.TUTORIAL)) {
+        if (!isMainMap() && Frostbalance.bot.getSettings(guild).contains(OptionFlag.TUTORIAL)) {
             return true;
         } else return false;
     }

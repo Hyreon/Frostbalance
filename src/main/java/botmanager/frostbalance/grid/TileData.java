@@ -12,12 +12,4 @@ public abstract class TileData implements Containable<Tile> {
         return tile;
     }
 
-    public void setInitialTile(Tile tile) {
-        if (this.tile != null) {
-            throw new IllegalArgumentException("Tile is already set!");
-        } else {
-            this.tile = tile;
-        }
-    }
-
 }

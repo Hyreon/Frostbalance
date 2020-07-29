@@ -54,10 +54,10 @@ public class ClaimData extends TileData implements Container<Claim> {
     /**
      * Gets the nation whose members have the strongest combined claim on this tile.
      * Note that this will return NONE every time for world maps outside the global set.
-     * @return The nation that owns this tile (or null if there are no national claims).
+     * @return The nation that owns this tile (or NONE if there are no national claims).
      */
     public Nation getOwningNation() {
-        if (getClaims().isEmpty()) return null;
+        if (getClaims().isEmpty()) return Nation.NONE;
         Nation selectedNation = lastOwningNation;
         Double selectedStrength = getNationalStrength(lastOwningNation);
 
