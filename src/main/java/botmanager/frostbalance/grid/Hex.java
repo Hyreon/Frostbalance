@@ -22,11 +22,10 @@ import java.util.Set;
  * for returning new HexCoordinates.
  *
  * This is a nonstandard coordinate system. While most grids use X and Y, where Z is simply
- * -X -Y, this grid has a third value called Z. Position (X, Y, Z) is the same as (X+1, Y+1, Z+1).
+ * -X -Y, this grid has a third value called Z.
  * The coordinates map to an expression of how many steps
- * in each direction you have to take to get to your destination; since there are multiple ways to reach
- * most coordinates, this is reflected in the coordinate system. Most methods, however, ignore this behavior,
- * preferring to normalize the vector in terms of a nonnegative, a zero, and a nonpositive value.
+ * in each direction you have to take to get to your destination. The vector is immediately normalized on
+ * creation into three values: one nonnegative, one zero, and one nonpositive value.
  */
 public class Hex {
 
@@ -38,24 +37,22 @@ public class Hex {
     long y;
     long z;
 
-    /**
-     * An internal cache value to speed up performance.
-     * Normal hexes won't have the expensive normalize() function applied to them.
-     */
-    private boolean isNormal = false;
-
     public Hex() {
         this.x = 0;
         this.y = 0;
         this.z = 0;
-        isNormal = true;
     }
 
     public Hex(long x, long y, long z) {
         this.x = x;
         this.y = y;
         this.z = z;
-        isNormal = getMedian() == 0;
+        long median = getMedian();
+        if (median != 0) {
+            this.x = x - median;
+            this.y = y - median;
+            this.z = z - median;
+        }
     }
 
     public Hex move(Direction direction, long value) {
@@ -111,7 +108,7 @@ public class Hex {
      * @return The shortest distance between these hexes.
      */
     public long minimumDistance(Hex hex) {
-        Hex normalDistanceVector = this.subtract(hex).normalize();
+        Hex normalDistanceVector = this.subtract(hex);
         return Math.abs(normalDistanceVector.x) + Math.abs(normalDistanceVector.y) + Math.abs(normalDistanceVector.z);
     }
 
@@ -143,17 +140,6 @@ public class Hex {
      */
     public long getMinimum() {
         return Math.min(Math.min(x, y), z);
-    }
-
-    /**
-     * Gets this Hex, but with the median value at 0. This means one value is positive and one is negative.
-     * Note that because most functions will treat a non-normalized Hex the same as a normalized Hex,
-     * this function isn't necessary for most things.
-     * @return
-     */
-    public Hex normalize() {
-        if (isNormal) return this;
-        return new Hex(x - getMedian(), y - getMedian(), z - getMedian());
     }
 
     public Collection<Hex> getHexesToDrawAround(int width, int height) {
@@ -200,32 +186,19 @@ public class Hex {
         return Y_SCALE * (z - y/2.0 - x/2.0);
     }
 
-    public long getX() { return normalize().x; }
+    public long getX() { return x; }
 
-    public long getY() { return normalize().y; }
+    public long getY() { return y; }
 
-    public long getZ() { return normalize().z; }
-
-    public long getInternalX() {
-        return x;
-    }
-
-    public long getInternalY() {
-        return y;
-    }
-
-    public long getInternalZ() {
-        return z;
-    }
+    public long getZ() { return z; }
 
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof Hex)) return false;
-        Hex other = ((Hex) object).normalize();
-        Hex selfForComparison = this.normalize();
-        return other.x == selfForComparison.x
-                && other.y == selfForComparison.y
-                && other.z == selfForComparison.z;
+        Hex other = ((Hex) object);
+        return other.x == x
+                && other.y == y
+                && other.z == z;
     }
 
     @Override

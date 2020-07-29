@@ -81,7 +81,9 @@ public class PlayerCharacter extends TileObject {
      * Right now pretty simple: go immediately to the target destination without any waiting or routing.
      */
     private void updateMovement() {
+
         setLocation(destination);
+
     }
 
     @Override
