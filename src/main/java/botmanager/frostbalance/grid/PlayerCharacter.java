@@ -2,6 +2,9 @@ package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -10,6 +13,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PlayerCharacter extends TileObject {
 
@@ -87,15 +92,21 @@ public class PlayerCharacter extends TileObject {
     }
 
     @Override
-    public URL getRender() {
+    public InputStream getRender() {
         try {
             if (getUser() != null) { //user is accessible
-                return new URL(getUser().getEffectiveAvatarUrl());
+                URL url = new URL(getUser().getEffectiveAvatarUrl());
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("User-Agent", "");
+                return connection.getInputStream();
             }
             else return null;
         } catch (MalformedURLException e) {
             System.err.println("Effective avatar URL is malformed!");
             e.printStackTrace();
+            return null;
+        } catch (IOException ex) {
+            Logger.getLogger(PlayerCharacter.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
