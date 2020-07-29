@@ -47,6 +47,14 @@ public class Hex {
         this.x = x;
         this.y = y;
         this.z = z;
+        normalize();
+    }
+
+    @Deprecated
+    /**
+     * Mutates the hex into a normal one.
+     */
+    public void normalize() {
         long median = getMedian();
         if (median != 0) {
             this.x = x - median;
@@ -186,11 +194,11 @@ public class Hex {
         return Y_SCALE * (z - y/2.0 - x/2.0);
     }
 
-    public long getX() { return x; }
+    public long getX() { normalize(); return x; }
 
-    public long getY() { return y; }
+    public long getY() { normalize(); return y; }
 
-    public long getZ() { return z; }
+    public long getZ() { normalize(); return z; }
 
     @Override
     public boolean equals(Object object) {
