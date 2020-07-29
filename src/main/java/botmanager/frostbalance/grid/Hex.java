@@ -67,15 +67,15 @@ public class Hex {
             case UP:
                 return new Hex(x, y, z - value);
             case UPPER_LEFT:
-                return new Hex(x, y + value, z);
+                return new Hex(x + value, y, z);
             case LOWER_LEFT:
-                return new Hex(x - value, y, z);
+                return new Hex(x, y - value, z);
             case DOWN:
                 return new Hex(x, y, z + value);
             case LOWER_RIGHT:
-                return new Hex(x, y - value, z);
+                return new Hex(x - value, y, z);
             case UPPER_RIGHT:
-                return new Hex(x + value, y, z);
+                return new Hex(x, y + value, z);
             default:
                 return this;
         }
@@ -182,7 +182,7 @@ public class Hex {
      * The value is scaled according to X_SCALE.
      */
     public double drawX() {
-        return X_SCALE * (x*WIDTH_RATIO - y*WIDTH_RATIO);
+        return X_SCALE * (y*WIDTH_RATIO - x*WIDTH_RATIO);
     }
 
     /**
@@ -218,6 +218,16 @@ public class Hex {
     @Override
     public String toString() {
         return "(" + getX() + "," + getY() + "," + getZ() + ")";
+    }
+
+    public Direction crawlDirection() {
+        if (getX() < 0) return Direction.UPPER_LEFT;
+        else if (getX() > 0) return Direction.LOWER_RIGHT;
+        else if (getY() < 0) return Direction.UPPER_RIGHT;
+        else if (getY() > 0) return Direction.LOWER_LEFT;
+        else if (getZ() > 0) return Direction.DOWN;
+        else if (getZ() < 0) return Direction.UP;
+        else throw new IllegalStateException("Origin hex asked to crawl!");
     }
 
     public enum Coordinate {

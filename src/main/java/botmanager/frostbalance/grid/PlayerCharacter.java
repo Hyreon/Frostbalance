@@ -2,21 +2,27 @@ package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerCharacter extends TileObject {
+
+    public static final long MOVEMENT_SPEED = 120000;
 
     static List<PlayerCharacter> cache = new ArrayList<>();
 
@@ -35,6 +41,8 @@ public class PlayerCharacter extends TileObject {
     public static PlayerCharacter get(User user, Guild guild) {
         return get(user.getId(), WorldMap.get(guild));
     }
+
+    transient private ScheduledFuture<?> scheduledFuture = null;
 
     /**
      * The user this character is tied to.
@@ -83,12 +91,34 @@ public class PlayerCharacter extends TileObject {
     }
 
     /**
-     * Right now pretty simple: go immediately to the target destination without any waiting or routing.
+     * Moves towards the destination in one second.
      */
     private void updateMovement() {
 
-        setLocation(destination);
+        if (!scheduledFuture.isDone()) return;
 
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+        Runnable task = () -> {
+
+            if (!getLocation().equals(getDestination())) {
+
+                Hex directions = destination.subtract(getLocation());
+                Hex.Direction nextStep = directions.crawlDirection();
+                setLocation(getLocation().move(nextStep));
+                System.out.printf("%s now at %s\n", getName(), getLocation());
+                //TODO reschedule this event.
+
+            }
+
+        };
+
+        scheduledFuture = executor.schedule(task, MOVEMENT_SPEED, TimeUnit.MILLISECONDS);
+
+    }
+
+    public Hex getDestination() {
+        return destination;
     }
 
     @Override

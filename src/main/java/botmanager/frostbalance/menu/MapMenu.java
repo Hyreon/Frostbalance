@@ -102,7 +102,7 @@ public class MapMenu extends Menu {
 
     public Hex location() {
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
-            return player.getLocation();
+            return player.getDestination();
         } else {
             return cameraLocation;
         }
@@ -117,7 +117,14 @@ public class MapMenu extends Menu {
         } else {
             builder.setTitle("Map of " + map.getGuild().getName());
         }
-        builder.setDescription(player.getName() + " at " + player.getLocation().toString() + "\n" + player.getTile().getClaimData().getClaimList(map.isTutorialMap()));
+        String description = "";
+        if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
+            description += player.getName() + " at ";
+        } else {
+            description += player.getName() + "'s view of ";
+        }
+        description += location()+ "\n" + player.getTile().getClaimData().getClaimList(map.isTutorialMap());
+        builder.setDescription(description);
         builder.setImage(MapRenderer.render(map, location()));
 
         return builder;
