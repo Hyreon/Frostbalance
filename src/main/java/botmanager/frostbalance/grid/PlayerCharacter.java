@@ -51,8 +51,12 @@ public class PlayerCharacter extends TileObject {
         this.userId = userId;
     }
 
+    /**
+     * @return The user from this id, or null if the user is inaccessible.
+     */
     public User getUser() {
-        return Frostbalance.bot.getJDA().getUserById(userId);
+        User user = Frostbalance.bot.getJDA().getUserById(userId);
+        return user;
     }
 
     public String getUserId() {
@@ -82,16 +86,21 @@ public class PlayerCharacter extends TileObject {
      * Right now pretty simple: go immediately to the target destination without any waiting or routing.
      */
     private void updateMovement() {
+
         setLocation(destination);
+
     }
 
     @Override
     public InputStream getRender() {
         try {
-            URL url = new URL(getUser().getEffectiveAvatarUrl());
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", "");
-            return connection.getInputStream();
+            if (getUser() != null) { //user is accessible
+                URL url = new URL(getUser().getEffectiveAvatarUrl());
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("User-Agent", "");
+                return connection.getInputStream();
+            }
+            else return null;
         } catch (MalformedURLException e) {
             System.err.println("Effective avatar URL is malformed!");
             e.printStackTrace();
@@ -102,6 +111,10 @@ public class PlayerCharacter extends TileObject {
         }
     }
 
+    /**
+     * Gets this player as though it were a member of the guild it has its allegiance to.
+     * @return null if the guild doesn't exist, or if the user isn't in the guild.
+     */
     public Member getMember() {
         if (getMap().getGuild() == null) {
             Guild guild = Frostbalance.bot.getGuildFor(getNation());

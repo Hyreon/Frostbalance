@@ -321,5 +321,12 @@ public class Utilities {
         return null;
 
     }
-    
+
+    public static String getEffectiveName(Guild guild, User target) {
+        if (guild.getMember(target) != null) {
+            return guild.getMember(target).getEffectiveName();
+        } else {
+            return target.getName();
+        }
+    }
 }

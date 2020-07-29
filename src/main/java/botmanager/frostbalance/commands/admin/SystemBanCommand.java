@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 
-//TODO create a menu for global/guild bans/pardons
 public class SystemBanCommand extends FrostbalanceSplitCommandBase {
 
     public SystemBanCommand(Frostbalance bot) {

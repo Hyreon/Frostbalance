@@ -19,6 +19,11 @@ public class ViewMapCommand extends FrostbalanceHybridCommandBase {
     @Override
     protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
 
+        if (eventWrapper.getGuild() == null) {
+            eventWrapper.sendResponse("You need to have a default guild set with `.guild` in order to view the map.");
+            return;
+        }
+
         WorldMap map = WorldMap.get(eventWrapper.getGuild());
         new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor().getId(), map)).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 

@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 public class MapMenu extends Menu {
 
     private WorldMap map;
-    private Hex.Direction lastDirection = null;
 
     private PlayerCharacter player;
 
@@ -25,20 +24,6 @@ public class MapMenu extends Menu {
         super(bot);
         this.map = map;
         this.player = player;
-
-        menuResponses.add(new MenuResponse("\uD83D\uDD02", "Last Direction") {
-
-            @Override
-            public void reactEvent() {
-                move();
-                updateMessage();
-            }
-
-            @Override
-            public boolean validConditions() {
-                return lastDirection != null;
-            }
-        });
 
         menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.UP));
         menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.UPPER_RIGHT));
@@ -73,12 +58,7 @@ public class MapMenu extends Menu {
 
     }
 
-    private void move() {
-        move(lastDirection);
-    }
-
     private void move(Hex.Direction direction) {
-        lastDirection = direction;
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
             player.adjustDestination(direction);
         } else {

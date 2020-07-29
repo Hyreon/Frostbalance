@@ -71,7 +71,7 @@ public class Frostbalance extends BotBase {
                 new OpposeCommand(this),
                 new CheckCommand(this),
                 new CoupCommand(this),
-                new TransferCommand(this),
+                new InaugurateCommand(this),
                 new HistoryCommand(this),
                 new SetGuildCommand(this),
                 new InterveneCommand(this),
@@ -131,21 +131,20 @@ public class Frostbalance extends BotBase {
 
     @Override
     public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
-        Menu targetMenu = null;
+        Menu targetMenu;
         for (Menu menu : getActiveMenus()) {
             if (event.getUser().equals(menu.getActor())) {
                 try {
                     if (menu.getMessage().getId().equals(event.getMessageId())) {
                         targetMenu = menu;
+                        targetMenu.applyResponse(event.getReactionEmote());
                         break;
                     }
                 } catch (NullPointerException e) {
+                    e.printStackTrace();
                     //these happen often enough. let's not have them ruin other menus when they do
                 }
             }
-        }
-        if (targetMenu != null) {
-            targetMenu.applyResponse(event.getReactionEmote());
         }
     }
 
@@ -301,7 +300,8 @@ public class Frostbalance extends BotBase {
         }
     }
 
-    public String getUserCSVAtIndex(Guild guild, User user, int index) {
+    @Deprecated
+    public String getUserCSVAtIndex(Guild guild, String userId, int index) {
 
         String guildId;
         if (guild == null) {
@@ -310,7 +310,7 @@ public class Frostbalance extends BotBase {
             guildId = guild.getId();
         }
 
-        File file = new File("data/" + getName() + "/" + guildId + "/" + user.getId() + ".csv");
+        File file = new File("data/" + getName() + "/" + guildId + "/" + userId + ".csv");
 
         if (!file.exists()) {
             return "";
@@ -319,6 +319,7 @@ public class Frostbalance extends BotBase {
         return Utilities.getCSVValueAtIndex(Utilities.read(file), index);
     }
 
+    @Deprecated
     public void setUserCSVAtIndex(Guild guild, User user, int index, String newValue) {
 
         String guildId;
@@ -501,7 +502,7 @@ public class Frostbalance extends BotBase {
      */
     public boolean isLocallyBanned(Guild guild, User user) {
 
-        return Boolean.parseBoolean(getUserCSVAtIndex(guild, user, 1));
+        return Boolean.parseBoolean(getUserCSVAtIndex(guild, user.getId(), 1));
 
     }
 
@@ -720,7 +721,7 @@ public class Frostbalance extends BotBase {
 
     public double getUserInfluence(Guild guild, User user) {
         try {
-            return Double.parseDouble(getUserCSVAtIndex(guild, user, 0));
+            return Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 0));
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -732,7 +733,7 @@ public class Frostbalance extends BotBase {
 
     public double getUserDailyAmount(Guild guild, User user) {
         try {
-            return Double.parseDouble(getUserCSVAtIndex(guild, user, 3));
+            return Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 3));
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -752,7 +753,7 @@ public class Frostbalance extends BotBase {
 
     public long getUserLastDaily(Guild guild, User user) {
         try {
-            return Integer.parseInt(getUserCSVAtIndex(guild, user, 2));
+            return Integer.parseInt(getUserCSVAtIndex(guild, user.getId(), 2));
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -783,14 +784,14 @@ public class Frostbalance extends BotBase {
     }
 
     public Nation getMainAllegiance(User user) {
-        String allegiance = getUserCSVAtIndex(null, user, 1);
+        String allegiance = getUserCSVAtIndex(null, user.getId(), 1);
         if (Utils.isNullOrEmpty(allegiance)) return Nation.NONE;
         return Nation.valueOf(allegiance);
     }
 
     public Guild getUserDefaultGuild(User user) {
         try {
-            return getJDA().getGuildById(getUserCSVAtIndex(null, user, 0));
+            return getJDA().getGuildById(getUserCSVAtIndex(null, user.getId(), 0));
         } catch (IllegalArgumentException e) {
             return null;
         }

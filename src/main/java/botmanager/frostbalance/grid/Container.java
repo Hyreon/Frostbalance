@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid;
 
 import com.google.gson.JsonDeserializer;
 
+//TODO use this!
 /**
  * An object that contains objects with transient references to this object.
  * @param <T> The type of object it contains.
