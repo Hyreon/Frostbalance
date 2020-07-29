@@ -50,11 +50,10 @@ public class Hex {
         normalize();
     }
 
-    @Deprecated
     /**
      * Mutates the hex into a normal one.
      */
-    public void normalize() {
+    private void normalize() {
         long median = getMedian();
         if (median != 0) {
             this.x = x - median;
@@ -202,7 +201,6 @@ public class Hex {
 
     @Override
     public boolean equals(Object object) {
-        normalize();
         if (!(object instanceof Hex)) return false;
         Hex other = ((Hex) object);
         return other.x == x
@@ -213,7 +211,6 @@ public class Hex {
     @Override
     public int hashCode() {
 
-        normalize();
         return Objects.hash(getX(), getY(), getZ());
     }
 
