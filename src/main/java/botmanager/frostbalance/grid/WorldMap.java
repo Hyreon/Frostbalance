@@ -76,11 +76,13 @@ public class WorldMap implements Container<Tile> {
                 for (TileData tileData : tile.getObjects()) {
                     tileData.tile = tile;
                 }
-                tile.claimData.tile = tile;
+                tile.getClaimData().tile = tile;
                 for (Claim claim : tile.claimData.claims) {
                     claim.claimData = tile.claimData;
                 }
+                System.out.println("Loaded data for tile at " + tile.getLocation() + " (" + guildId + ")");
             }
+            System.out.println("Added " + worldMap.guild + " world map to worldMaps list.");
             worldMaps.add(worldMap);
         }
 

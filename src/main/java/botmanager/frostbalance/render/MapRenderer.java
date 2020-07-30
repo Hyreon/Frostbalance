@@ -44,17 +44,17 @@ public class MapRenderer {
             try {
                 BufferedImage image = object.getImage();
                 if (image == null) continue;
+                if (object instanceof PlayerCharacter) {
+                    PlayerCharacter player = (PlayerCharacter) object;
+                    if (player.getDestination() != player.getLocation()) {
+                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player);
+                    }
+                }
                 g.drawImage(image, (int) (drawnHex.drawX() - Hex.X_SCALE/2 + DEFAULT_WIDTH/2),
                         (int) (drawnHex.drawY() - Hex.Y_SCALE/2 + DEFAULT_HEIGHT/2),
                         (int) Hex.X_SCALE,
                         (int) Hex.Y_SCALE,
                         null);
-                if (object instanceof PlayerCharacter) {
-                    PlayerCharacter player = (PlayerCharacter) object;
-                    if (player.getDestination() != player.getLocation()) {
-                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center));
-                    }
-                }
                 System.out.println("Draw object at " + tile.getLocation());
             } catch (IOException e) {
                 System.err.println("IOException when trying to render a tile object");
@@ -63,7 +63,8 @@ public class MapRenderer {
         }
     }
 
-    private static void renderTile(Graphics g, Tile tile, Hex center) {
+    private static void renderTile(Graphics2D g, Tile tile, Hex center) {
+        g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Hex drawnHex = tile.getLocation().subtract(center);
         g.setColor(getPoliticalColor(tile));
         g.fillPolygon(getHex(drawnHex));
@@ -77,7 +78,10 @@ public class MapRenderer {
      * @param location
      * @param destination
      */
-    private static void renderMovementLine(Graphics g, Hex location, Hex destination) {
+    private static void renderMovementLine(Graphics2D g, Hex location, Hex destination, PlayerCharacter playerCharacter) {
+        g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+        Color color = playerCharacter.getNation().getColor();
+        g.setColor(new Color(Math.max(128, color.getRed()), Math.max(128, color.getGreen()), Math.max(128, color.getBlue())));
         Hex offset = Hex.origin();
         System.out.println("Movement line: " + destination.subtract(location));
         Iterator<Hex.Direction> instructions = destination.subtract(location).crawlDirections();

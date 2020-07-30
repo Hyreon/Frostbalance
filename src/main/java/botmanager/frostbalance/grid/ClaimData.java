@@ -68,6 +68,9 @@ public class ClaimData extends TileData implements Container<Claim> {
                 selectedStrength = nationalStrength;
             }
         }
+        if (selectedStrength <= 0.0) {
+            return Nation.NONE;
+        }
         lastOwningNation = selectedNation;
         return selectedNation;
     }
