@@ -28,10 +28,6 @@ public class PlayerCharacter extends TileObject {
 
     public static PlayerCharacter get(String userId, WorldMap map) {
         for (PlayerCharacter player : cache) {
-            System.out.println(player);
-            System.out.println(player.getUserId());
-            System.out.println(player.getTile());
-            System.out.println(player.getTile().getMap());
             if (player.getUserId().equals(userId) && player.getTile().getMap().equals(map)) {
                 return player;
             }
@@ -119,7 +115,7 @@ public class PlayerCharacter extends TileObject {
                 //TODO reschedule this event.
 
             } else {
-                System.out.printf("It is finished");
+                System.out.println("It is finished");
                 executor.shutdown();
             }
 
@@ -131,6 +127,7 @@ public class PlayerCharacter extends TileObject {
 
     public Hex getDestination() {
         if (destination == null) destination = getLocation();
+        if (!destination.equals(getLocation())) updateMovement();
         return destination;
     }
 

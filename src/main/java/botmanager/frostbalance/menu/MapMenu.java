@@ -88,6 +88,12 @@ public class MapMenu extends Menu {
 
     }
 
+    public MapMenu(Frostbalance bot, WorldMap map, PlayerCharacter player, Hex destination) {
+        this(bot, map, player);
+        cameraLocation = destination;
+        cameraBehavior = CameraBehavior.CUSTOM;
+    }
+
     private CameraBehavior getCameraBehavior() {
         return cameraBehavior;
     }

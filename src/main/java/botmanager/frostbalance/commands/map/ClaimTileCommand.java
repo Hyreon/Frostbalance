@@ -72,7 +72,7 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
 
     @Override
     public String publicInfo(AuthorityLevel authorityLevel) {
-        return "**" + bot.getPrefix() + "claim** - claim the map tile you are on";
+        return "**" + bot.getPrefix() + "claim AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
     }
 
     @Override

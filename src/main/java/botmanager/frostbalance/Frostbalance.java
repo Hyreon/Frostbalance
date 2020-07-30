@@ -5,6 +5,7 @@ import botmanager.Utils;
 import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
 import botmanager.frostbalance.commands.map.ClaimTileCommand;
+import botmanager.frostbalance.commands.map.GetClaimsCommand;
 import botmanager.frostbalance.commands.map.MoveCommand;
 import botmanager.frostbalance.commands.map.ViewMapCommand;
 import botmanager.frostbalance.commands.meta.*;
@@ -84,6 +85,7 @@ public class Frostbalance extends BotBase {
                 new ClaimTileCommand(this),
                 new AllegianceCommand(this),
                 new MoveCommand(this),
+                new GetClaimsCommand(this),
         });
 
         ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
@@ -944,6 +946,7 @@ public class Frostbalance extends BotBase {
     public void loadMaps() {
         for (Guild guild : getJDA().getGuilds()) {
             if (!getSettings(guild).contains(OptionFlag.MAIN)) {
+                System.out.println("Loading map for " + guild.getName());
                 WorldMap.readWorld(guild);
             }
         }

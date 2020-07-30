@@ -17,11 +17,19 @@ public class MoveCommand extends FrostbalanceHybridCommandBase {
 
     @Override
     protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+
+        if (eventWrapper.getGuild() == null) {
+            eventWrapper.sendResponse("You need to have a default guild set with `.guild` in order to move on its map.");
+            return;
+        }
+
         String[] words = message.split(" ");
         PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
-        Hex destination = player.getDestination();
+        Hex destination;
+
         if (words.length < 3) {
             eventWrapper.sendResponse(info(eventWrapper.getAuthority(), eventWrapper.isPublic()));
+            return;
         }
         try {
             destination = new Hex(Integer.parseInt(words[0]), Integer.parseInt(words[1]), Integer.parseInt(words[2]));
