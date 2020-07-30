@@ -38,8 +38,13 @@ public abstract class TileObject extends TileData {
     public BufferedImage getImage() throws IOException {
         if (isImageCacheValid()) return cachedImage;
         else {
-            cachedImage = ImageIO.read(getRender());
-            return cachedImage;
+            InputStream renderStream = getRender();
+            if (renderStream == null) {
+                return null;
+            } else {
+                cachedImage = ImageIO.read(getRender());
+                return cachedImage;
+            }
         }
     }
 

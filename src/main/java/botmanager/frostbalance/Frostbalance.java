@@ -88,13 +88,7 @@ public class Frostbalance extends BotBase {
                 new GetClaimsCommand(this),
         });
 
-        ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
-
-        exec.schedule(new Runnable() {
-            public void run() {
-                loadMaps();
-            }
-        }, 1, TimeUnit.SECONDS);
+        loadMaps();
 
         mapSaverTimer.schedule(new TimerTask() {
 
@@ -943,13 +937,25 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    //FIXME add a flag for whether the maps have been loaded - there's a risk of losing all map data if someone is fast enough
+    //TODO test if this ever loads a subset of the guilds the bot is a part of, as that would leave a subset of the maps actually loaded.
     public void loadMaps() {
-        for (Guild guild : getJDA().getGuilds()) {
-            if (!getSettings(guild).contains(OptionFlag.MAIN)) {
-                System.out.println("Loading map for " + guild.getName());
-                WorldMap.readWorld(guild);
+        if (getJDA().getGuilds().isEmpty()) {
+            ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
+
+            exec.schedule(new Runnable() {
+                public void run() {
+                    loadMaps();
+                }
+            }, 1, TimeUnit.SECONDS);
+        } else {
+            for (Guild guild : getJDA().getGuilds()) {
+                if (!getSettings(guild).contains(OptionFlag.MAIN)) {
+                    System.out.println("Loading map for " + guild.getName());
+                    WorldMap.readWorld(guild);
+                }
             }
+            WorldMap.readWorld(null);
         }
-        WorldMap.readWorld(null);
     }
 }
