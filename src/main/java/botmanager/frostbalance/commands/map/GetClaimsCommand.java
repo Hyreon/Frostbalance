@@ -25,12 +25,14 @@ public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        eventWrapper.sendResponse(player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, player));
+        eventWrapper.sendResponse(String.format("Claims on %s:\n%s",
+                player.getLocation().toString(),
+                player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, player)));
 
     }
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return null;
+        return "**" + bot.getPrefix() + "claims** - read a list of all claims on your tile";
     }
 }

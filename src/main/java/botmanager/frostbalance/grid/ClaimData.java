@@ -278,6 +278,9 @@ public class ClaimData extends TileData implements Container<Claim> {
                     youTag);
             return simple;
         } else if (format == Format.COMPETITIVE) {
+            if (Utils.isNullOrEmpty(getOwningUserId())) {
+                return "Wildnerness";
+            }
             String nationalCompetition = "";
             List<String> nationalCompetitors = new ArrayList<>();
             for (Nation nation : Nation.getNations()) {
@@ -291,7 +294,7 @@ public class ClaimData extends TileData implements Container<Claim> {
             if (!nationalCompetitors.isEmpty()) {
                 nationalCompetition = "(" + String.join(", ", nationalCompetitors) + ")";
             }
-            String nationalState = String.format("%s: %.3f %s\n",
+            String nationalState = String.format("**%s: %.3f** %s\n",
                     getOwningNationName(),
                     getNationalStrength(),
                     nationalCompetition);
