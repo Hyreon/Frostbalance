@@ -1,5 +1,6 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.Utils;
 import botmanager.frostbalance.Nation;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
@@ -135,6 +136,16 @@ public class ClaimData extends TileData implements Container<Claim> {
         return claim.reduce(amount);
     }
 
+    //TODO this assumes a single claim per player.
+    private Double getUserStrength(String userId) {
+        for (Claim claim : getActiveClaims()) {
+            if (claim.getUserId().equals(userId)) {
+                return claim.getStrength();
+            }
+        }
+        return 0.0;
+    }
+
     public Double getNationalStrength(Nation nation) {
         if (nation == null) return 0.0;
         Double nationalStrength = 0.0;
@@ -179,7 +190,7 @@ public class ClaimData extends TileData implements Container<Claim> {
         return claim;
     }
 
-    public String getClaimList(boolean tutorial) {
+    public String getClaimList() {
 
         List<String> lines = new ArrayList<>();
         Nation owningNation = getOwningNation();
@@ -188,7 +199,7 @@ public class ClaimData extends TileData implements Container<Claim> {
                 Double strength = getNationalStrength(nation);
                 if (strength == 0.0) continue;
                 String effectiveString;
-                if (tutorial) {
+                if (getTile().getMap().isTutorialMap()) {
                     effectiveString = nation.toString() + ": " + String.format("%.3f", strength);
                 } else {
                     effectiveString = nation.getEffectiveName() + ": " + String.format("%.3f", strength);
@@ -202,5 +213,91 @@ public class ClaimData extends TileData implements Container<Claim> {
         }
         return String.join("\n", lines);
 
+    }
+
+    public String displayClaims(Format format) {
+        String tinyFormat = String.format("%.3f/%.3f/%.3f",
+                getNationalStrength(getOwningNation()),
+                getUserStrength(getOwningUserId()),
+                getTotalStrength());
+        if (format == Format.TINY) {
+            return tinyFormat;
+        } else if (format == Format.ONE_LINE) {
+            String ownerName = "Nobody";
+            if (!Utils.isNullOrEmpty(getOwningUserId())) {
+                String oneLine = String.format("%s of %s (%s)",
+                        getOwningUser().getName(),
+                        getOwningNation().getEffectiveName(),
+                        tinyFormat);
+                return oneLine;
+            } else {
+                return "Wildnerness";
+            }
+        } else {
+            return getClaimList();
+        }
+    }
+
+    private PlayerCharacter getOwningUser() {
+        return PlayerCharacter.get(getOwningUserId(), getTile().getMap());
+    }
+
+    private Double getTotalStrength() {
+        Double totalStrength = 0.0;
+        for (Claim claim : getActiveClaims()) {
+            if (claim.getStrength() > 0) totalStrength += claim.getStrength();
+        }
+        return totalStrength;
+    }
+
+    public enum Format {
+
+        //1.5/1.8/2 //last value hidden for private servers
+        TINY("%o:a%/%n:a%/%nt:a%"),
+
+        //Hyreon (1.5/1.8) of Hyreon's Domain (1.8/3) //last tag hidden for private servers
+        ONE_LINE("%o% (%o:a%/%n:a%) of %n% (%n:a%/%nt:a%)"),
+
+        /* Can be modified by a number of nations to view
+        **Hyreon's Domain: 1.8** (RED: 1.1, GREEN: 0.1) //tut/main
+        **Total: 1.8** //private servers
+        Hyreon: 1.5 (You: 0.02) //'you' is not there if 0
+         */
+        SIMPLE("%n%: %n:a% (%n2:c%: %n2:a%, %n3:c%: %n3:a%)\n" +
+                "%o%: %o:a%[y: (%y%: %y:a%)]"),
+
+        /* Can be modified by a number of players to view
+        **Hyreon's Domain: 1.8** (duck home: 1.1, Green Server: 0.1) //tut/main
+        **Total: 1.8** //private servers
+        **1. Hyreon: 1.5** //1st (in the case of ties, both display as 1)
+        2. Metel: 0.1 //2nd
+        3. Terandr: 0.1 //3rd
+        5. *You: 0.02* //you, or nothing if in top 3 / is 0
+         */
+        COMPETITIVE("%n%: %n:a% (%n2%: %n2:a%, %n3%: %n3:a%)\n" +
+                "%o%: %o:a%[p2:\n%p2%: %p2:a%][p3:\n(%p3%: %p3:a%)][y*:\n*%y%: %y:a%*]"),
+
+        /* Can be modified by a number of players to view
+        **Hyreon's Domain: 1.8** (duck home: 1.1, Green Server: 0.1) //tut/main
+        **Total: 1.8** //private servers
+        **1. Hyreon: 1.5** //1st (in the case of ties, both display as 1)
+        - Rayzr522: 0.9
+        - MC_2018: 0.2
+        2. Metel: 0.1 //2nd
+        3. Terandr: 0.1 //3rd
+        5. *You: 0.02* //you, or nothing if in top 3 / is 0
+         */
+        EXTENDED(""),
+
+        /*
+        Competitive, but it shows all claims, even invalid ones
+         */
+        COMPREHENSIVE("");
+
+        String format;
+
+        Format(String format) {
+            this.format = format;
+        }
     }
 }

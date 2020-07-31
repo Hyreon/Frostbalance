@@ -1,6 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
@@ -132,7 +133,7 @@ public class MapMenu extends Menu {
         } else {
             description += player.getName() + "'s view of ";
         }
-        description += drawLocation() + "\n" + player.getTile().getClaimData().getClaimList(map.isTutorialMap());
+        description += drawLocation() + "\n" + player.getTile().getClaimData().displayClaims(ClaimData.Format.ONE_LINE);
         builder.setDescription(description);
         builder.setImage(MapRenderer.render(map, drawLocation()));
 

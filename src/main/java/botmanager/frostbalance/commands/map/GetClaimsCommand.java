@@ -4,6 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
 public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
@@ -22,7 +23,7 @@ public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        eventWrapper.sendResponse(PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild()).getTile().getClaimData().getClaimList(false));
+        eventWrapper.sendResponse(PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild()).getTile().getClaimData().displayClaims(ClaimData.Format.EXTENDED));
 
     }
 

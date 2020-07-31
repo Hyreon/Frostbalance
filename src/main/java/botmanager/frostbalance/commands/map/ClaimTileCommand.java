@@ -3,9 +3,9 @@ package botmanager.frostbalance.commands.map;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
-import botmanager.frostbalance.OptionFlag;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -64,7 +64,7 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
             player.getTile().getClaimData().addClaim(player, amount);
 
             Utilities.sendGuildMessage(event.getChannel(), "You have added " + String.format("%.3f", amount) + " to your nations' claim on this tile.\n" +
-                    player.getTile().getClaimData().getClaimList(bot.getSettings(event.getGuild()).contains(OptionFlag.TUTORIAL)));
+                    player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
 
         }
 

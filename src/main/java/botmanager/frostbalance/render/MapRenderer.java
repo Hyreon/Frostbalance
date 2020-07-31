@@ -5,6 +5,7 @@ import botmanager.frostbalance.grid.*;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +51,12 @@ public class MapRenderer {
                         renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player);
                     }
                 }
-                g.drawImage(image, (int) (drawnHex.drawX() - Hex.X_SCALE/2 + DEFAULT_WIDTH/2),
+                int width = image.getWidth();
+                BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2 = circleBuffer.createGraphics();
+                g2.setClip(new Ellipse2D.Float(0, 0, width, width));
+                g2.drawImage(image, 0, 0, width, width, null);
+                g.drawImage(circleBuffer, (int) (drawnHex.drawX() - Hex.X_SCALE/2 + DEFAULT_WIDTH/2),
                         (int) (drawnHex.drawY() - Hex.Y_SCALE/2 + DEFAULT_HEIGHT/2),
                         (int) Hex.X_SCALE,
                         (int) Hex.Y_SCALE,

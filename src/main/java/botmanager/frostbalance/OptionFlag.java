@@ -4,8 +4,8 @@ import botmanager.frostbalance.generic.AuthorityLevel;
 
 public enum OptionFlag {
 
-    MAIN("Main Server Network", "\uD83C\uDF10", AuthorityLevel.BOT_ADMIN),
-    TUTORIAL("Tutorial Server", "\uD83D\uDCDA", AuthorityLevel.BOT_ADMIN),
+    MAIN("Main Server Network", "\uD83C\uDF10", AuthorityLevel.BOT_ADMIN, ExclusivityGroup.GAME_TYPE),
+    TUTORIAL("Tutorial Server", "\uD83D\uDCDA", AuthorityLevel.BOT_ADMIN, ExclusivityGroup.GAME_TYPE),
 
     RED("Red Color Scheme", "\uD83D\uDFE5", AuthorityLevel.GUILD_ADMIN, ExclusivityGroup.COLOR),
     GREEN("Green Color Scheme", "\uD83D\uDFE9", AuthorityLevel.GUILD_ADMIN, ExclusivityGroup.COLOR),
@@ -46,6 +46,6 @@ public enum OptionFlag {
     }
 
     private enum ExclusivityGroup {
-        COLOR;
+        COLOR, GAME_TYPE;
     }
 }
