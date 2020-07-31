@@ -18,12 +18,14 @@ public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
     @Override
     protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
 
+        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
+
         if (eventWrapper.getGuild() == null) {
             eventWrapper.sendResponse("no join a guild nitwit");
             return;
         }
 
-        eventWrapper.sendResponse(PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild()).getTile().getClaimData().displayClaims(ClaimData.Format.EXTENDED));
+        eventWrapper.sendResponse(player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, player));
 
     }
 

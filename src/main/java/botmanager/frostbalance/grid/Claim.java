@@ -1,5 +1,6 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
 
 /**
@@ -100,5 +101,16 @@ public class Claim implements Containable<ClaimData> {
 
     public String getUserId() {
         return userId;
+    }
+
+    @Override
+    public String toString() {
+        if (!isActive()) {
+            return "~~" + Frostbalance.bot.getUserName(getUserId()) + ": " + getStrength() + "~~";
+        }
+        if (!getStrength().equals(getInvestedStrength())) {
+            return Frostbalance.bot.getUserName(getUserId()) + ": ~~" + getInvestedStrength() + "~~ " + getStrength();
+        }
+        return Frostbalance.bot.getUserName(getUserId()) + ": " + getInvestedStrength();
     }
 }

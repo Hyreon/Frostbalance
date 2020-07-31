@@ -1,5 +1,6 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.Utils;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
 import net.dv8tion.jda.api.entities.Guild;
@@ -27,6 +28,7 @@ public class PlayerCharacter extends TileObject {
     static List<PlayerCharacter> cache = new ArrayList<>();
 
     public static PlayerCharacter get(String userId, WorldMap map) {
+        if (Utils.isNullOrEmpty(userId)) return null;
         for (PlayerCharacter player : cache) {
             if (player.getUserId().equals(userId) && player.getTile().getMap().equals(map)) {
                 return player;

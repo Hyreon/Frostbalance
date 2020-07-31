@@ -958,4 +958,8 @@ public class Frostbalance extends BotBase {
             WorldMap.readWorld(null);
         }
     }
+
+    public String getUserName(String userId) {
+        return getJDA().getUserById(userId).getName();
+    }
 }

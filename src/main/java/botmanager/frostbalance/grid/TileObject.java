@@ -1,14 +1,16 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.Utilities;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 
 public abstract class TileObject extends TileData {
 
     transient private BufferedImage cachedImage;
+    transient private long cachedImageDate;
 
     protected TileObject(Tile tile) {
         super(tile);
@@ -28,7 +30,7 @@ public abstract class TileObject extends TileData {
     }
 
     public boolean isImageCacheValid() {
-        return cachedImage != null;
+        return cachedImage != null && cachedImageDate >= Utilities.todayAsLong();
     }
 
     protected void invalidateCache() {
@@ -43,6 +45,7 @@ public abstract class TileObject extends TileData {
                 return null;
             } else {
                 cachedImage = ImageIO.read(getRender());
+                cachedImageDate = Utilities.todayAsLong();
                 return cachedImage;
             }
         }

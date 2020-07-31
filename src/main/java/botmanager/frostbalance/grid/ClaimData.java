@@ -7,10 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClaimData extends TileData implements Container<Claim> {
 
@@ -74,6 +72,16 @@ public class ClaimData extends TileData implements Container<Claim> {
         }
         lastOwningNation = selectedNation;
         return selectedNation;
+    }
+
+    public String getOwningNationName() {
+        if (getTile().getMap().isTutorialMap()) {
+            return getOwningNation().toString();
+        } else if (getTile().getMap().isMainMap()) {
+            return getOwningNation().getEffectiveName();
+        } else {
+            return "Wildnerness";
+        }
     }
 
     /**
@@ -175,7 +183,7 @@ public class ClaimData extends TileData implements Container<Claim> {
         return claims;
     }
 
-    public Collection<Claim> getActiveClaims() {
+    public List<Claim> getActiveClaims() {
         List<Claim> activeClaims = new ArrayList<>();
         for (Claim claim : claims) {
             if (claim.isActive()) activeClaims.add(claim);
@@ -215,7 +223,13 @@ public class ClaimData extends TileData implements Container<Claim> {
 
     }
 
-    public String displayClaims(Format format) {
+    public String displayClaims(Format format, int amount, PlayerCharacter asker) {
+        Claim askerClaim;
+        if (asker != null) {
+            askerClaim = getClaim(asker, asker.getNation());
+        } else {
+            askerClaim = null;
+        }
         String tinyFormat = String.format("%.3f/%.3f/%.3f",
                 getNationalStrength(getOwningNation()),
                 getUserStrength(getOwningUserId()),
@@ -223,23 +237,97 @@ public class ClaimData extends TileData implements Container<Claim> {
         if (format == Format.TINY) {
             return tinyFormat;
         } else if (format == Format.ONE_LINE) {
-            String ownerName = "Nobody";
+            String ownerName = getOwningUserName();
             if (!Utils.isNullOrEmpty(getOwningUserId())) {
                 String oneLine = String.format("%s of %s (%s)",
-                        getOwningUser().getName(),
+                        ownerName,
                         getOwningNation().getEffectiveName(),
                         tinyFormat);
                 return oneLine;
             } else {
                 return "Wildnerness";
             }
+        } else if (format == Format.SIMPLE) {
+            if (Utils.isNullOrEmpty(getOwningUserId())) {
+                return "Wildnerness";
+            }
+            String nationalCompetitionByColor = "";
+            List<String> nationalCompetitors = new ArrayList<>();
+            for (Nation nation : Nation.getNations()) {
+                if (nation == getOwningNation()) continue;
+                if (getNationalStrength(nation) > 0.0) {
+                    nationalCompetitors.add(String.format("%s: %.3f",
+                            nation,
+                            getNationalStrength(nation)));
+                }
+            }
+            if (!nationalCompetitors.isEmpty()) {
+                nationalCompetitionByColor = "(" + String.join(", ", nationalCompetitors) + ")";
+            }
+            String youTag = "";
+            if (askerClaim != null && askerClaim.getInvestedStrength() > 0) {
+                youTag = String.format("*(%s)*", askerClaim.toString());
+            }
+            String simple = String.format("**%s: %.3f** %s\n" +
+                            "%s: %.3f %s",
+                    getOwningNationName(),
+                    getNationalStrength(),
+                    nationalCompetitionByColor,
+                    getOwningUserName(),
+                    getOwnerStrength(),
+                    youTag);
+            return simple;
+        } else if (format == Format.COMPETITIVE) {
+            String nationalCompetition = "";
+            List<String> nationalCompetitors = new ArrayList<>();
+            for (Nation nation : Nation.getNations()) {
+                if (nation == getOwningNation()) continue;
+                if (getNationalStrength(nation) > 0.0) {
+                    nationalCompetitors.add(String.format("%s: %.3f",
+                            nation.getEffectiveName(),
+                            getNationalStrength(nation)));
+                }
+            }
+            if (!nationalCompetitors.isEmpty()) {
+                nationalCompetition = "(" + String.join(", ", nationalCompetitors) + ")";
+            }
+            String nationalState = String.format("%s: %.3f %s\n",
+                    getOwningNationName(),
+                    getNationalStrength(),
+                    nationalCompetition);
+            List<Claim> claims = getActiveClaims();
+            claims.sort((x, y) -> (int) ((x.getStrength() - y.getStrength()) * 1000));
+            if (claims.size() > amount) {
+                claims = claims.subList(0, amount);
+            }
+            if (askerClaim != null && !claims.contains(askerClaim) && askerClaim.isActive() && askerClaim.getNation() == getOwningNation()) {
+                claims.add(getClaim(asker, asker.getNation()));
+            }
+            List<String> claimDisplays = claims.stream().map(x -> x.toString()).collect(Collectors.toList());
+            return nationalState + String.format(String.join("\n", claimDisplays));
         } else {
             return getClaimList();
         }
     }
 
+    public String displayClaims(Format format) {
+        return displayClaims(format, 3, null);
+    }
+
+    private Double getOwnerStrength() {
+        return getUserStrength(getOwningUserId());
+    }
+
     private PlayerCharacter getOwningUser() {
         return PlayerCharacter.get(getOwningUserId(), getTile().getMap());
+    }
+
+    private String getOwningUserName() {
+        if (getOwningUser() != null) {
+            return getOwningUser().getName();
+        } else {
+            return "Nobody";
+        }
     }
 
     private Double getTotalStrength() {
