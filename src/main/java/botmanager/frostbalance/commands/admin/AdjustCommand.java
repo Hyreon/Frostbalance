@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.admin;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
@@ -20,7 +21,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
         String id;
         String name;
         String result;
-        double amount;
+        Influence amount;
 
         if (eventWrapper.getGuild() == null) {
             result = "You need to set a default guild to adjust influence.";
@@ -36,12 +37,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
         }
 
         try {
-            amount = Double.parseDouble(words[words.length - 1]);
-
-            if (amount == Double.NaN) {
-                eventWrapper.sendResponse("NOPE.");
-                return;
-            }
+            amount = new Influence(words[words.length - 1]);
         } catch (NumberFormatException e) {
             eventWrapper.sendResponse("Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
@@ -63,11 +59,11 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
         eventWrapper.sendResponse("Your adjustment of "
                         + eventWrapper.getGuild().getMemberById(id).getEffectiveName()
-                        + " has been noted, giving them " + String.format("%.3f", amount) + " influence.");
+                        + " has been noted, giving them " + amount + " influence.");
 
-        if (amount != 0) {
+        if (amount.getThousandths() > 0) {
             Utilities.sendPrivateMessage(eventWrapper.getGuild().getMemberById(id).getUser(),
-                    eventWrapper.getGuild().getMemberById(eventWrapper.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + String.format("%.3f", amount) + " in " +
+                    eventWrapper.getGuild().getMemberById(eventWrapper.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + amount + " in " +
                             eventWrapper.getGuild().getName() + ".");
         }
 

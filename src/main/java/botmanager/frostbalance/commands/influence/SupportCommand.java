@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import net.dv8tion.jda.api.entities.Guild;
@@ -28,7 +29,8 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
         String[] words;
         String id;
         String name;
-        double balance, amount;
+        Influence balance;
+        Influence amount;
 
         balance = bot.getUserInfluence(event.getMember());
         
@@ -40,16 +42,13 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
         }
         
         try {
-            amount = Double.parseDouble(words[words.length - 1]);
+            amount = new Influence(words[words.length - 1]);
             
-            if (balance < amount) {
+            if (balance.compareTo(amount) < 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You can't offer that much support. You will instead offer all of your support.");
                 amount = balance;
-            } else if (amount <= 0) {
+            } else if (amount.getValue() <= 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You have to give *some* support if you're running this command.");
-                return;
-            } else if (amount == Double.NaN) {
-                Utilities.sendGuildMessage(event.getChannel(), "NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -64,7 +63,7 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
             Utilities.sendGuildMessage(event.getChannel(), "Couldn't find user '" + name + "'.");
             return;
         }
-        bot.changeUserInfluence(event.getMember(), -amount);
+        bot.changeUserInfluence(event.getMember(), amount.negate());
         bot.changeUserInfluence(event.getGuild().getMemberById(id), amount);
 
         event.getMessage().delete().complete();
@@ -74,9 +73,9 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
                 + event.getGuild().getMemberById(id).getEffectiveName()
                 + ", giving them some influence.");
 
-        if (amount != 0) {
+        if (amount.getValue() != 0) {
             Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                    event.getMember().getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount) + " influence in " +
+                    event.getMember().getEffectiveName() + " has supported you, giving you " + String.format("%s", amount) + " influence in " +
                             event.getGuild().getName() + ".");
         }
     }
@@ -87,7 +86,8 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
         String id;
         String name;
         String result;
-        double balance, amount;
+        Influence userInfluence;
+        Influence amount;
 
         Guild guild = bot.getUserDefaultGuild(event.getAuthor());
 
@@ -97,7 +97,7 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        balance = bot.getUserInfluence(bot.getUserDefaultGuild(event.getAuthor()), event.getAuthor());
+        userInfluence = bot.getUserInfluence(bot.getUserDefaultGuild(event.getAuthor()), event.getAuthor());
 
         words = message.split(" ");
 
@@ -107,16 +107,13 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
         }
 
         try {
-            amount = Double.parseDouble(words[words.length - 1]);
+            amount = new Influence(words[words.length - 1]);
 
-            if (balance < amount) {
+            if (userInfluence.compareTo(amount) < 0) {
                 Utilities.sendPrivateMessage(event.getAuthor(), "You can't offer that much support. You will instead offer all of your support.");
-                amount = balance;
-            } else if (amount <= 0) {
+                amount = userInfluence;
+            } else if (amount.getValue() <= 0) {
                 Utilities.sendPrivateMessage(event.getAuthor(), "You have to give *some* support if you're running this command.");
-                return;
-            } else if (amount == Double.NaN) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -132,19 +129,19 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        bot.changeUserInfluence(guild, event.getAuthor(), -amount);
-        bot.changeUserInfluence(guild.getMemberById(id), amount * PRIVATE_RATE);
+        bot.changeUserInfluence(guild, event.getAuthor(), amount.negate());
+        bot.changeUserInfluence(guild.getMemberById(id), new Influence(amount.getValue() * PRIVATE_RATE));
 
         Utilities.sendPrivateMessage(event.getAuthor(),
                 "Your private support of "
                         + guild.getMemberById(id).getEffectiveName()
                         + " has been noted, giving them half of that influence. (" +
-                        String.format("%.3f", amount * PRIVATE_RATE) + ", -" +
-                        String.format("%.3f", amount) + ")");
+                        String.format("%s", new Influence(amount.getValue() * PRIVATE_RATE)) + ", -" +
+                        String.format("%s", amount) + ")");
 
-        if (amount != 0) {
+        if (amount.getValue() != 0) {
             Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                    guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has supported you, giving you " + String.format("%.3f", amount * PRIVATE_RATE) + " influence in " +
+                    guild.getMemberById(event.getAuthor().getId()).getEffectiveName() + " has supported you, giving you " + String.format("%s", new Influence(amount.getValue() * PRIVATE_RATE)) + " influence in " +
                             guild.getName() + ".");
         }
     }

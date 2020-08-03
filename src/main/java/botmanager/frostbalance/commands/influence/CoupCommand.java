@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import botmanager.frostbalance.history.TerminationCondition;
@@ -51,26 +52,26 @@ public class CoupCommand extends FrostbalanceSplitCommandBase {
                 return;
             }
 
-            double influence = bot.getUserInfluence(member);
-            double ownerInfluence = bot.getUserInfluence(currentOwner);
+            Influence influence = bot.getUserInfluence(member);
+            Influence ownerInfluence = bot.getUserInfluence(currentOwner);
 
-            if (influence > ownerInfluence) {
-                bot.changeUserInfluence(member, -ownerInfluence);
-                bot.changeUserInfluence(currentOwner, -ownerInfluence);
+            if (influence.compareTo(ownerInfluence) > 0) {
+                bot.changeUserInfluence(member, ownerInfluence.negate());
+                bot.changeUserInfluence(currentOwner, ownerInfluence.negate());
                 result = "**" + event.getMember().getEffectiveName() + "** has successfully supplanted **" +
                         currentOwner.getAsMention() + "** as leader, reducing both users' influence and becoming" +
                         " the new leader!";
-                privateResult = "*This maneuver has cost you " + String.format("%.3f", ownerInfluence) + " influence. " +
+                privateResult = "*This maneuver has cost you " + String.format("%s", ownerInfluence) + " influence. " +
                         currentOwner.getEffectiveName() + " has lost **ALL** of their influence.*";
                 success = true;
             } else {
-                bot.changeUserInfluence(member, -influence);
-                bot.changeUserInfluence(currentOwner, -influence);
+                bot.changeUserInfluence(member, influence.negate());
+                bot.changeUserInfluence(currentOwner, influence.negate());
                 result = "**" + event.getMember().getEffectiveName() + "** has attempted a coup on **" +
                         currentOwner.getAsMention() + "**, which has backfired. Both players have lost influence" +
                         " and the leader has not changed.";
                 privateResult = "*This maneuver has cost you **ALL** of your influence. " +
-                        currentOwner.getEffectiveName() + " has lost " + String.format("%.3f", influence) + " of their influence.*";
+                        currentOwner.getEffectiveName() + " has lost " + String.format("%s", influence) + " of their influence.*";
                 success = false;
             }
 

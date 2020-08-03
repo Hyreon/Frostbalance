@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.Utils;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
@@ -36,12 +37,12 @@ public class ClaimData extends TileData implements Container<Claim> {
         if (getClaims().isEmpty()) return null;
         getOwningNation();
         String selectedUserId = null;
-        Double selectedStrength = 0.0;
+        Influence selectedStrength = new Influence(0);
         for (Claim claim : getActiveClaims()) {
             if (claim.getNation() != lastOwningNation) continue;
             if (!claim.isActive()) continue;
-            if (claim.getStrength() > selectedStrength ||
-                    (lastOwningUserId.equals(claim.getUserId()) && claim.getStrength() == selectedStrength)) {
+            if (claim.getStrength().compareTo(selectedStrength) > 0 ||
+                    (lastOwningUserId.equals(claim.getUserId()) && claim.getStrength().equals(selectedStrength))) {
                 selectedUserId = claim.getUserId();
                 selectedStrength = claim.getStrength();
             }
@@ -58,16 +59,16 @@ public class ClaimData extends TileData implements Container<Claim> {
     public Nation getOwningNation() {
         if (getClaims().isEmpty()) return Nation.NONE;
         Nation selectedNation = lastOwningNation;
-        Double selectedStrength = getNationalStrength(lastOwningNation);
+        Influence selectedStrength = getNationalStrength(lastOwningNation);
 
         for (Nation nation : Nation.getNations()) {
-            Double nationalStrength = getNationalStrength(nation);
-            if (nationalStrength > selectedStrength) {
+            Influence nationalStrength = getNationalStrength(nation);
+            if (nationalStrength.compareTo(selectedStrength) > 0) {
                 selectedNation = nation;
                 selectedStrength = nationalStrength;
             }
         }
-        if (selectedStrength <= 0.0) {
+        if (selectedStrength.getThousandths() <= 0) {
             return Nation.NONE;
         }
         lastOwningNation = selectedNation;
@@ -90,7 +91,7 @@ public class ClaimData extends TileData implements Container<Claim> {
      * @param nation
      * @param strength
      */
-    public Claim addClaim(PlayerCharacter player, Nation nation, Double strength) {
+    public Claim addClaim(PlayerCharacter player, Nation nation, Influence strength) {
         for (Claim claim : getClaims()) {
             if (claim.overlaps(this, player, nation)) {
                 claim.add(strength);
@@ -106,7 +107,7 @@ public class ClaimData extends TileData implements Container<Claim> {
         return newClaim;
     }
 
-    public Claim addClaim(PlayerCharacter player, Double strength) {
+    public Claim addClaim(PlayerCharacter player, Influence strength) {
         return addClaim(player, player.getNation(), strength);
     }
 
@@ -134,45 +135,46 @@ public class ClaimData extends TileData implements Container<Claim> {
     /**
      * Reduce the strength of a claim.
      * Any player can do this to their own claims at no cost, but with no refund.
+     * @return
      */
-    public double reduceClaim(PlayerCharacter player, Nation nation, Double amount) {
+    public Influence reduceClaim(PlayerCharacter player, Nation nation, Influence amount) {
         Claim claim = getClaim(player, nation);
         if (claim == null) {
-            return 0.0;
+            return new Influence(0);
         }
         getTile().getMap().updateStrongestClaim();
         return claim.reduce(amount);
     }
 
     //TODO this assumes a single claim per player.
-    private Double getUserStrength(String userId) {
+    private Influence getUserStrength(String userId) {
         for (Claim claim : getActiveClaims()) {
             if (claim.getUserId().equals(userId)) {
                 return claim.getStrength();
             }
         }
-        return 0.0;
+        return new Influence(0);
     }
 
-    public Double getNationalStrength(Nation nation) {
-        if (nation == null) return 0.0;
-        Double nationalStrength = 0.0;
+    public Influence getNationalStrength(Nation nation) {
+        if (nation == null) return new Influence(0);
+        Influence nationalStrength = new Influence(0);
         for (Claim claim : getActiveClaims()) {
             if (claim.getNation() == nation) {
-                nationalStrength += claim.getStrength();
+                nationalStrength = nationalStrength.add(claim.getStrength());
             }
         }
         return nationalStrength;
     }
 
-    public Double getNationalStrength() {
-        HashMap<Nation, Double> nationalClaimStrengths = new HashMap<>();
+    public Influence getNationalStrength() {
+        HashMap<Nation, Influence> nationalClaimStrengths = new HashMap<>();
         for (Claim claim : getActiveClaims()) {
-            nationalClaimStrengths.put(claim.getNation(), nationalClaimStrengths.getOrDefault(claim.getNation(), 0.0) + claim.getStrength());
+            nationalClaimStrengths.put(claim.getNation(), nationalClaimStrengths.getOrDefault(claim.getNation(), new Influence(0)).add(claim.getStrength()));
         }
-        Double selectedStrength = 0.0;
+        Influence selectedStrength = new Influence(0);
         for (Nation nation : nationalClaimStrengths.keySet()) {
-            if (nationalClaimStrengths.get(nation) > selectedStrength) {
+            if (nationalClaimStrengths.get(nation).compareTo(selectedStrength) > 0) {
                 selectedStrength = nationalClaimStrengths.get(nation);
             }
         }
@@ -204,13 +206,13 @@ public class ClaimData extends TileData implements Container<Claim> {
         Nation owningNation = getOwningNation();
         if (owningNation != null) {
             for (Nation nation : Nation.getNations()) {
-                Double strength = getNationalStrength(nation);
-                if (strength == 0.0) continue;
+                Influence strength = getNationalStrength(nation);
+                if (strength.getThousandths() == 0) continue;
                 String effectiveString;
                 if (getTile().getMap().isTutorialMap()) {
-                    effectiveString = nation.toString() + ": " + String.format("%.3f", strength);
+                    effectiveString = nation.toString() + ": " + String.format("%s", strength);
                 } else {
-                    effectiveString = nation.getEffectiveName() + ": " + String.format("%.3f", strength);
+                    effectiveString = nation.getEffectiveName() + ": " + String.format("%s", strength);
                 }
                 if (owningNation == nation) {
                     lines.add("**" + effectiveString + "**");
@@ -230,10 +232,10 @@ public class ClaimData extends TileData implements Container<Claim> {
         } else {
             askerClaim = null;
         }
-        String tinyFormat = String.format("%.3f/%.3f/%.3f",
+        String tinyFormat = String.format("%s/%s/%s",
                 getNationalStrength(getOwningNation()),
                 getUserStrength(getOwningUserId()),
-                getTotalStrength());
+                getTotalStrength().toString());
         if (format == Format.TINY) {
             return tinyFormat;
         } else if (format == Format.ONE_LINE) {
@@ -255,8 +257,8 @@ public class ClaimData extends TileData implements Container<Claim> {
             List<String> nationalCompetitors = new ArrayList<>();
             for (Nation nation : Nation.getNations()) {
                 if (nation == getOwningNation()) continue;
-                if (getNationalStrength(nation) > 0.0) {
-                    nationalCompetitors.add(String.format("%s: %.3f",
+                if (getNationalStrength(nation).getThousandths() > 0) {
+                    nationalCompetitors.add(String.format("%s: %s",
                             nation,
                             getNationalStrength(nation)));
                 }
@@ -265,11 +267,11 @@ public class ClaimData extends TileData implements Container<Claim> {
                 nationalCompetitionByColor = "(" + String.join(", ", nationalCompetitors) + ")";
             }
             String youTag = "";
-            if (askerClaim != null && askerClaim.getInvestedStrength() > 0) {
+            if (askerClaim != null && askerClaim.getInvestedStrength().getThousandths() > 0) {
                 youTag = String.format("*(%s)*", askerClaim.toString());
             }
-            String simple = String.format("**%s: %.3f** %s\n" +
-                            "%s: %.3f %s",
+            String simple = String.format("**%s: %s** %s\n" +
+                            "%s: %s %s",
                     getOwningNationName(),
                     getNationalStrength(),
                     nationalCompetitionByColor,
@@ -285,8 +287,8 @@ public class ClaimData extends TileData implements Container<Claim> {
             List<String> nationalCompetitors = new ArrayList<>();
             for (Nation nation : Nation.getNations()) {
                 if (nation == getOwningNation()) continue;
-                if (getNationalStrength(nation) > 0.0) {
-                    nationalCompetitors.add(String.format("%s: %.3f",
+                if (getNationalStrength(nation).getThousandths() > 0.0) {
+                    nationalCompetitors.add(String.format("%s: %s",
                             nation.getEffectiveName(),
                             getNationalStrength(nation)));
                 }
@@ -294,12 +296,12 @@ public class ClaimData extends TileData implements Container<Claim> {
             if (!nationalCompetitors.isEmpty()) {
                 nationalCompetition = "(" + String.join(", ", nationalCompetitors) + ")";
             }
-            String nationalState = String.format("**%s: %.3f** %s\n",
+            String nationalState = String.format("**%s: %s** %s\n",
                     getOwningNationName(),
                     getNationalStrength(),
                     nationalCompetition);
             List<Claim> claims = getActiveClaims();
-            claims.sort((x, y) -> (int) ((x.getStrength() - y.getStrength()) * 1000));
+            claims.sort(Comparator.comparingInt(x -> x.getStrength().getThousandths()));
             if (claims.size() > amount) {
                 claims = claims.subList(0, amount);
             }
@@ -317,7 +319,7 @@ public class ClaimData extends TileData implements Container<Claim> {
         return displayClaims(format, 3, null);
     }
 
-    private Double getOwnerStrength() {
+    private Influence getOwnerStrength() {
         return getUserStrength(getOwningUserId());
     }
 
@@ -333,10 +335,10 @@ public class ClaimData extends TileData implements Container<Claim> {
         }
     }
 
-    private Double getTotalStrength() {
-        Double totalStrength = 0.0;
+    private Influence getTotalStrength() {
+        Influence totalStrength = new Influence(0);
         for (Claim claim : getActiveClaims()) {
-            if (claim.getStrength() > 0) totalStrength += claim.getStrength();
+            if (claim.getStrength().getThousandths() > 0) totalStrength = totalStrength.add(claim.getStrength());
         }
         return totalStrength;
     }

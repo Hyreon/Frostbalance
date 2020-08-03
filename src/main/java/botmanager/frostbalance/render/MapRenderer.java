@@ -117,11 +117,11 @@ public class MapRenderer {
     private static Color getPoliticalColor(Tile tile) {
         Nation owningNation = tile.getClaimData().getOwningNation();
         Color color = Color.BLACK;
-        if (owningNation != Nation.NONE) {
+        if (owningNation != Nation.NONE && tile.getMap().getStrongestClaim().getValue() > 0) {
             //darken according to fraction of strongest political color.
             for (Nation nation : Nation.getNations()) {
-                double ratio = tile.getClaimData().getNationalStrength(nation)
-                        / tile.getMap().getStrongestClaim();
+                double ratio = tile.getClaimData().getNationalStrength(nation).getValue()
+                        / tile.getMap().getStrongestClaim().getValue();
                 int drawValue;
                 if (nation != owningNation) {
                     drawValue = (BCOLOR + (int) ((255 - BCOLOR) * ratio)) / 2;

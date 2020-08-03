@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
@@ -27,13 +28,13 @@ public class DailyRewardCommand extends FrostbalanceSplitCommandBase {
     @Override
     public void runPublic(GuildMessageReceivedEvent event, String message) {
 
-        double gain = bot.gainDailyInfluence(event.getMember(), 1);
+        Influence gain = bot.gainDailyInfluence(event.getMember());
 
-        if (gain > 0) {
+        if (gain.getValue() > 0) {
             Utilities.sendGuildMessage(event.getChannel(), event.getMember().getEffectiveName() + ", your influence increases.");
 
-            double influence = bot.getUserInfluence(event.getMember());
-            Utilities.sendPrivateMessage(event.getAuthor(), "You now have **" + String.format("%.3f", influence) + "** influence in **" + event.getGuild().getName() + "**.");
+            Influence influence = bot.getUserInfluence(event.getMember());
+            Utilities.sendPrivateMessage(event.getAuthor(), "You now have **" + String.format("%s", influence) + "** influence in **" + event.getGuild().getName() + "**.");
         } else {
             int hrsDelay = (24 - Integer.parseInt(hours.format(new Date())));
             Utilities.sendGuildMessage(event.getChannel(), event.getMember().getEffectiveName() + ", try again at midnight EST "

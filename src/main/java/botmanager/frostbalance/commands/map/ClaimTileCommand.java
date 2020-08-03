@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.map;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
@@ -22,8 +23,8 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
     public void runPublic(GuildMessageReceivedEvent event, String message) {
 
         String[] words = message.split(" ");
-        double amount;
-        double balance = bot.getUserInfluence(event.getMember());
+        Influence amount;
+        Influence balance = bot.getUserInfluence(event.getMember());
         PlayerCharacter player = PlayerCharacter.get(event.getAuthor(), event.getGuild());
         Nation allegiance = bot.getMainAllegiance(event.getAuthor());
 
@@ -32,16 +33,13 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
         }
 
         try {
-            amount = Double.parseDouble(words[words.length - 1]);
+            amount = new Influence(words[words.length - 1]);
 
-            if (balance < amount) {
+            if (balance.compareTo(amount) < 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You don't have enough influence to make this claim. You will instead use all your influence.");
                 amount = balance;
-            } else if (amount <= 0) {
+            } else if (amount.getValue() <= 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You can't make a claim with that little influence!");
-                return;
-            } else if (amount == Double.NaN) {
-                Utilities.sendGuildMessage(event.getChannel(), "NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -60,10 +58,10 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
 
         } else {
 
-            bot.changeUserInfluence(event.getMember(), -amount);
+            bot.changeUserInfluence(event.getMember(), amount.negate());
             player.getTile().getClaimData().addClaim(player, amount);
 
-            Utilities.sendGuildMessage(event.getChannel(), "You have added " + String.format("%.3f", amount) + " to your nations' claim on this tile.\n" +
+            Utilities.sendGuildMessage(event.getChannel(), "You have added " + String.format("%s", amount) + " to your nations' claim on this tile.\n" +
                     player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
 
         }

@@ -51,7 +51,7 @@ public class Frostbalance extends BotBase {
     private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
     Map<Guild, List<RegimeData>> regimes = new HotMap<>();
 
-    public final double DAILY_INFLUENCE_CAP = 1.00;
+    public final Influence DAILY_INFLUENCE_CAP = new Influence(1.00);
     private List<Menu> activeMenus = new ArrayList<>();
     private List<Guild> guildIconCache = new ArrayList<>();
 
@@ -682,67 +682,66 @@ public class Frostbalance extends BotBase {
         Utilities.removeFile(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
     }
 
-    public void changeUserInfluence(Guild guild, User user, double influence) {
-        double startingInfluence = getUserInfluence(guild, user);
-        double newInfluence = influence + startingInfluence;
-        newInfluence = Math.round(newInfluence * 1000.0) / 1000.0;
-        if (newInfluence < 0) {
-            newInfluence = 0;
+    public void changeUserInfluence(Guild guild, User user, Influence influence) {
+        Influence startingInfluence = getUserInfluence(guild, user);
+        Influence newInfluence = influence.add(startingInfluence);
+        if (newInfluence.getThousandths() < 0) {
+            newInfluence = new Influence(0);
         }
         setUserCSVAtIndex(guild, user, 0, String.valueOf(newInfluence));
     }
 
-    public void changeUserInfluence(Member member, double influence) {
+    public void changeUserInfluence(Member member, Influence influence) {
         changeUserInfluence(member.getGuild(), member.getUser(), influence);
     }
 
-    public double gainDailyInfluence(Member member, double influenceGained) {
+    public Influence gainDailyInfluence(Member member, Influence influenceGained) {
         if (getUserLastDaily(member) != Utilities.todayAsLong()) { //new day
             setUserLastDaily(member, Utilities.todayAsLong());
             setUserDailyAmount(member, influenceGained);
             changeUserInfluence(member, influenceGained);
             return influenceGained;
-        } else if (getUserDailyAmount(member) + influenceGained <= DAILY_INFLUENCE_CAP) { //cap doesn't affect anything
-            setUserDailyAmount(member, getUserDailyAmount(member) + influenceGained);
+        } else if (getUserDailyAmount(member).add(influenceGained).compareTo(DAILY_INFLUENCE_CAP) <= 0) { //cap doesn't affect anything
+            setUserDailyAmount(member, getUserDailyAmount(member).add(influenceGained));
             changeUserInfluence(member, influenceGained);
             return influenceGained;
         } else { //influence gained is over the cap
-            influenceGained = DAILY_INFLUENCE_CAP - getUserDailyAmount(member); //set it to the cap before doing anything
-            setUserDailyAmount(member, getUserDailyAmount(member) + influenceGained);
+            influenceGained = DAILY_INFLUENCE_CAP.subtract(getUserDailyAmount(member)); //set it to the cap before doing anything
+            setUserDailyAmount(member, getUserDailyAmount(member).add(influenceGained));
             changeUserInfluence(member, influenceGained);
             return influenceGained;
         }
     }
 
-    public double getUserInfluence(Guild guild, User user) {
+    public Influence getUserInfluence(Guild guild, User user) {
         try {
-            return Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 0));
+            return new Influence(Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 0)));
         } catch (NumberFormatException e) {
-            return 0;
+            return new Influence(0);
         }
     }
 
-    public double getUserInfluence(Member member) {
+    public Influence getUserInfluence(Member member) {
         return getUserInfluence(member.getGuild(), member.getUser());
     }
 
-    public double getUserDailyAmount(Guild guild, User user) {
+    public Influence getUserDailyAmount(Guild guild, User user) {
         try {
-            return Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 3));
+            return new Influence(Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 3)));
         } catch (NumberFormatException e) {
-            return 0;
+            return new Influence(0);
         }
     }
 
-    public double getUserDailyAmount(Member member) {
+    public Influence getUserDailyAmount(Member member) {
         return getUserDailyAmount(member.getGuild(), member.getUser());
     }
 
-    public void setUserDailyAmount(Guild guild, User user, double amount) {
+    public void setUserDailyAmount(Guild guild, User user, Influence amount) {
         setUserCSVAtIndex(guild, user, 3, String.valueOf(amount));
     }
 
-    public void setUserDailyAmount(Member member, double amount) {
+    public void setUserDailyAmount(Member member, Influence amount) {
         setUserDailyAmount(member.getGuild(), member.getUser(), amount);
     }
 
@@ -961,5 +960,9 @@ public class Frostbalance extends BotBase {
 
     public String getUserName(String userId) {
         return getJDA().getUserById(userId).getName();
+    }
+
+    public Influence gainDailyInfluence(Member member) {
+        return gainDailyInfluence(member, DAILY_INFLUENCE_CAP);
     }
 }

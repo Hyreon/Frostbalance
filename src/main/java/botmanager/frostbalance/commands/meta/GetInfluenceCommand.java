@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.meta;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
@@ -28,18 +29,18 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
         if (eventWrapper.getGuild() == null || (words.length >= 1 && words[0].equalsIgnoreCase("all"))) {
 
-            result = "Influence in all guilds:" + "\n";
+            result = "botmanager.frostbalance.Influence in all guilds:" + "\n";
 
             for (Guild guild : eventWrapper.getJDA().getGuilds()) {
                 if (guild.getMember(eventWrapper.getAuthor()) == null) {
                     continue; //this user isn't in this guild.
                 }
 
-                result += "**" + guild.getName() + "**: " + String.format("%.3f", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
+                result += "**" + guild.getName() + "**: " + String.format("%s", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
 
-                double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserDailyAmount(guild, eventWrapper.getAuthor());
-                if (remaining > 0) {
-                    result += " (**+" + String.format("%.2f", remaining) + "** from unclaimed daily)";
+                Influence remaining = bot.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(guild, eventWrapper.getAuthor()));
+                if (remaining.getValue() > 0) {
+                    result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
                 }
 
                 result += "\n";
@@ -69,25 +70,25 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
             }
 
             Member member = eventWrapper.getGuild().getMemberById(id);
-            double influence = bot.getUserInfluence(member);
-            double remaining = bot.DAILY_INFLUENCE_CAP - bot.getUserDailyAmount(member);
+            Influence influence = bot.getUserInfluence(member);
+            Influence remaining = bot.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(member));
 
             if (member.equals(eventWrapper.getMember())) {
-                if (influence <= 0) {
+                if (influence.getValue() <= 0) {
                     result = "You have *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
                 } else {
-                    result = "You have **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                    result = "You have **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
                 }
             } else {
-                if (influence <= 0) {
+                if (influence.getValue() <= 0) {
                     result = member.getEffectiveName() + " has *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
                 } else {
-                    result = member.getEffectiveName() + " has **" + String.format("%.3f", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                    result = member.getEffectiveName() + " has **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
                 }
             }
 
-            if (remaining > 0) {
-                result += " (**+" + String.format("%.2f", remaining) + "** from unclaimed daily)";
+            if (remaining.getValue() > 0) {
+                result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
             }
 
         }

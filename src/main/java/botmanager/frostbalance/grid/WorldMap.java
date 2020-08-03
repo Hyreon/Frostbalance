@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid;
 
 import botmanager.IOUtils;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.OptionFlag;
 import com.google.gson.*;
 import net.dv8tion.jda.api.entities.Guild;
@@ -36,7 +37,7 @@ public class WorldMap implements Container<Tile> {
         return newMap;
     }
 
-    transient Double strongestNationalClaim = Double.MIN_NORMAL;
+    transient Influence strongestNationalClaim = new Influence(0);
 
     List<Tile> loadedTiles = new ArrayList<>();
 
@@ -131,16 +132,16 @@ public class WorldMap implements Container<Tile> {
         return newTile;
     }
 
-    public double getStrongestClaim() {
+    public Influence getStrongestClaim() {
         updateStrongestClaim();
         return strongestNationalClaim;
     }
 
     protected void updateStrongestClaim() {
-        strongestNationalClaim = Double.MIN_NORMAL;
+        strongestNationalClaim = new Influence(0);
         for (Tile tile : loadedTiles) {
-            Double nationalStrength = tile.getClaimData().getNationalStrength();
-            if (nationalStrength > strongestNationalClaim) {
+            Influence nationalStrength = tile.getClaimData().getNationalStrength();
+            if (nationalStrength.compareTo(strongestNationalClaim) > 0) {
                 strongestNationalClaim = nationalStrength;
             }
         }

@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
 import net.dv8tion.jda.api.entities.Guild;
@@ -24,7 +25,7 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
         String[] words;
         String id;
         String name;
-        double balance, amount;
+        Influence balance, amount;
 
         balance = bot.getUserInfluence(event.getMember());
 
@@ -36,16 +37,13 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
         }
 
         try {
-            amount = Double.parseDouble(words[words.length - 1]);
+            amount = new Influence(words[words.length - 1]);
 
-            if (balance < amount) {
+            if (balance.compareTo(amount) < 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You can't oppose with that much influence. You will instead oppose with all your influence.");
                 amount = balance;
-            } else if (amount <= 0) {
+            } else if (amount.getValue() <= 0) {
                 Utilities.sendGuildMessage(event.getChannel(), "You have to use *some* influence if you're running this command.");
-                return;
-            } else if (amount == Double.NaN) {
-                Utilities.sendGuildMessage(event.getChannel(), "NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -61,16 +59,16 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        if (bot.getUserInfluence(event.getGuild().getMemberById(id)) < amount) {
+        if (bot.getUserInfluence(event.getGuild().getMemberById(id)).compareTo(amount) < 0) {
             Utilities.sendGuildMessage(event.getChannel(), "The target user doesn't have enough influence to match. Removing all influence.");
             amount = bot.getUserInfluence(event.getGuild().getMemberById(id));
         }
 
         if (!event.getMember().equals(event.getGuild().getMemberById(id))) { //if the player is hurting themselves, only drain the one time.
-            bot.changeUserInfluence(event.getMember(), -amount);
+            bot.changeUserInfluence(event.getMember(), amount.negate());
         }
 
-        bot.changeUserInfluence(event.getGuild().getMemberById(id), -amount);
+        bot.changeUserInfluence(event.getGuild().getMemberById(id), amount.negate());
 
         event.getMessage().delete().complete();
 
@@ -79,9 +77,9 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
                         + event.getGuild().getMemberById(id).getEffectiveName()
                         + ", reducing their influence.");
 
-        if (amount != 0) {
+        if (amount.getValue() != 0) {
             Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                    event.getMember().getEffectiveName() + " has opposed you, reducing your influence by " + String.format("%.3f", amount) + " in " +
+                    event.getMember().getEffectiveName() + " has opposed you, reducing your influence by " + String.format("%s", amount) + " in " +
                             event.getGuild().getName() + ".");
         }
     }
@@ -92,7 +90,7 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
         String id;
         String name;
         String result;
-        double balance, amount;
+        Influence balance, amount;
 
         Guild guild = bot.getUserDefaultGuild(event.getAuthor());
 
@@ -112,16 +110,13 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
         }
 
         try {
-            amount = Double.parseDouble(words[words.length - 1]);
+            amount = new Influence(words[words.length - 1]);
 
-            if (balance < amount) {
+            if (balance.compareTo(amount) < 0) {
                 Utilities.sendPrivateMessage(event.getAuthor(), "You can't oppose with that much influence. You will instead oppose with all your influence.");
                 amount = balance;
-            } else if (amount <= 0) {
+            } else if (amount.getValue() <= 0) {
                 Utilities.sendPrivateMessage(event.getAuthor(), "You have to use *some* influence if you're running this command.");
-                return;
-            } else if (amount == Double.NaN) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "NOPE.");
                 return;
             }
         } catch (NumberFormatException e) {
@@ -137,26 +132,26 @@ public class OpposeCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        if (bot.getUserInfluence(guild.getMemberById(id)) < amount * PRIVATE_RATE) {
+        if (bot.getUserInfluence(guild.getMemberById(id)).compareTo(amount.applyModifier(PRIVATE_RATE)) < 0) {
             Utilities.sendPrivateMessage(event.getAuthor(), "The target user doesn't have enough influence to match. Removing all influence.");
-            amount = bot.getUserInfluence(guild.getMemberById(id)) / PRIVATE_RATE;
+            amount = bot.getUserInfluence(guild.getMemberById(id)).applyModifier(1 / PRIVATE_RATE);
         }
 
-        bot.changeUserInfluence(guild, event.getAuthor(), -amount);
+        bot.changeUserInfluence(guild, event.getAuthor(), amount.negate());
 
         if (!guild.getMember(event.getAuthor()).equals(guild.getMemberById(id))) { //if the player is hurting themselves, only drain the one time.
-            bot.changeUserInfluence(guild.getMemberById(id), -amount * PRIVATE_RATE);
+            bot.changeUserInfluence(guild.getMemberById(id), amount.negate().applyModifier(PRIVATE_RATE));
 
             Utilities.sendPrivateMessage(event.getAuthor(),
                     "Your anonymous smear of "
                             + guild.getMemberById(id).getEffectiveName()
                             + " has been noted, removing 35% of that influence. (" +
-                            String.format("%.3f", amount * PRIVATE_RATE) + ", -" +
-                            String.format("%.3f", amount) + ")");
+                            String.format("%s", amount.applyModifier(PRIVATE_RATE) + ", -" +
+                            String.format("%s", amount) + ")"));
 
-            if (amount != 0) {
+            if (amount.getValue() != 0) {
                 Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                        "You have been smeared! You have lost " + String.format("%.3f", amount * PRIVATE_RATE) + " influence in " +
+                        "You have been smeared! You have lost " + String.format("%s", amount.applyModifier(PRIVATE_RATE)) + " influence in " +
                                 guild.getName() + ".");
             }
         } else {

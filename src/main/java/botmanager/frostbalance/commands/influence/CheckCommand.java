@@ -150,7 +150,7 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
     private void runPrivateCheck(Guild guild, User firstUser, User targetUser) {
         Member firstMember = guild.getMember(firstUser);
         Member targetMember = guild.getMember(targetUser);
-        if (bot.getUserInfluence(firstMember) > bot.getUserInfluence(targetMember)) {
+        if (bot.getUserInfluence(firstMember).compareTo(bot.getUserInfluence(targetMember)) > 0) {
             Utilities.sendPrivateMessage(firstUser, firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".");
 
             if (!targetUser.equals(bot.getJDA().getSelfUser())) {

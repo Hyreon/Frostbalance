@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
 
 /**
@@ -15,10 +16,10 @@ public class Claim implements Containable<ClaimData> {
     String userId;
     Nation nation;
 
-    Double strength;
-    Double evictionStrength = 0.0;
+    Influence strength;
+    Influence evictionStrength = new Influence(0);
 
-    Claim(PlayerCharacter player, Nation nation, Double strength) {
+    Claim(PlayerCharacter player, Nation nation, Influence strength) {
         this.claimData = player.getTile().getClaimData();
         this.userId = player.getUserId();
         this.nation = nation;
@@ -49,14 +50,20 @@ public class Claim implements Containable<ClaimData> {
                 this.nation.equals(nation);
     }
 
-    public void add(Double strength) {
-        this.strength += strength;
+    public void add(Influence strength) {
+        this.strength = this.strength.add(strength);
     }
 
-    public double reduce(Double amount) {
-        amount = Math.min(strength, amount);
-        strength -= amount;
-        evictionStrength -= amount;
+    /**
+     * Reduce the strength of a claim.
+     * Any player can do this to their own claims at no cost, but with no refund.
+     * @return The amount of influence actually reduced; this might be lower if there wasn't enough influence
+     * to transfer.
+     */
+    public Influence reduce(Influence amount) {
+        amount = new Influence(Math.min(strength.getThousandths(), amount.getThousandths()));
+        strength = strength.subtract(amount);
+        evictionStrength = evictionStrength.subtract(amount);
         return amount;
     }
 
@@ -64,11 +71,11 @@ public class Claim implements Containable<ClaimData> {
         return nation;
     }
 
-    public Double getStrength() {
-        return strength - evictionStrength;
+    public Influence getStrength() {
+        return strength.subtract(evictionStrength);
     }
 
-    public Double getInvestedStrength() {
+    public Influence getInvestedStrength() {
         return strength;
     }
 
@@ -85,13 +92,13 @@ public class Claim implements Containable<ClaimData> {
     }
 
     /**
-     * Reduce the strength of a claim.
-     * Any player can do this to their own claims at no cost, but with no refund.
+     * Transfer this claim to another in the same nation.
+     * @return the amount of influence actually transferred.
      */
-    public double transferToClaim(PlayerCharacter player, Nation nation, Double amount) {
+    public Influence transferToClaim(PlayerCharacter player, Influence amount) {
         Claim claim = claimData.getClaim(player, nation);
         if (claim == null) {
-            return 0.0;
+            return new Influence(0);
         }
         amount = reduce(amount);
         claim.add(amount);

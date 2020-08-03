@@ -1,6 +1,7 @@
 package botmanager.frostbalance.commands.influence;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.generic.AuthorityLevel;
 import botmanager.frostbalance.generic.FrostbalanceCommandBase;
 import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
@@ -52,7 +53,7 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
             }
         }
 
-        bot.gainDailyInfluence(event.getMember(), 0.05);
+        bot.gainDailyInfluence(event.getMember(), new Influence(0.05));
         minuteMembers.add(member);
     }
 

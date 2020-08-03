@@ -97,7 +97,7 @@ public class CheckMenu extends Menu {
     private String check() {
         Member firstMember = guild.getMember(challenger);
         Member targetMember = guild.getMember(actor);
-        if (bot.getUserInfluence(firstMember) > bot.getUserInfluence(targetMember)) {
+        if (bot.getUserInfluence(firstMember).compareTo(bot.getUserInfluence(targetMember)) > 0) {
             return firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".";
         } else if (bot.getUserInfluence(firstMember) == bot.getUserInfluence(targetMember)) {
             if (firstMember.equals(targetMember)) {
