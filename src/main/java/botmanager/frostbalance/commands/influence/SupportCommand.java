@@ -3,8 +3,9 @@ package botmanager.frostbalance.commands.influence;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceCommandBase;
+import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -21,7 +22,7 @@ public class SupportCommand extends FrostbalanceSplitCommandBase {
         super(bot, new String[] {
                 bot.getPrefix() + "support",
                 bot.getPrefix() + "s"
-        });
+        }, AuthorityLevel.GENERIC, FrostbalanceCommandBase.Conditions.GUILD_EXISTS);
     }
     
     @Override

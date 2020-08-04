@@ -3,9 +3,10 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.DailyInfluenceSource;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
@@ -18,18 +19,15 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
         String id;
         String result, publicPost;
-        String[] words;
-
-        words = message.split(" ");
 
         id = eventWrapper.getAuthor().getId();
 
-        if (eventWrapper.getGuild() == null || (words.length >= 1 && words[0].equalsIgnoreCase("all"))) {
+        if (!eventWrapper.getGuild().isPresent() || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
 
-            result = "botmanager.frostbalance.Influence in all guilds:" + "\n";
+            result = "Influence in all guilds:" + "\n";
 
             for (Guild guild : eventWrapper.getJDA().getGuilds()) {
                 if (guild.getMember(eventWrapper.getAuthor()) == null) {
@@ -38,7 +36,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
                 result += "**" + guild.getName() + "**: " + String.format("%s", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
 
-                Influence remaining = bot.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(guild, eventWrapper.getAuthor()));
+                Influence remaining = DailyInfluenceSource.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(guild, eventWrapper.getAuthor()));
                 if (remaining.getValue() > 0) {
                     result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
                 }
@@ -50,12 +48,12 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
         } else {
 
-            if (message.length() > 0) {
+            if (params.length > 0) {
                 if (eventWrapper.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-                    id = Utilities.findUserId(eventWrapper.getGuild(), message);
+                    id = Utilities.findUserId(eventWrapper.getGuild().get(), String.join(" ", params));
 
                     if (id == null) {
-                        result = "Could not find user '" + message + "'.";
+                        result = "Could not find user '" + String.join(" ", params) + "'.";
                         eventWrapper.sendResponse(result);
                         return;
                     } else {
@@ -69,21 +67,21 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 publicPost = "Your influence has been sent to you via PM.";
             }
 
-            Member member = eventWrapper.getGuild().getMemberById(id);
+            Member member = eventWrapper.getGuild().get().getMemberById(id);
             Influence influence = bot.getUserInfluence(member);
-            Influence remaining = bot.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(member));
+            Influence remaining = DailyInfluenceSource.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(member));
 
             if (member.equals(eventWrapper.getMember())) {
                 if (influence.getValue() <= 0) {
-                    result = "You have *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
+                    result = "You have *no* influence in **" + eventWrapper.getGuild().get().getName() + "**.";
                 } else {
-                    result = "You have **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                    result = "You have **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().get().getName() + "**.";
                 }
             } else {
                 if (influence.getValue() <= 0) {
-                    result = member.getEffectiveName() + " has *no* influence in **" + eventWrapper.getGuild().getName() + "**.";
+                    result = member.getEffectiveName() + " has *no* influence in **" + eventWrapper.getGuild().get().getName() + "**.";
                 } else {
-                    result = member.getEffectiveName() + " has **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().getName() + "**.";
+                    result = member.getEffectiveName() + " has **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().get().getName() + "**.";
                 }
             }
 

@@ -2,10 +2,12 @@ package botmanager.frostbalance.menu;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.command.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+
+import java.util.Optional;
 
 public class BanManageMenu extends Menu {
 
@@ -44,7 +46,7 @@ public class BanManageMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.BOT_ADMIN) &&
+                return bot.getAuthority(Optional.of(guild), getActor()).hasAuthority(AuthorityLevel.BOT_ADMIN) &&
                         !bot.isGloballyBanned(target);
             }
         });

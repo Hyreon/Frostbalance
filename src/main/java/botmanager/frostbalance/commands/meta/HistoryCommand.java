@@ -1,10 +1,10 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
-import botmanager.frostbalance.history.RegimeData;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
 
 import java.util.Collections;
@@ -18,17 +18,14 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     public HistoryCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "history"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
     }
 
     @Override
-    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
-        String[] words;
+    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
         String result = "";
         int page = 1;
         List<RegimeData> records;
-
-        words = message.split(" ");
 
         if (eventWrapper.getGuild() == null) {
             result += "You need to have a default server to do that.";
@@ -36,11 +33,11 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        if (words.length >= 1 && !message.isEmpty()) {
+        if (params.length >= 1) {
             try {
-                page = Integer.parseInt(words[0]);
+                page = Integer.parseInt(params[0]);
             } catch (NumberFormatException e) {
-                result += "Couldn't recognize the number '" + words[0] + "'.";
+                result += "Couldn't recognize the number '" + params[0] + "'.";
 
                 eventWrapper.sendResponse(result);
 
@@ -56,7 +53,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        records = bot.readRecords(eventWrapper.getGuild());
+        records = bot.readRecords(eventWrapper.getGuild().get());
         Collections.reverse(records);
 
         if (page > maxPages(records)) {
@@ -71,7 +68,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        new HistoryMenu(bot, records, page, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new HistoryMenu(bot, records, page, eventWrapper.getGuild().get()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 

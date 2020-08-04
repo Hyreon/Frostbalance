@@ -1,6 +1,6 @@
 package botmanager.frostbalance;
 
-import botmanager.frostbalance.generic.AuthorityLevel;
+import botmanager.frostbalance.command.AuthorityLevel;
 
 public enum OptionFlag {
 

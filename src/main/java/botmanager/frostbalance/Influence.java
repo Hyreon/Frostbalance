@@ -1,5 +1,7 @@
 package botmanager.frostbalance;
 
+import com.google.gson.annotations.JsonAdapter;
+
 /**
  * A simple wrapper around a double.
  * As we were already using the Double class in most cases
@@ -12,9 +14,11 @@ package botmanager.frostbalance;
  * A lot of the methods here are very low-level, ie they
  * use very fast implementations rather than being focused on readability.
  */
+@JsonAdapter(value=InfluenceAdapter.class)
 public class Influence {
 
     int thousandths;
+
 
     public Influence(int thousandths) {
         this.thousandths = thousandths; //no need to round, it's already guaranteed to be precise enough
@@ -34,6 +38,10 @@ public class Influence {
             words[1] += "0";
         }
         thousandths += Integer.parseInt(words[1]);
+    }
+
+    public static Influence none() {
+        return new Influence(0);
     }
 
     public double getValue() {
@@ -81,5 +89,17 @@ public class Influence {
 
     public Influence applyModifier(double modifier) {
         return new Influence(getValue() * modifier);
+    }
+
+    public boolean isNegative() {
+        return thousandths < 0;
+    }
+
+    public boolean isNonZero() {
+        return thousandths != 0;
+    }
+
+    public boolean isGreater(Influence influence) {
+        return compareTo(influence) > 0;
     }
 }

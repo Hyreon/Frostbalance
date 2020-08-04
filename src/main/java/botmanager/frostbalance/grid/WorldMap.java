@@ -19,8 +19,10 @@ import java.util.List;
  */
 public class WorldMap implements Container<Tile> {
 
+    @Deprecated
     static List<WorldMap> worldMaps = new ArrayList<>();
 
+    @Deprecated
     public static WorldMap get(Guild guild) {
         if (Frostbalance.bot.getSettings(guild).contains(OptionFlag.MAIN)) {
             guild = null;
@@ -56,7 +58,7 @@ public class WorldMap implements Container<Tile> {
     }
 
 
-    public static void readWorld(Guild guild) {
+    public static WorldMap readWorld(Guild guild) {
 
         String guildId;
         if (guild == null) {
@@ -85,8 +87,10 @@ public class WorldMap implements Container<Tile> {
             }
             System.out.println("Added " + worldMap.guild + " world map to worldMaps list.");
             worldMaps.add(worldMap);
-        }
 
+            return worldMap;
+        }
+        throw new IllegalStateException("Specified file does not exist");
     }
 
     public static void writeWorld(Guild guild, WorldMap map) {

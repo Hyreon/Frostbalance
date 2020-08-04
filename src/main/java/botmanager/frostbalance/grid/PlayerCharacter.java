@@ -25,8 +25,10 @@ public class PlayerCharacter extends TileObject {
 
     public static final long MOVEMENT_SPEED = 120000;
 
+    @Deprecated
     static List<PlayerCharacter> cache = new ArrayList<>();
 
+    @Deprecated
     public static PlayerCharacter get(String userId, WorldMap map) {
         if (Utils.isNullOrEmpty(userId)) return null;
         for (PlayerCharacter player : cache) {
@@ -40,6 +42,7 @@ public class PlayerCharacter extends TileObject {
         return newPlayer;
     }
 
+    @Deprecated
     public static PlayerCharacter get(User user, Guild guild) {
         return get(user.getId(), WorldMap.get(guild));
     }

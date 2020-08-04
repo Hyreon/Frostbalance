@@ -3,8 +3,8 @@ package botmanager.frostbalance.commands.influence;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.text.SimpleDateFormat;

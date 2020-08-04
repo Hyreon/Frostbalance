@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.menu.AllegianceMenu;
 
 public class AllegianceCommand extends FrostbalanceHybridCommandBase {
@@ -15,14 +15,15 @@ public class AllegianceCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
 
-        new AllegianceMenu(bot, AllegianceMenu.Cause.CHANGE).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new AllegianceMenu(bot, AllegianceMenu.Cause.CHANGE)
+                .send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return null;
+        return "**" + KEYWORDS[0] + "** - shows the allegiance menu, allowing you to change your national loyalty.";
     }
 }

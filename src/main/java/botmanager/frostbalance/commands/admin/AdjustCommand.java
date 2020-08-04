@@ -3,68 +3,63 @@ package botmanager.frostbalance.commands.admin;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 
 public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
     public AdjustCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "adjust"
-        }, AuthorityLevel.GUILD_ADMIN);
+        }, AuthorityLevel.GUILD_ADMIN, Conditions.GUILD_EXISTS);
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
-        String[] words;
+    protected void runHybrid(GenericMessageReceivedEventWrapper e, String[] params) {
         String id;
         String name;
         String result;
         Influence amount;
 
-        if (eventWrapper.getGuild() == null) {
-            result = "You need to set a default guild to adjust influence.";
-            eventWrapper.sendResponse(result);
-            return;
-        }
-
-        words = message.split(" ");
-
-        if (words.length < 2) {
-            eventWrapper.sendResponse("Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
+        if (params.length < 2) {
+            result = "Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**";
+            e.sendResponse(result);
             return;
         }
 
         try {
-            amount = new Influence(words[words.length - 1]);
-        } catch (NumberFormatException e) {
-            eventWrapper.sendResponse("Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
+            amount = new Influence(params[params.length - 1]);
+        } catch (NumberFormatException ex) {
+            e.sendResponse("Proper format: " + "**" + bot.getPrefix() + "adjust USER AMOUNT**");
             return;
         }
 
-        name = Utilities.combineArrayStopAtIndex(words, words.length - 1);
-        id = Utilities.findUserId(eventWrapper.getGuild(), name);
+        name = Utilities.combineArrayStopAtIndex(params, params.length - 1);
+        id = Utilities.findUserId(e.getGuild().get(), name);
 
         if (id == null) {
-            eventWrapper.sendResponse("Couldn't find user '" + name + "'.");
+            e.sendResponse("Couldn't find user '" + name + "'.");
             return;
         }
 
-        bot.changeUserInfluence(eventWrapper.getGuild().getMemberById(id), amount);
+        MemberWrapper recipient = bot.getMember(id, e.getGuildId().get());
 
-        if (eventWrapper.isPublic()) {
-            eventWrapper.getMessage().delete().complete();
+        recipient.adjustInfluence(amount);
+
+        if (e.isPublic()) {
+            e.getMessage().delete().complete();
         }
 
-        eventWrapper.sendResponse("Your adjustment of "
-                        + eventWrapper.getGuild().getMemberById(id).getEffectiveName()
+        e.sendResponse("Your adjustment of "
+                        + recipient.getEffectiveName()
                         + " has been noted, giving them " + amount + " influence.");
 
-        if (amount.getThousandths() > 0) {
-            Utilities.sendPrivateMessage(eventWrapper.getGuild().getMemberById(id).getUser(),
-                    eventWrapper.getGuild().getMemberById(eventWrapper.getAuthor().getId()).getEffectiveName() + " has adjusted your influence, changing it by " + amount + " in " +
-                            eventWrapper.getGuild().getName() + ".");
+        if (amount.isNonZero()) {
+            Utilities.sendPrivateMessage(recipient.getUserWrapper().getUser().get(),
+                    e.getBotMember().get().getEffectiveName() + " has adjusted your influence, changing it by " + amount + " in " +
+                            e.getBotGuild().get().getName() + ".");
         }
 
     }

@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.grid.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
@@ -14,27 +14,21 @@ public class ViewMapCommand extends FrostbalanceHybridCommandBase {
     public ViewMapCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "map"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
 
-        if (eventWrapper.getGuild() == null) {
-            eventWrapper.sendResponse("You need to have a default guild set with `.guild` in order to view its map.");
-            return;
-        }
-
-        String[] words = message.split(" ");
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
-        WorldMap map = WorldMap.get(eventWrapper.getGuild());
+        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild().get());
+        WorldMap map = WorldMap.get(eventWrapper.getGuild().get());
         Hex destination;
 
-        if (words.length < 3) {
+        if (params.length < 3) {
             new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor().getId(), map)).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
         } else {
             try {
-                destination = new Hex(Integer.parseInt(words[0]), Integer.parseInt(words[1]), Integer.parseInt(words[2]));
+                destination = new Hex(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
                 new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor().getId(), map), destination).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
             } catch (NumberFormatException e) {
                 eventWrapper.sendResponse("One or more of these numbers aren't really numbers.");

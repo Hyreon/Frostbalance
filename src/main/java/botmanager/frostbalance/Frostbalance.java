@@ -1,7 +1,10 @@
 package botmanager.frostbalance;
 
+import botmanager.IOUtils;
 import botmanager.Utilities;
 import botmanager.Utils;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceCommandBase;
 import botmanager.frostbalance.commands.admin.*;
 import botmanager.frostbalance.commands.influence.*;
 import botmanager.frostbalance.commands.map.ClaimTileCommand;
@@ -9,14 +12,15 @@ import botmanager.frostbalance.commands.map.GetClaimsCommand;
 import botmanager.frostbalance.commands.map.MoveCommand;
 import botmanager.frostbalance.commands.map.ViewMapCommand;
 import botmanager.frostbalance.commands.meta.*;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
+import botmanager.frostbalance.data.RegimeData;
+import botmanager.frostbalance.data.TerminationCondition;
 import botmanager.frostbalance.grid.WorldMap;
-import botmanager.frostbalance.history.RegimeData;
-import botmanager.frostbalance.history.TerminationCondition;
 import botmanager.frostbalance.menu.Menu;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Guild.Ban;
@@ -30,6 +34,7 @@ import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEv
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.internal.managers.GuildManagerImpl;
+import net.dv8tion.jda.internal.utils.tuple.Pair;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -46,16 +51,21 @@ import java.util.concurrent.TimeUnit;
 
 public class Frostbalance extends BotBase {
 
+    @Deprecated
     public static Frostbalance bot;
+
+    public List<UserWrapper> userWrappers = new ArrayList<>();
+    private List<GuildWrapper> guildWrappers = new ArrayList<>();
+
+    public Optional<WorldMap> mainMap = Optional.empty();
 
     private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
     Map<Guild, List<RegimeData>> regimes = new HotMap<>();
 
-    public final Influence DAILY_INFLUENCE_CAP = new Influence(1.00);
     private List<Menu> activeMenus = new ArrayList<>();
     private List<Guild> guildIconCache = new ArrayList<>();
 
-    private final Timer mapSaverTimer = new Timer();
+    private final Timer saverTimer = new Timer();
 
     public Frostbalance(String botToken, String name) {
         super(botToken, name);
@@ -90,12 +100,14 @@ public class Frostbalance extends BotBase {
 
         loadMaps();
 
-        mapSaverTimer.schedule(new TimerTask() {
+        saverTimer.schedule(new TimerTask() {
 
             @Override
             public void run() {
 
                 saveMaps();
+                saveUsers();
+                saveGuilds();
 
             }
 
@@ -107,6 +119,8 @@ public class Frostbalance extends BotBase {
     @Override
     public void shutdown() {
         saveMaps();
+        saveUsers();
+        saveGuilds();
     }
 
     public String getPrefix() {
@@ -349,6 +363,7 @@ public class Frostbalance extends BotBase {
         return Utilities.readLines(new File("data/" + getName() + "/staff.csv"));
     }
 
+    @Deprecated
     public void loadRecords(Guild guild) {
 
         List<String> info = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"));
@@ -388,6 +403,7 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     public boolean hasBeenForciblyRemoved(Member member) {
         List<RegimeData> relevantRegimes = getRecords(member.getGuild());
         try {
@@ -401,6 +417,7 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public void banUser(Guild guild, User user) {
 
         setUserCSVAtIndex(guild, user, 1, Boolean.TRUE.toString());
@@ -419,6 +436,7 @@ public class Frostbalance extends BotBase {
      * @param user
      * @return Whether the user had a ban from the server when pardoned.
      */
+    @Deprecated
     public boolean pardonUser(Guild guild, User user) {
 
         setUserCSVAtIndex(guild, user, 1, Boolean.FALSE.toString());
@@ -431,6 +449,7 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     public void globallyBanUser(User user) {
 
         Utilities.append(new File("data/" + getName() + "/global/bans.csv"), user.getId());
@@ -447,6 +466,7 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     public boolean globallyPardonUser(User user) {
 
         File file = new File("data/" + getName() + "/global/bans.csv");
@@ -483,6 +503,7 @@ public class Frostbalance extends BotBase {
      * @param user The user to check
      * @return Whether this user is banned from this guild, or banned globally
      */
+    @Deprecated
     public boolean isBanned(Guild guild, User user) {
 
         return isGloballyBanned(user) || isLocallyBanned(guild, user);
@@ -495,6 +516,7 @@ public class Frostbalance extends BotBase {
      * @param user The user to check
      * @return Whether this user is banned from this guild, or banned globally
      */
+    @Deprecated
     public boolean isLocallyBanned(Guild guild, User user) {
 
         return Boolean.parseBoolean(getUserCSVAtIndex(guild, user.getId(), 1));
@@ -507,6 +529,7 @@ public class Frostbalance extends BotBase {
      * @param user The user to check
      * @return Whether this user is banned globally
      */
+    @Deprecated
     public boolean isGloballyBanned(User user) {
 
         List<String> bannedUserIds = Utilities.readLines(new File("data/" + getName() + "/global/bans.csv"));
@@ -520,6 +543,7 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     private List<RegimeData> getRecords(Guild guild) {
 
         if (regimes.get(guild) == null) {
@@ -529,6 +553,7 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     public List<RegimeData> readRecords(Guild guild) {
 
         if (regimes.get(guild) == null) {
@@ -542,15 +567,18 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     public void updateLastRegime(Guild guild, RegimeData regime) {
         Utilities.removeLine(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"));
         Utilities.append(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"), regime.toCSV());
     }
 
+    @Deprecated
     public void logRegime(Guild guild, RegimeData regime) {
         Utilities.append(new File("data/" + getName() + "/" + guild.getId() + "/history.csv"), regime.toCSV());
     }
 
+    @Deprecated
     public void endRegime(Guild guild, TerminationCondition condition) {
         List<RegimeData> regimeData = getRecords(guild);
 
@@ -585,6 +613,7 @@ public class Frostbalance extends BotBase {
      * @param user The user in question
      * @return True if a guild can be found where this player is the same as the owner of that server.
      */
+    @Deprecated
     public boolean hasDiplomatStatus(User user) {
         for (Guild guild : getJDA().getGuilds()) {
             if (getSettings(guild).contains(OptionFlag.MAIN) && getOwner(guild).getUser().equals(user)) {
@@ -594,6 +623,7 @@ public class Frostbalance extends BotBase {
         return false;
     }
 
+    @Deprecated
     public void startRegime(Guild guild, User user) {
         RegimeData regime = new RegimeData(guild, user.getId(), Utilities.todayAsLong());
         getRecords(guild).add(regime);
@@ -604,6 +634,7 @@ public class Frostbalance extends BotBase {
         logRegime(guild, regime);
     }
 
+    @Deprecated
     public Collection<OptionFlag> getSettings(Guild guild) {
         Collection<OptionFlag> debugFlags = new ArrayList<OptionFlag>();
         List<String> flags = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/flags.csv"));
@@ -619,6 +650,7 @@ public class Frostbalance extends BotBase {
      * @param toggledFlag
      * @return Whether the debug flag got turned on (TRUE) or off (FALSE)
      */
+    @Deprecated
     public boolean flipFlag(Guild guild, OptionFlag toggledFlag) {
         if (getSettings(guild).contains(toggledFlag)) {
             removeDebugFlag(guild, toggledFlag);
@@ -634,11 +666,13 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public void addDebugFlag(Guild guild, OptionFlag debugFlag) {
         File file = new File("data/" + getName() + "/" + guild.getId() + "/flags.csv");
         Utilities.append(file, debugFlag.toString());
     }
 
+    @Deprecated
     public void removeDebugFlag(Guild guild, OptionFlag debugFlag) {
         File file = new File("data/" + getName() + "/" + guild.getId() + "/flags.csv");
         List<String> lines = Utilities.readLines(file);
@@ -660,11 +694,13 @@ public class Frostbalance extends BotBase {
 
     }
 
+    @Deprecated
     public String getOwnerId(Guild guild) {
         String info = Utilities.read(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
         return Utilities.getCSVValueAtIndex(info, 0);
     }
 
+    @Deprecated
     public Member getOwner(Guild guild) {
         try {
             String info = Utilities.read(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
@@ -674,14 +710,17 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public void updateOwner(Guild guild, User user) {
         Utilities.write(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"), user.getId());
     }
 
+    @Deprecated
     public void removeOwner(Guild guild) {
         Utilities.removeFile(new File("data/" + getName() + "/" + guild.getId() + "/owner.csv"));
     }
 
+    @Deprecated
     public void changeUserInfluence(Guild guild, User user, Influence influence) {
         Influence startingInfluence = getUserInfluence(guild, user);
         Influence newInfluence = influence.add(startingInfluence);
@@ -691,28 +730,31 @@ public class Frostbalance extends BotBase {
         setUserCSVAtIndex(guild, user, 0, String.valueOf(newInfluence));
     }
 
+    @Deprecated
     public void changeUserInfluence(Member member, Influence influence) {
         changeUserInfluence(member.getGuild(), member.getUser(), influence);
     }
 
+    @Deprecated
     public Influence gainDailyInfluence(Member member, Influence influenceGained) {
         if (getUserLastDaily(member) != Utilities.todayAsLong()) { //new day
             setUserLastDaily(member, Utilities.todayAsLong());
             setUserDailyAmount(member, influenceGained);
             changeUserInfluence(member, influenceGained);
             return influenceGained;
-        } else if (getUserDailyAmount(member).add(influenceGained).compareTo(DAILY_INFLUENCE_CAP) <= 0) { //cap doesn't affect anything
+        } else if (getUserDailyAmount(member).add(influenceGained).compareTo(DailyInfluenceSource.DAILY_INFLUENCE_CAP) <= 0) { //cap doesn't affect anything
             setUserDailyAmount(member, getUserDailyAmount(member).add(influenceGained));
             changeUserInfluence(member, influenceGained);
             return influenceGained;
         } else { //influence gained is over the cap
-            influenceGained = DAILY_INFLUENCE_CAP.subtract(getUserDailyAmount(member)); //set it to the cap before doing anything
+            influenceGained = DailyInfluenceSource.DAILY_INFLUENCE_CAP.subtract(getUserDailyAmount(member)); //set it to the cap before doing anything
             setUserDailyAmount(member, getUserDailyAmount(member).add(influenceGained));
             changeUserInfluence(member, influenceGained);
             return influenceGained;
         }
     }
 
+    @Deprecated
     public Influence getUserInfluence(Guild guild, User user) {
         try {
             return new Influence(Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 0)));
@@ -721,10 +763,12 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public Influence getUserInfluence(Member member) {
         return getUserInfluence(member.getGuild(), member.getUser());
     }
 
+    @Deprecated
     public Influence getUserDailyAmount(Guild guild, User user) {
         try {
             return new Influence(Double.parseDouble(getUserCSVAtIndex(guild, user.getId(), 3)));
@@ -733,18 +777,22 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public Influence getUserDailyAmount(Member member) {
         return getUserDailyAmount(member.getGuild(), member.getUser());
     }
 
+    @Deprecated
     public void setUserDailyAmount(Guild guild, User user, Influence amount) {
         setUserCSVAtIndex(guild, user, 3, String.valueOf(amount));
     }
 
+    @Deprecated
     public void setUserDailyAmount(Member member, Influence amount) {
         setUserDailyAmount(member.getGuild(), member.getUser(), amount);
     }
 
+    @Deprecated
     public long getUserLastDaily(Guild guild, User user) {
         try {
             return Integer.parseInt(getUserCSVAtIndex(guild, user.getId(), 2));
@@ -753,42 +801,56 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public long getUserLastDaily(Member member) {
         return getUserLastDaily(member.getGuild(), member.getUser());
     }
 
+    @Deprecated
     public void setUserLastDaily(Guild guild, User user, long date) {
         setUserCSVAtIndex(guild, user, 2, String.valueOf(date));
     }
 
+    @Deprecated
     public void setUserLastDaily(Member member, long date) {
         setUserLastDaily(member.getGuild(), member.getUser(), date);
     }
 
+    @Deprecated
     public void resetUserDefaultGuild(User user) {
         setUserCSVAtIndex(null, user, 0, "");
     }
 
+    @Deprecated
     public void setUserDefaultGuild(User user, Guild guild) {
         setUserCSVAtIndex(null, user, 0, guild.getId());
     }
 
+    @Deprecated
     public void setMainAllegiance(User user, Nation nation) {
         setUserCSVAtIndex(null, user, 1, nation.toString());
     }
 
+    @Deprecated
     public Nation getMainAllegiance(User user) {
         String allegiance = getUserCSVAtIndex(null, user.getId(), 1);
         if (Utils.isNullOrEmpty(allegiance)) return Nation.NONE;
         return Nation.valueOf(allegiance);
     }
 
+    @Deprecated
     public Guild getUserDefaultGuild(User user) {
         try {
             return getJDA().getGuildById(getUserCSVAtIndex(null, user.getId(), 0));
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    public void loadLegacy() {
+        loadUsersFromCSV();
+        loadMembersFromCSV();
+        loadGuildsFromCSV();
     }
 
     @Override
@@ -858,23 +920,23 @@ public class Frostbalance extends BotBase {
      * @param user The user that is operating
      * @return The authority level of the user
      */
-    public AuthorityLevel getAuthority(Guild guild, User user) {
+    public AuthorityLevel getAuthority(Optional<Guild> guild, User user) {
 
         if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
             return AuthorityLevel.BOT;
         } else if (getAdminIds().contains(user.getId())) {
             return AuthorityLevel.BOT_ADMIN;
-        } else if (guild == null) {
+        } else if (!guild.isPresent()) {
             return AuthorityLevel.GENERIC;
         }
 
-        if (guild.getOwner().getUser().getId().equals(user.getId())) {
+        if (guild.get().getOwner().getUser().getId().equals(user.getId())) {
             return AuthorityLevel.GUILD_OWNER;
-        } else if (guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
+        } else if (guild.get().getMember(user).getRoles().contains(getSystemRole(guild.get()))) {
             return AuthorityLevel.GUILD_ADMIN;
-        } else if (guild.getMember(user).getRoles().contains(getOwnerRole(guild))) {
+        } else if (guild.get().getMember(user).getRoles().contains(getOwnerRole(guild.get()))) {
             return AuthorityLevel.SERVER_LEADER;
-        } else if (guild.getMember(user).hasPermission(Permission.ADMINISTRATOR)) {
+        } else if (guild.get().getMember(user).hasPermission(Permission.ADMINISTRATOR)) {
             return AuthorityLevel.SERVER_ADMIN;
         } else {
             return AuthorityLevel.GENERIC;
@@ -882,7 +944,7 @@ public class Frostbalance extends BotBase {
     }
 
     public AuthorityLevel getAuthority(Member member) {
-        return getAuthority(member.getGuild(), member.getUser());
+        return getAuthority(Optional.of(member.getGuild()), member.getUser());
     }
 
     public Nation getAllegianceIn(Guild guild) {
@@ -945,6 +1007,7 @@ public class Frostbalance extends BotBase {
             exec.schedule(new Runnable() {
                 public void run() {
                     loadMaps();
+                    loadLegacy();
                 }
             }, 1, TimeUnit.SECONDS);
         } else {
@@ -954,8 +1017,122 @@ public class Frostbalance extends BotBase {
                     WorldMap.readWorld(guild);
                 }
             }
-            WorldMap.readWorld(null);
         }
+        mainMap = Optional.of(loadMainMap());
+    }
+
+    private WorldMap loadMainMap() {
+        return WorldMap.readWorld(null);
+    }
+
+    public void saveUsers() {
+        for (UserWrapper user : userWrappers) {
+            writeObject(Optional.empty(), "users/" + user.getUserId(), user);
+        }
+    }
+
+    private void saveGuilds() {
+        for (GuildWrapper guild : guildWrappers) {
+            writeObject(Optional.of(guild.getGuildId()), "root", guild);
+        }
+    }
+
+    public void loadGuildsFromCSV() {
+        for (File folder : new File("data/" + getName()).listFiles()) {
+            System.out.println("Folder:" + folder);
+            if (!folder.isDirectory()) continue;
+            String guildId = folder.getName();
+            System.out.println("GuildId:" + guildId);
+            Guild guild = getJDA().getGuildById(guildId);
+            if (guild == null) continue;
+            try {
+                if (getJDA().getGuildById(guildId) != null) {
+                    GuildWrapper bGuild = getGuild(guildId);
+                    bGuild.optionFlags = (List<OptionFlag>) getSettings(bGuild.getGuild().get());
+                    bGuild.regimes = getRecords(bGuild.getGuild().get());
+                    bGuild.ownerId = Optional.ofNullable(getOwnerId(bGuild.getGuild().get()));
+                    bGuild.lastKnownName = bGuild.getGuild().get().getName();
+                    guildWrappers.add(bGuild);
+                }
+            } catch (NumberFormatException e) {
+
+            }
+        }
+    }
+
+    public void loadUsersFromCSV() {
+        for (File file : new File("data/" + getName() + "/global").listFiles()) {
+            String fileName = file.getName();
+            if (!fileName.contains(".csv")) continue;
+            String userId = fileName.replace(".csv", "");
+            System.out.println(userId);
+            try {
+                if (getJDA().getUserById(userId) != null) {
+                    UserWrapper bUser = getUser(userId);
+                    bUser.allegiance = getMainAllegiance(bUser.getUser().get());
+                    bUser.defaultGuildId = Optional.ofNullable(getUserDefaultGuild(bUser.getUser().get()).getId());
+                    bUser.globallyBanned = isGloballyBanned(bUser.getUser().get());
+                    bUser.lastKnownName = bUser.getUser().get().getName();
+                    userWrappers.add(bUser);
+                }
+            } catch (NumberFormatException e) {
+
+            }
+        }
+    }
+
+    public void loadMembersFromCSV() {
+        for (File folder : new File("data/" + getName()).listFiles()) {
+            System.out.println("Folder:" + folder);
+            if (!folder.isDirectory()) continue;
+            String guildId = folder.getName();
+            System.out.println("GuildId:" + guildId);
+            Guild guild = getJDA().getGuildById(guildId);
+            if (guild == null) continue;
+            try {
+                for (File file : folder.listFiles()) {
+                    String fileName = file.getName();
+                    if (!fileName.contains(".csv")) continue;
+                    String userId = fileName.replace(".csv", "");
+                    User user = getJDA().getUserById(userId);
+                    try {
+                        if (getJDA().getUserById(userId) != null) {
+                            MemberWrapper bMember = getMember(userId, guildId);
+                            bMember.banned = isLocallyBanned(guild, user);
+                            bMember.dailyInfluence = new DailyInfluenceSource(
+                                    getUserDailyAmount(guild, user),
+                                    getUserLastDaily(guild, user)
+                            );
+                            bMember.influence = getUserInfluence(guild, user);
+                            bMember.lastKnownNickname = Optional.ofNullable(guild.getMember(user).getNickname());
+
+                            bMember.userWrapper = getUser(userId);
+                        }
+                    } catch (NumberFormatException e) {
+
+                    }
+                }
+            } catch (NumberFormatException e) {
+
+            }
+        }
+    }
+
+    public void loadUsers() {
+        for (File file : new File("data/" + getName() + "/global/users").listFiles()) {
+
+        }
+    }
+
+    public void writeObject(Optional<String> guildId, String filename, Object object, Pair<Class, TypeAdapter>... typeAdapters) {
+
+        File file = new File("data/" + getName() + "/" + guildId.orElse("global") + "/" + filename + ".json");
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        for (Pair<Class, TypeAdapter> typeAdapterPair : typeAdapters) {
+            gsonBuilder.registerTypeAdapter(typeAdapterPair.getLeft(), typeAdapterPair.getRight());
+        }
+        Gson gson = gsonBuilder.create();
+        IOUtils.write(file, gson.toJson(object));
     }
 
     public String getUserName(String userId) {
@@ -963,6 +1140,50 @@ public class Frostbalance extends BotBase {
     }
 
     public Influence gainDailyInfluence(Member member) {
-        return gainDailyInfluence(member, DAILY_INFLUENCE_CAP);
+        return gainDailyInfluence(member, DailyInfluenceSource.DAILY_INFLUENCE_CAP);
+    }
+
+    /**
+     * Gets the bot user for this player.
+     * If none exist, this player will be given a new bot user.
+     * @param id
+     * @return
+     */
+    public UserWrapper getUser(String id) {
+        Optional<UserWrapper> botUser = userWrappers.stream().filter(user -> user.getUserId().equals(id)).findFirst();
+        if (!botUser.isPresent()) {
+            botUser = Optional.of(new UserWrapper(this, getJDA().getUserById(id)));
+            userWrappers.add(botUser.get());
+        }
+        return botUser.get();
+    }
+
+
+    /**
+     * Gets the bot member for this user in this guild.
+     * If none exist, this player will be given a new bot member.
+     * @param userId
+     * @param guildId
+     * @return
+     */
+    public MemberWrapper getMember(String userId, String guildId) {
+        UserWrapper userWrapper = getUser(userId);
+        return userWrapper.getMember(guildId);
+    }
+
+
+    /**
+     * Gets the bot guild for this guild.
+     * If none exist, this guild will be given a new bot guild.
+     * @param id
+     * @return
+     */
+    public GuildWrapper getGuild(String id) {
+        Optional<GuildWrapper> botGuild = guildWrappers.stream().filter(guild -> guild.getGuildId().equals(id)).findFirst();
+        if (!botGuild.isPresent()) {
+            botGuild = Optional.of(new GuildWrapper(this, getJDA().getGuildById(id)));
+            guildWrappers.add(botGuild.get());
+        }
+        return botGuild.get();
     }
 }

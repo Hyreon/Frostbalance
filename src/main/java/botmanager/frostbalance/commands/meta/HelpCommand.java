@@ -1,10 +1,10 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceCommandBase;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 
 /**
  *
@@ -19,21 +19,14 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
-        String result = "__**Frostbalance**__\n\n";
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+        final String[] result = {"__**Frostbalance**__\n\n"};
 
         for (FrostbalanceCommandBase command : bot.getCommands()) {
-            String info = command.getInfo(eventWrapper.getAuthority(), eventWrapper.isPublic());
-
-            if (!command.isAdminOnly() || command.wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) { //hide admin commands
-                if (info != null) {
-                    result += info + "\n";
-                }
-            }
-
+            command.getInfo(eventWrapper).ifPresent(info -> result[0] += info + "\n");
         }
 
-        eventWrapper.sendResponse(result);
+        eventWrapper.sendResponse(result[0]);
     }
 
     @Override

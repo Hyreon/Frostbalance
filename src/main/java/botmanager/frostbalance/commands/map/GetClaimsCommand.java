@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
@@ -12,18 +12,13 @@ public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
     public GetClaimsCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "claims",
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
 
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
-
-        if (eventWrapper.getGuild() == null) {
-            eventWrapper.sendResponse("no join a guild nitwit");
-            return;
-        }
+        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild().get());
 
         eventWrapper.sendResponse(String.format("Claims on %s:\n%s",
                 player.getLocation().toString(),

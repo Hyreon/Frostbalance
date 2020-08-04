@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.history.RegimeData;
+import botmanager.frostbalance.data.RegimeData;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 

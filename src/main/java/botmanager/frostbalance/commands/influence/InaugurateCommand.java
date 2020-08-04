@@ -2,14 +2,15 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
-import botmanager.frostbalance.history.TerminationCondition;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.data.TerminationCondition;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.io.File;
+import java.util.Optional;
 
 public class InaugurateCommand extends FrostbalanceSplitCommandBase {
 
@@ -45,7 +46,7 @@ public class InaugurateCommand extends FrostbalanceSplitCommandBase {
         }
 
         if (message.isEmpty()) {
-            result = info(bot.getAuthority(event.getGuild(), event.getAuthor()), true);
+            result = info(bot.getAuthority(Optional.of(event.getGuild()), event.getAuthor()), true);
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }

@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.grid.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
@@ -12,34 +12,33 @@ public class MoveCommand extends FrostbalanceHybridCommandBase {
     public MoveCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "move",
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
 
         if (eventWrapper.getGuild() == null) {
             eventWrapper.sendResponse("You need to have a default guild set with `.guild` in order to move on its map.");
             return;
         }
 
-        String[] words = message.split(" ");
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
+        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild().get());
         Hex destination;
 
-        if (words.length < 3) {
+        if (params.length < 3) {
             eventWrapper.sendResponse(info(eventWrapper.getAuthority(), eventWrapper.isPublic()));
             return;
         }
         try {
-            destination = new Hex(Integer.parseInt(words[0]), Integer.parseInt(words[1]), Integer.parseInt(words[2]));
+            destination = new Hex(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
         } catch (NumberFormatException e) {
             eventWrapper.sendResponse("One or more of these numbers aren't really numbers.");
             return;
         }
 
         player.setDestination(destination);
-        eventWrapper.sendResponse(eventWrapper.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
+        eventWrapper.sendResponse(eventWrapper.getMember().get().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
         + player.getTravelTime() + ".");
 
     }

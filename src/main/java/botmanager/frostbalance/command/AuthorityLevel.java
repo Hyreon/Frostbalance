@@ -1,4 +1,4 @@
-package botmanager.frostbalance.generic;
+package botmanager.frostbalance.command;
 
 public enum AuthorityLevel {
 

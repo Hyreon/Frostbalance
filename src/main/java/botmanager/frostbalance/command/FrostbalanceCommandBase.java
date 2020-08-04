@@ -1,12 +1,15 @@
-package botmanager.frostbalance.generic;
+package botmanager.frostbalance.command;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.generic.ICommand;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public abstract class FrostbalanceCommandBase implements ICommand {
 
@@ -14,13 +17,16 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
     protected final String[] KEYWORDS;
 
+    protected final List<Conditions> CONDITIONS;
+
     protected final AuthorityLevel AUTHORITY_LEVEL;
 
     protected Frostbalance bot;
 
-    public FrostbalanceCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel) {
+    public FrostbalanceCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Conditions... conditions) {
         this.bot = bot;
         KEYWORDS = keywords;
+        CONDITIONS = new ArrayList(Arrays.asList(conditions));
         AUTHORITY_LEVEL = authorityLevel;
     }
 
@@ -44,8 +50,23 @@ public abstract class FrostbalanceCommandBase implements ICommand {
         if (!hasKeywords(genericEvent)) return;
         parameters = minifyMessage(eventWrapper.getMessage().getContentRaw()).split(" ");
 
-        if (!wouldAuthorize(eventWrapper.getGuild(), eventWrapper.getAuthor())) {
+        if (!wouldAuthorize(eventWrapper.getAuthority())) {
             eventWrapper.sendResponse("You don't have sufficient privileges to do this.");
+            return;
+        }
+
+        if (CONDITIONS.contains(Conditions.PRIVATE) && eventWrapper.isPublic()) {
+            eventWrapper.sendResponse("This command can only be run via DM.");
+            return;
+        }
+
+        if (CONDITIONS.contains(Conditions.PUBLIC) && !eventWrapper.isPublic()) {
+            eventWrapper.sendResponse("This command can only be run publicly in servers.");
+            return;
+        }
+
+        if (CONDITIONS.contains(Conditions.GUILD_EXISTS) && !eventWrapper.getGuild().isPresent()) {
+            eventWrapper.sendResponse("This command only works if you have a default guild set for DM. Set it with `.guild GUILD`.");
             return;
         }
 
@@ -106,12 +127,10 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
     /**
      * Does this user, with this guild, have the authority to run this command at its lowest authority level?
-     * @param guild The guild where the command would be run at
-     * @param user The user running this command
-     * @return Whether the user could run this command as system
+     * @return Whether the user could run this command
      */
-    public boolean wouldAuthorize(Guild guild, User user) {
-        return bot.getAuthority(guild, user).hasAuthority(AUTHORITY_LEVEL);
+    public boolean wouldAuthorize(AuthorityLevel authorityLevel) {
+        return authorityLevel.hasAuthority(AUTHORITY_LEVEL);
     }
 
     /**
@@ -121,16 +140,15 @@ public abstract class FrostbalanceCommandBase implements ICommand {
      * @param isPublic
      * @return
      */
-    public String getInfo(AuthorityLevel authorityLevel, boolean isPublic) {
-        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
-            return info(authorityLevel, isPublic);
-        } else return null;
+    public Optional<String> getInfo(GenericMessageReceivedEventWrapper eventWrapper) {
+        if (eventWrapper.getAuthority().hasAuthority(AUTHORITY_LEVEL) && (!CONDITIONS.contains(Conditions.GUILD_EXISTS) || eventWrapper.getGuildId().isPresent())) {
+            return Optional.ofNullable(info(eventWrapper.getAuthority(), eventWrapper.isPublic()));
+        } else return Optional.empty();
     }
 
     protected abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
 
-    public boolean isAdminOnly() {
-        return AUTHORITY_LEVEL.hasAuthority(AuthorityLevel.BOT_ADMIN);
+    public enum Conditions {
+        GUILD_EXISTS, PUBLIC, PRIVATE
     }
-
 }

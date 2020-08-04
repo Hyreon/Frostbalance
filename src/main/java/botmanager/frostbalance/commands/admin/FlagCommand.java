@@ -1,9 +1,10 @@
 package botmanager.frostbalance.commands.admin;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.FrostbalanceCommandBase;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.menu.FlagMenu;
 
 public class FlagCommand extends FrostbalanceHybridCommandBase {
@@ -13,21 +14,14 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
         super(bot, new String[] {
                 bot.getPrefix() + "flags",
                 bot.getPrefix() + "settings"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, FrostbalanceCommandBase.Conditions.GUILD_EXISTS);
     }
 
     @Override
-    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
         String result = "";
-        String stringFlag = message.split(" ")[0];
 
-        if (eventWrapper.getGuild() == null) {
-            result += "This command cannot run without a default guild.";
-            eventWrapper.sendResponse(result);
-            return;
-        }
-
-        new FlagMenu(bot, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new FlagMenu(bot, eventWrapper.getGuild().get()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 
