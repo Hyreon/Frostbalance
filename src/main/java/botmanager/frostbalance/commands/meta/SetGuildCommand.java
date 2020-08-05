@@ -4,7 +4,7 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ public class SetGuildCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper event, String... params) {
+    protected void runHybrid(CommandContext event, String... params) {
 
         String name;
         List<String> resultLines = new ArrayList<>();

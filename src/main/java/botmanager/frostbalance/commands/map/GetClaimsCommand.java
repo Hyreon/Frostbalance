@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.map;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
@@ -16,9 +16,9 @@ public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    protected void runHybrid(CommandContext eventWrapper, String... params) {
 
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild().get());
+        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
 
         eventWrapper.sendResponse(String.format("Claims on %s:\n%s",
                 player.getLocation().toString(),

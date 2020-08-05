@@ -20,7 +20,7 @@ public class AllegianceMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                bot.getUser(getActor().getId()).setAllegiance(Nation.RED);
+                bot.getUserWrapper(getActor().getId()).setAllegiance(Nation.RED);
                 close(false);
             }
 
@@ -34,7 +34,7 @@ public class AllegianceMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                bot.getUser(getActor().getId()).setAllegiance(Nation.GREEN);
+                bot.getUserWrapper(getActor().getId()).setAllegiance(Nation.GREEN);
                 close(false);
             }
 
@@ -48,7 +48,7 @@ public class AllegianceMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                bot.getUser(getActor().getId()).setAllegiance(Nation.BLUE);
+                bot.getUserWrapper(getActor().getId()).setAllegiance(Nation.BLUE);
                 close(false);
             }
 
@@ -94,7 +94,7 @@ public class AllegianceMenu extends Menu {
                 builder.setColor(Color.GRAY);
             } else if (cause == Cause.CHANGE) {
                 builder.setDescription("Pick your new allegiance. Current allegiance: " + bot.getMainAllegiance(getActor()).getEffectiveName() + ADDENDUM);
-                builder.setColor(bot.getUser(getActor().getId()).getAllegiance().getColor());
+                builder.setColor(bot.getUserWrapper(getActor().getId()).getAllegiance().getColor());
             }
         }
         return builder;

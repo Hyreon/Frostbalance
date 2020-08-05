@@ -6,7 +6,7 @@ import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 
 public class AdjustCommand extends FrostbalanceHybridCommandBase {
 
@@ -17,7 +17,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper e, String[] params) {
+    protected void runHybrid(CommandContext e, String[] params) {
         String id;
         String name;
         String result;
@@ -37,14 +37,14 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
         }
 
         name = Utilities.combineArrayStopAtIndex(params, params.length - 1);
-        id = Utilities.findUserId(e.getGuild().get(), name);
+        id = Utilities.findUserId(e.getGuild(), name);
 
         if (id == null) {
             e.sendResponse("Couldn't find user '" + name + "'.");
             return;
         }
 
-        MemberWrapper recipient = bot.getMemberWrapper(id, e.getGuildId().get());
+        MemberWrapper recipient = bot.getMemberWrapper(id, e.getGuildId());
 
         recipient.adjustInfluence(amount);
 
@@ -57,9 +57,9 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
                         + " has been noted, giving them " + amount + " influence.");
 
         if (amount.isNonZero()) {
-            Utilities.sendPrivateMessage(recipient.getUserWrapper().getUser().get(),
-                    e.getBotMember().get().getEffectiveName() + " has adjusted your influence, changing it by " + amount + " in " +
-                            e.getBotGuild().get().getName() + ".");
+            Utilities.sendPrivateMessage(recipient.getUserWrapper().getUser(),
+                    e.getBotMember().getEffectiveName() + " has adjusted your influence, changing it by " + amount + " in " +
+                            e.getBotGuild().getName() + ".");
         }
 
     }

@@ -3,10 +3,8 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.menu.ConfirmationMenu;
-
-import java.util.Optional;
 
 public class LoadLegacyCommand extends FrostbalanceHybridCommandBase {
 
@@ -17,8 +15,8 @@ public class LoadLegacyCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
-        new ConfirmationMenu(bot, Optional.empty(), () -> {
+    protected void runHybrid(CommandContext eventWrapper, String... params) {
+        new ConfirmationMenu(bot, () -> {
             bot.loadLegacy();
             eventWrapper.sendResponse(".csv files have been loaded and will overwrite .json data when saved.");
         },

@@ -1,20 +1,16 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.GuildWrapper;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
-import java.util.Optional;
 
 public class ConfirmationMenu extends Menu {
 
-    private final Optional<GuildWrapper> guild;
     private final String description;
 
-    public ConfirmationMenu(Frostbalance bot, Optional<GuildWrapper> guild, Runnable runnable, String description) {
+    public ConfirmationMenu(Frostbalance bot, Runnable runnable, String description) {
         super(bot);
-        this.guild = guild;
         this.description = description;
 
         menuResponses.add(new MenuResponse("✅", "Confirm") {
@@ -58,7 +54,7 @@ public class ConfirmationMenu extends Menu {
             builder.setTitle("Error");
             builder.setDescription("An internal error occurred running this command. Please notify the developers.");
         } else {
-            builder.setColor(guild.map(guild -> guild.getColor()).orElse(Color.GRAY));
+            //builder.setColor(guild.map(guild -> guild.getColor()).orElse(Color.GRAY));
             builder.setTitle("Confirm Action");
             builder.setDescription(description);
         }

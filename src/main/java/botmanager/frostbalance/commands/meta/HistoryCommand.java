@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
 
@@ -20,9 +20,8 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
         }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
-    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    public void runHybrid(CommandContext eventWrapper, String... params) {
         String result = "";
         int page = 1;
         List<RegimeData> records;
@@ -47,7 +46,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        records = eventWrapper.getBotGuild().get().readRecords();
+        records = eventWrapper.getBotGuild().readRecords();
         Collections.reverse(records);
 
         if (page > maxPages(records)) {
@@ -62,7 +61,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        new HistoryMenu(bot, records, page, eventWrapper.getGuild().get()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new HistoryMenu(bot, records, page, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 

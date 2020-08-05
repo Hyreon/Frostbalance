@@ -4,8 +4,8 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.HotMap;
 import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.menu.CheckMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -18,7 +18,6 @@ import net.dv8tion.jda.internal.utils.tuple.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 
 public class CheckCommand extends FrostbalanceSplitCommandBase {
 
@@ -39,7 +38,7 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
         User targetUser;
 
         if (message.isEmpty()) {
-            result = info(bot.getAuthority(Optional.of(event.getGuild()), event.getAuthor()), true);
+            result = info(bot.getAuthority(event.getGuild(), event.getAuthor()), true);
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }
@@ -74,7 +73,7 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
         User targetUser;
         boolean newRequest;
 
-        Optional<Guild> guild = new GenericMessageReceivedEventWrapper(bot, event).getGuild();
+        Guild guild = new CommandContext(bot, event).getGuild();
 
         if (guild == null) {
             Utilities.sendPrivateMessage(event.getAuthor(), "You need to have a default guild to run this command.");
@@ -87,7 +86,7 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
             return;
         }
 
-        targetId = Utilities.findUserId(guild.get(), message);
+        targetId = Utilities.findUserId(guild, message);
 
         if (targetId == null) {
             result = "Couldn't find user '" + message + "'.";
@@ -96,17 +95,17 @@ public class CheckCommand extends FrostbalanceSplitCommandBase {
         }
 
         targetUser = event.getJDA().getUserById(targetId);
-        newRequest = addPrivateCheck(guild.get(), event.getAuthor(), event.getJDA().getUserById(targetId));
+        newRequest = addPrivateCheck(guild, event.getAuthor(), event.getJDA().getUserById(targetId));
 
         if (targetUser.equals(bot.getJDA().getSelfUser())) {
             result = "Uh, sure?";
             Utilities.sendPrivateMessage(event.getAuthor(), result);
-            addPrivateCheck(guild.get(), targetUser, event.getAuthor());
+            addPrivateCheck(guild, targetUser, event.getAuthor());
             newRequest = false;
         }
 
         if (newRequest) {
-            Utilities.sendPrivateMessage(targetUser, targetUser.getAsMention() + ", " + guild.get().getMember(event.getAuthor()).getEffectiveName() + " would like to" +
+            Utilities.sendPrivateMessage(targetUser, targetUser.getAsMention() + ", " + guild.getMember(event.getAuthor()).getEffectiveName() + " would like to" +
                     " check if you have more influence than them. Send a check request to them to accept; ignore this to decline.");
         }
 

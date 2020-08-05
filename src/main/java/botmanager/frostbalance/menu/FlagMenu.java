@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.awt.*;
-import java.util.Optional;
 
 public class FlagMenu extends Menu {
 
@@ -48,7 +47,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return !enabling && bot.getAuthority(Optional.of(guild), getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return !enabling && bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -62,7 +61,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return enabling && bot.getAuthority(Optional.of(guild), getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return enabling && bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -81,7 +80,7 @@ public class FlagMenu extends Menu {
     }
 
     private boolean isToggleable(OptionFlag flag) {
-        return (bot.getSettings(guild).contains(flag) ^ enabling) && bot.getAuthority(Optional.of(guild), getActor()).hasAuthority(flag.getAuthorityToChange());
+        return (bot.getSettings(guild).contains(flag) ^ enabling) && bot.getAuthority(guild, getActor()).hasAuthority(flag.getAuthorityToChange());
     }
 
     @Override

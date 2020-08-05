@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.map;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.grid.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
@@ -16,14 +16,14 @@ public class MoveCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    protected void runHybrid(CommandContext eventWrapper, String... params) {
 
         if (eventWrapper.getGuild() == null) {
             eventWrapper.sendResponse("You need to have a default guild set with `.guild` in order to move on its map.");
             return;
         }
 
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild().get());
+        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
         Hex destination;
 
         if (params.length < 3) {
@@ -38,7 +38,7 @@ public class MoveCommand extends FrostbalanceHybridCommandBase {
         }
 
         player.setDestination(destination);
-        eventWrapper.sendResponse(eventWrapper.getMember().get().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
+        eventWrapper.sendResponse(eventWrapper.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
         + player.getTravelTime() + ".");
 
     }

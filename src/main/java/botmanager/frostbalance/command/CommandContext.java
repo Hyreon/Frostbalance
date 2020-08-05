@@ -1,37 +1,37 @@
 package botmanager.frostbalance.command;
 
 import botmanager.Utilities;
+import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
-import botmanager.frostbalance.Frostbalance;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
-public class GenericMessageReceivedEventWrapper {
+public class CommandContext {
 
     Frostbalance bot;
 
     PrivateMessageReceivedEvent privateEvent;
     GuildMessageReceivedEvent publicEvent;
 
-    public GenericMessageReceivedEventWrapper(Frostbalance bot, PrivateMessageReceivedEvent privateEvent) {
+    public CommandContext(Frostbalance bot, PrivateMessageReceivedEvent privateEvent) {
         this.bot = bot;
         this.privateEvent = privateEvent;
     }
 
-    public GenericMessageReceivedEventWrapper(Frostbalance bot, GuildMessageReceivedEvent publicEvent) {
+    public CommandContext(Frostbalance bot, GuildMessageReceivedEvent publicEvent) {
         this.bot = bot;
         this.publicEvent = publicEvent;
     }
 
-    public GenericMessageReceivedEventWrapper(Frostbalance bot, Event genericEvent) {
+    public CommandContext(Frostbalance bot, Event genericEvent) {
         if (genericEvent instanceof PrivateMessageReceivedEvent) {
             this.bot = bot;
             this.privateEvent = (PrivateMessageReceivedEvent) genericEvent;
@@ -54,35 +54,35 @@ public class GenericMessageReceivedEventWrapper {
         return privateEvent.getJDA();
     }
 
-    public Optional<Guild> getGuild() {
+    public @Nullable Guild getGuild() {
         if (isPublic()) {
-            return Optional.of(publicEvent.getGuild());
+            return publicEvent.getGuild();
         }
         System.out.println("botUser " + getBotUser().getUserId());
         System.out.println("defaultBotGuild " + getBotUser().getDefaultBotGuild());
-        return getBotUser().getDefaultBotGuild().map(guildWrapper -> getJDA().getGuildById(guildWrapper.getGuildId()));
+        return getJDA().getGuildById(getBotUser().getDefaultBotGuild().getGuildId());
     }
 
-    public Optional<String> getGuildId() {
+    public @Nullable String getGuildId() {
         if (isPublic()) {
-            return Optional.of(publicEvent.getGuild().getId());
+            return publicEvent.getGuild().getId();
         }
         return getBotUser().getDefaultGuildId();
     }
 
-    public Optional<GuildWrapper> getBotGuild() {
-        return getGuildId().map(guildId -> bot.getGuild(guildId));
+    public @Nullable GuildWrapper getBotGuild() {
+        return bot.getGuildWrapper(getGuildId());
     }
 
-    public Optional<Member> getMember() {
+    public @Nullable Member getMember() {
         if (isPublic()) {
-            return Optional.ofNullable(publicEvent.getMember());
+            return publicEvent.getMember();
         }
-        return getGuild().map(guild -> guild.getMember(getAuthor()));
+        return getGuild().getMember(getAuthor());
     }
 
-    public Optional<MemberWrapper> getBotMember() {
-        return getGuild().map(guild -> bot.getMemberWrapper(getAuthor().getId(), guild.getId()));
+    public @Nullable MemberWrapper getBotMember() {
+        return bot.getMemberWrapper(getAuthor().getId(), getGuild().getId());
     }
 
     public User getAuthor() {
@@ -93,7 +93,7 @@ public class GenericMessageReceivedEventWrapper {
     }
 
     public UserWrapper getBotUser() {
-        return bot.getUser(getAuthor().getId());
+        return bot.getUserWrapper(getAuthor().getId());
     }
 
     public Message getMessage() {

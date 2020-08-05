@@ -4,7 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceCommandBase;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 
 /**
  *
@@ -19,7 +19,7 @@ public class HelpCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    protected void runHybrid(CommandContext eventWrapper, String... params) {
         final String[] result = {"__**Frostbalance**__\n\n"};
 
         for (FrostbalanceCommandBase command : bot.getCommands()) {

@@ -25,7 +25,7 @@ public abstract class FrostbalanceSplitCommandBase extends FrostbalanceCommandBa
     }
 
     @Override
-    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
+    public void execute(CommandContext eventWrapper, String[] params) {
         String message = String.join(" ", params);
 
         Event genericEvent = eventWrapper.getEvent();

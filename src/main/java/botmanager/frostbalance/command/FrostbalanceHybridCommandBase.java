@@ -9,10 +9,10 @@ public abstract class FrostbalanceHybridCommandBase extends FrostbalanceCommandB
     }
 
     @Override
-    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
+    public void execute(CommandContext eventWrapper, String[] params) {
         runHybrid(eventWrapper, params);
     }
 
-    protected abstract void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params);
+    protected abstract void runHybrid(CommandContext eventWrapper, String... params);
 
 }

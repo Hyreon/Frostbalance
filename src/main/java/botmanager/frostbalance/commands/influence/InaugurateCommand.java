@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import java.io.File;
-import java.util.Optional;
 
 public class InaugurateCommand extends FrostbalanceSplitCommandBase {
 
@@ -46,7 +45,7 @@ public class InaugurateCommand extends FrostbalanceSplitCommandBase {
         }
 
         if (message.isEmpty()) {
-            result = info(bot.getAuthority(Optional.of(event.getGuild()), event.getAuthor()), true);
+            result = info(bot.getAuthority(event.getGuild(), event.getAuthor()), true);
             Utilities.sendGuildMessage(event.getChannel(), result);
             return;
         }

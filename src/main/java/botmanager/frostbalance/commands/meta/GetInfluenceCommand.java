@@ -6,7 +6,7 @@ import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import net.dv8tion.jda.api.entities.Guild;
 
 public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
@@ -18,13 +18,13 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    protected void runHybrid(CommandContext eventWrapper, String... params) {
         String id;
         String result, publicPost;
 
         id = eventWrapper.getAuthor().getId();
 
-        if (!eventWrapper.getGuild().isPresent() || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
+        if (eventWrapper.getGuild() == null || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
 
             result = "Influence in all guilds:" + "\n";
 
@@ -48,7 +48,7 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
             if (params.length > 0) {
                 if (eventWrapper.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-                    id = Utilities.findUserId(eventWrapper.getGuild().get(), String.join(" ", params));
+                    id = Utilities.findUserId(eventWrapper.getGuild(), String.join(" ", params));
 
                     if (id == null) {
                         result = "Could not find user '" + String.join(" ", params) + "'.";
@@ -65,21 +65,21 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 publicPost = "Your influence has been sent to you via PM.";
             }
 
-            MemberWrapper bMember = bot.getUser(id).getMember(eventWrapper.getGuildId().get());
+            MemberWrapper bMember = bot.getUserWrapper(id).getMember(eventWrapper.getGuildId());
             Influence influence = bMember.getInfluence();
             Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
 
             if (bMember.equals(eventWrapper.getBotMember())) {
                 if (influence.getValue() <= 0) {
-                    result = "You have *no* influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
+                    result = "You have *no* influence in **" + eventWrapper.getBotGuild().getName() + "**.";
                 } else {
-                    result = "You have **" + influence + "** influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
+                    result = "You have **" + influence + "** influence in **" + eventWrapper.getBotGuild().getName() + "**.";
                 }
             } else {
                 if (influence.getValue() <= 0) {
-                    result = bMember.getEffectiveName() + " has *no* influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
+                    result = bMember.getEffectiveName() + " has *no* influence in **" + eventWrapper.getBotGuild().getName() + "**.";
                 } else {
-                    result = bMember.getEffectiveName() + " has **" + influence + "** influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
+                    result = bMember.getEffectiveName() + " has **" + influence + "** influence in **" + eventWrapper.getBotGuild().getName() + "**.";
                 }
             }
 

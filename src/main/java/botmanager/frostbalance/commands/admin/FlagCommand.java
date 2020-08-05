@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.admin;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.menu.FlagMenu;
 
 public class FlagCommand extends FrostbalanceHybridCommandBase {
@@ -17,10 +17,10 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    public void runHybrid(CommandContext eventWrapper, String... params) {
         String result = "";
 
-        new FlagMenu(bot, eventWrapper.getGuild().get()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new FlagMenu(bot, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
 
     }
 

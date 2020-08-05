@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.menu.AllegianceMenu;
 
 public class AllegianceCommand extends FrostbalanceHybridCommandBase {
@@ -15,7 +15,7 @@ public class AllegianceCommand extends FrostbalanceHybridCommandBase {
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+    protected void runHybrid(CommandContext eventWrapper, String... params) {
 
         new AllegianceMenu(bot, AllegianceMenu.Cause.CHANGE)
                 .send(eventWrapper.getChannel(), eventWrapper.getAuthor());

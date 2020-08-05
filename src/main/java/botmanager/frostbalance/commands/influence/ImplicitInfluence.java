@@ -4,7 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceCommandBase;
-import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.CommandContext;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
@@ -59,7 +59,7 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
 
     //TODO change how this is handled, as it has no execution behavior
     @Override
-    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
+    public void execute(CommandContext eventWrapper, String[] params) {
         return;
     }
 

@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public abstract class FrostbalanceCommandBase implements ICommand {
 
@@ -39,9 +38,9 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
         String[] parameters;
 
-        GenericMessageReceivedEventWrapper eventWrapper;
+        CommandContext eventWrapper;
         try {
-            eventWrapper = new GenericMessageReceivedEventWrapper(bot, genericEvent);
+            eventWrapper = new CommandContext(bot, genericEvent);
         } catch (IllegalArgumentException e) {
             System.err.println(e.getStackTrace());
             return;
@@ -68,7 +67,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
             return;
         }
 
-        if (CONDITIONS.contains(Condition.GUILD_EXISTS) && !eventWrapper.getGuild().isPresent()) {
+        if (CONDITIONS.contains(Condition.GUILD_EXISTS) && eventWrapper.getGuild() != null) {
             eventWrapper.sendResponse("This command only works if you have a default guild set for DM. Set it with `.guild GUILD`.");
             return;
         }
@@ -89,7 +88,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
         }
     }
 
-    public abstract void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params);
+    public abstract void execute(CommandContext eventWrapper, String[] params);
 
     public boolean hasKeywords(Event genericEvent) {
         String message;
@@ -142,10 +141,10 @@ public abstract class FrostbalanceCommandBase implements ICommand {
      * @param context the context of the info gotten
      * @return
      */
-    public Optional<String> getInfo(GenericMessageReceivedEventWrapper context) {
-        if (context.getAuthority().hasAuthority(AUTHORITY_LEVEL) && (!CONDITIONS.contains(Condition.GUILD_EXISTS) || context.getGuildId().isPresent())) {
-            return Optional.ofNullable(info(context.getAuthority(), context.isPublic()));
-        } else return Optional.empty();
+    public String getInfo(CommandContext context) {
+        if (context.getAuthority().hasAuthority(AUTHORITY_LEVEL) && (!CONDITIONS.contains(Condition.GUILD_EXISTS) || context.getGuildId() != null)) {
+            return info(context.getAuthority(), context.isPublic());
+        } else return null;
     }
 
     protected abstract String info(AuthorityLevel authorityLevel, boolean isPublic);

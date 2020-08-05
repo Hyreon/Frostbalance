@@ -14,7 +14,7 @@ import botmanager.frostbalance.commands.map.ViewMapCommand;
 import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.data.TerminationCondition;
-import botmanager.frostbalance.grid.*;
+import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.menu.Menu;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
@@ -51,13 +51,12 @@ import java.util.concurrent.TimeUnit;
 
 public class Frostbalance extends BotBase {
 
-    @Deprecated
     public static Frostbalance bot;
 
     public List<UserWrapper> userWrappers = new ArrayList<>();
     private List<GuildWrapper> guildWrappers = new ArrayList<>();
 
-    public Optional<WorldMap> mainMap = Optional.empty();
+    public WorldMap mainMap = null;
 
     private static final String BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member.";
     Map<Guild, List<RegimeData>> regimes = new HotMap<>();
@@ -409,7 +408,7 @@ public class Frostbalance extends BotBase {
                     terminationCondition = TerminationCondition.UNKNOWN;
                 }
 
-                regimes.getOrDefault(guild, new ArrayList<>()).add(new RegimeData(getGuild(guild.getId()), rulerId, startDay, endDay, terminationCondition));
+                regimes.getOrDefault(guild, new ArrayList<>()).add(new RegimeData(getGuildWrapper(guild.getId()), rulerId, startDay, endDay, terminationCondition));
 
             }
         }
@@ -611,7 +610,7 @@ public class Frostbalance extends BotBase {
             } catch (IndexOutOfBoundsException e) {
                 System.err.println("Index out of bounds when trying to adjust the last regime! The history data may be lost.");
                 System.err.println("Creating a fragmented history.");
-                RegimeData regime = new RegimeData(getGuild(guild.getId()), currentOwnerId);
+                RegimeData regime = new RegimeData(getGuildWrapper(guild.getId()), currentOwnerId);
                 regime.end(condition);
                 regimeData.add(regime);
                 logRegime(guild, regime);
@@ -638,7 +637,7 @@ public class Frostbalance extends BotBase {
 
     @Deprecated
     public void startRegime(Guild guild, User user) {
-        RegimeData regime = new RegimeData(getGuild(guild.getId()), user.getId(), Utilities.todayAsLong());
+        RegimeData regime = new RegimeData(getGuildWrapper(guild.getId()), user.getId(), Utilities.todayAsLong());
         getRecords(guild).add(regime);
 
         guild.addRoleToMember(guild.getMember(user), getOwnerRole(guild)).queue();
@@ -933,23 +932,23 @@ public class Frostbalance extends BotBase {
      * @param user The user that is operating
      * @return The authority level of the user
      */
-    public AuthorityLevel getAuthority(Optional<Guild> guild, User user) {
+    public AuthorityLevel getAuthority(Guild guild, User user) {
 
         if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
             return AuthorityLevel.BOT;
         } else if (getAdminIds().contains(user.getId())) {
             return AuthorityLevel.BOT_ADMIN;
-        } else if (!guild.isPresent()) {
+        } else if (guild == null) {
             return AuthorityLevel.GENERIC;
         }
 
-        if (guild.get().getOwner().getUser().getId().equals(user.getId())) {
+        if (guild.getOwner().getUser().getId().equals(user.getId())) {
             return AuthorityLevel.GUILD_OWNER;
-        } else if (guild.get().getMember(user).getRoles().contains(getSystemRole(guild.get()))) {
+        } else if (guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
             return AuthorityLevel.GUILD_ADMIN;
-        } else if (guild.get().getMember(user).getRoles().contains(getOwnerRole(guild.get()))) {
+        } else if (guild.getMember(user).getRoles().contains(getOwnerRole(guild))) {
             return AuthorityLevel.SERVER_LEADER;
-        } else if (guild.get().getMember(user).hasPermission(Permission.ADMINISTRATOR)) {
+        } else if (guild.getMember(user).hasPermission(Permission.ADMINISTRATOR)) {
             return AuthorityLevel.SERVER_ADMIN;
         } else {
             return AuthorityLevel.GENERIC;
@@ -957,7 +956,7 @@ public class Frostbalance extends BotBase {
     }
 
     public AuthorityLevel getAuthority(Member member) {
-        return getAuthority(Optional.of(member.getGuild()), member.getUser());
+        return getAuthority(member.getGuild(), member.getUser());
     }
 
     public Nation getAllegianceIn(Guild guild) {
@@ -1030,7 +1029,7 @@ public class Frostbalance extends BotBase {
                     WorldMap.readWorld(guild);
                 }
             }
-            mainMap = Optional.of(loadMainMap());
+            mainMap = loadMainMap();
         }
     }
 
@@ -1061,11 +1060,13 @@ public class Frostbalance extends BotBase {
                 if (guild == null) continue;
                 System.out.println("Guild:" + guild);
                 try {
-                    GuildWrapper bGuild = getGuild(guildId);
-                    bGuild.optionFlags = (Set<OptionFlag>) getSettings(bGuild.getGuild().get());
-                    bGuild.regimes = getRecords(bGuild.getGuild().get());
-                    bGuild.ownerId = Optional.ofNullable(getOwnerId(bGuild.getGuild().get()));
-                    bGuild.lastKnownName = bGuild.getGuild().get().getName();
+                    GuildWrapper bGuild = getGuildWrapper(guildId);
+                    bGuild.loadLegacy(
+                            (Set<OptionFlag>) getSettings(Objects.requireNonNull(bGuild.getGuild())),
+                            getRecords(bGuild.getGuild()),
+                            getOwnerId(bGuild.getGuild()),
+                            bGuild.getGuild().getName()
+                    );
                     guildWrappers.add(bGuild);
                     System.out.println("Added guild:" + bGuild.getName());
                 } catch (Exception e) {
@@ -1085,14 +1086,16 @@ public class Frostbalance extends BotBase {
             System.out.println("UserId: " + userId);
             try {
                 if (getJDA().getUserById(userId) != null) {
-                    UserWrapper bUser = getUser(userId);
-                    System.out.println("User: " + bUser.getUser().get());
+                    UserWrapper bUser = getUserWrapper(userId);
+                    System.out.println("User: " + bUser.getUser());
                     try {
-                        bUser.allegiance = getMainAllegiance(bUser.getUser().get());
-                        bUser.defaultGuildId = Optional.ofNullable(getUserDefaultGuild(bUser.getUser().get()))
-                                .map(defaultGuild -> defaultGuild.getId());
-                        bUser.globallyBanned = isGloballyBanned(bUser.getUser().get());
-                        bUser.lastKnownName = Optional.of(bUser.getUser().get().getName());
+                        bUser.legacyLoad(
+                                getMainAllegiance(Objects.requireNonNull(bUser.getUser())),
+                                getUserDefaultGuild(bUser.getUser()).getId(),
+                                isGloballyBanned(bUser.getUser()),
+                                bUser.getUser().getName(),
+                                getAdminIds().contains(bUser.getUserId())
+                        );
                         userWrappers.add(bUser);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1122,15 +1125,14 @@ public class Frostbalance extends BotBase {
                     try {
                         if (getJDA().getUserById(userId) != null) {
                             MemberWrapper bMember = getMemberWrapper(userId, guildId);
-                            bMember.banned = isLocallyBanned(guild, user);
-                            bMember.dailyInfluence = new DailyInfluenceSource(
-                                    getUserDailyAmount(guild, user),
-                                    getUserLastDaily(guild, user)
-                            );
-                            bMember.influence = getUserInfluence(guild, user);
-                            bMember.lastKnownNickname = Optional.ofNullable(guild.getMember(user).getNickname());
-
-                            bMember.userWrapper = getUser(userId);
+                            bMember.loadLegacy(isLocallyBanned(guild, user),
+                                    new DailyInfluenceSource(
+                                            getUserDailyAmount(guild, user),
+                                            getUserLastDaily(guild, user)
+                                            ),
+                                    getUserInfluence(guild, user),
+                                    guild.getMember(user).getNickname(),
+                                    getUserWrapper(userId));
                         }
                     } catch (NumberFormatException e) {
 
@@ -1148,10 +1150,7 @@ public class Frostbalance extends BotBase {
                 GsonBuilder gsonBuilder = new GsonBuilder();
                 Gson gson = gsonBuilder.create();
                 UserWrapper userWrapper = gson.fromJson(IOUtils.read(file), UserWrapper.class);
-                userWrapper.bot = this;
-                for (MemberWrapper memberWrapper : userWrapper.memberReference) {
-                    memberWrapper.userWrapper = userWrapper;
-                }
+                userWrapper.load(this);
                 userWrappers.add(userWrapper);
             }
         }
@@ -1163,10 +1162,7 @@ public class Frostbalance extends BotBase {
                 GsonBuilder gsonBuilder = new GsonBuilder();
                 Gson gson = gsonBuilder.create();
                 GuildWrapper guildWrapper = gson.fromJson(IOUtils.read(file), GuildWrapper.class);
-                guildWrapper.bot = this;
-                for (RegimeData regimeData : guildWrapper.regimes) {
-                    regimeData.guildWrapper = guildWrapper;
-                }
+                guildWrapper.load(this);
                 guildWrappers.add(guildWrapper);
             }
         }
@@ -1197,7 +1193,7 @@ public class Frostbalance extends BotBase {
      * @param id
      * @return
      */
-    public UserWrapper getUser(String id) {
+    public UserWrapper getUserWrapper(String id) {
         Optional<UserWrapper> botUser = userWrappers.stream().filter(user -> user.getUserId().equals(id)).findFirst();
         if (!botUser.isPresent()) {
             botUser = Optional.of(new UserWrapper(this, getJDA().getUserById(id)));
@@ -1215,7 +1211,7 @@ public class Frostbalance extends BotBase {
      * @return
      */
     public MemberWrapper getMemberWrapper(String userId, String guildId) {
-        UserWrapper userWrapper = getUser(userId);
+        UserWrapper userWrapper = getUserWrapper(userId);
         return userWrapper.getMember(guildId);
     }
 
@@ -1226,7 +1222,7 @@ public class Frostbalance extends BotBase {
      * @param id
      * @return
      */
-    public GuildWrapper getGuild(String id) {
+    public GuildWrapper getGuildWrapper(String id) {
         Optional<GuildWrapper> botGuild = guildWrappers.stream().filter(guild -> guild.getGuildId().equals(id)).findFirst();
         if (!botGuild.isPresent()) {
             botGuild = Optional.of(new GuildWrapper(this, getJDA().getGuildById(id)));
@@ -1235,12 +1231,12 @@ public class Frostbalance extends BotBase {
         return botGuild.get();
     }
 
-    public Optional<UserWrapper> getUserByName(String targetName) {
+    public UserWrapper getUserByName(String targetName) {
         for (UserWrapper userWrapper : userWrappers) {
             if (userWrapper.getName().equals(targetName)) {
-                return Optional.of(userWrapper);
+                return userWrapper;
             }
         }
-        return Optional.empty();
+        return null;
     }
 }
