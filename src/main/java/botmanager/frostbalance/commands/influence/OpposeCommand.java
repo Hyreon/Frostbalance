@@ -3,173 +3,90 @@ package botmanager.frostbalance.commands.influence;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
+import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceCommandBase;
-import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 
-public class OpposeCommand extends FrostbalanceSplitCommandBase {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
-    private static final double PRIVATE_RATE = 0.35;
+public class OpposeCommand extends FrostbalanceHybridCommandBase {
+
+
+    private static final double PRIVATE_MODIFIER = 0.35;
 
     public OpposeCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "oppose",
                 bot.getPrefix() + "o"
-        }, AuthorityLevel.GENERIC, FrostbalanceCommandBase.Conditions.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
-        String[] words;
-        String id;
-        String name;
-        Influence balance, amount;
+    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
+        List<String> resultLines = new ArrayList<>();
 
-        balance = bot.getUserInfluence(event.getMember());
+        Influence transferAmount = new Influence(params[params.length - 1]);
+        MemberWrapper bMember = eventWrapper.getBotMember().get();
 
-        words = message.split(" ");
+        String targetName = String.join(" ", Arrays.copyOfRange(params, 0, params.length - 1));
+        Optional<UserWrapper> targetUser = bot.getUserByName(targetName);
+        if (!targetUser.isPresent()) {
+            resultLines.add("Could not find user '" + targetName + "'.");
+            eventWrapper.sendResponse(resultLines);
+            return;
+        }
+        MemberWrapper targetMember = targetUser.get().getMember(eventWrapper.getGuildId().get());
 
-        if (words.length < 2) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + publicInfo(AuthorityLevel.GENERIC));
+        if (transferAmount.greaterThan(bMember.getInfluence())) {
+            transferAmount = bMember.getInfluence();
+            resultLines.add("You don't have that much influence to use. You will instead use all of your influence.");
+        } else if (transferAmount.isNegative() || !transferAmount.isNonZero()) { //'else' allows you to bluff when you have 0 influence.
+            resultLines.add("You have to spend *some* influence to oppose someone.");
+            eventWrapper.sendResponse(resultLines);
             return;
         }
 
-        try {
-            amount = new Influence(words[words.length - 1]);
+        bMember.adjustInfluence(transferAmount.negate());
 
-            if (balance.compareTo(amount) < 0) {
-                Utilities.sendGuildMessage(event.getChannel(), "You can't oppose with that much influence. You will instead oppose with all your influence.");
-                amount = balance;
-            } else if (amount.getValue() <= 0) {
-                Utilities.sendGuildMessage(event.getChannel(), "You have to use *some* influence if you're running this command.");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + publicInfo(AuthorityLevel.GENERIC));
+        if (targetMember.equals(bMember)) {
+            resultLines.add("You lose " + transferAmount + " influence in " + eventWrapper.getGuild().get().getName() + " as a result of hitting yourself.");
+            eventWrapper.sendResponse(resultLines);
             return;
         }
 
-        name = Utilities.combineArrayStopAtIndex(words, words.length - 1);
-        id = Utilities.findUserId(event.getGuild(), name);
-
-        if (id == null) {
-            Utilities.sendGuildMessage(event.getChannel(), "Couldn't find user '" + name + "'.");
-            return;
-        }
-
-        if (bot.getUserInfluence(event.getGuild().getMemberById(id)).compareTo(amount) < 0) {
-            Utilities.sendGuildMessage(event.getChannel(), "The target user doesn't have enough influence to match. Removing all influence.");
-            amount = bot.getUserInfluence(event.getGuild().getMemberById(id));
-        }
-
-        if (!event.getMember().equals(event.getGuild().getMemberById(id))) { //if the player is hurting themselves, only drain the one time.
-            bot.changeUserInfluence(event.getMember(), amount.negate());
-        }
-
-        bot.changeUserInfluence(event.getGuild().getMemberById(id), amount.negate());
-
-        event.getMessage().delete().complete();
-
-        Utilities.sendGuildMessage(event.getChannel(),
-                event.getMember().getEffectiveName() + " has opposed "
-                        + event.getGuild().getMemberById(id).getEffectiveName()
-                        + ", reducing their influence.");
-
-        if (amount.getValue() != 0) {
-            Utilities.sendPrivateMessage(event.getGuild().getMemberById(id).getUser(),
-                    event.getMember().getEffectiveName() + " has opposed you, reducing your influence by " + String.format("%s", amount) + " in " +
-                            event.getGuild().getName() + ".");
-        }
-    }
-
-    @Override
-    public void runPrivate(PrivateMessageReceivedEvent event, String message) {
-        String[] words;
-        String id;
-        String name;
-        String result;
-        Influence balance, amount;
-
-        Guild guild = bot.getUserDefaultGuild(event.getAuthor());
-
-        if (guild == null) {
-            result = "You need to set a default guild to anonymously oppose players.";
-            Utilities.sendPrivateMessage(event.getAuthor(), result);
-            return;
-        }
-
-        balance = bot.getUserInfluence(bot.getUserDefaultGuild(event.getAuthor()), event.getAuthor());
-
-        words = message.split(" ");
-
-        if (words.length < 2) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + privateInfo(AuthorityLevel.GENERIC));
-            return;
-        }
-
-        try {
-            amount = new Influence(words[words.length - 1]);
-
-            if (balance.compareTo(amount) < 0) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "You can't oppose with that much influence. You will instead oppose with all your influence.");
-                amount = balance;
-            } else if (amount.getValue() <= 0) {
-                Utilities.sendPrivateMessage(event.getAuthor(), "You have to use *some* influence if you're running this command.");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Proper format: " + privateInfo(AuthorityLevel.GENERIC));
-            return;
-        }
-
-        name = Utilities.combineArrayStopAtIndex(words, words.length - 1);
-        id = Utilities.findUserId(guild, name);
-
-        if (id == null) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Couldn't find user '" + name + "'.");
-            return;
-        }
-
-        if (bot.getUserInfluence(guild.getMemberById(id)).compareTo(amount.applyModifier(PRIVATE_RATE)) < 0) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "The target user doesn't have enough influence to match. Removing all influence.");
-            amount = bot.getUserInfluence(guild.getMemberById(id)).applyModifier(1 / PRIVATE_RATE);
-        }
-
-        bot.changeUserInfluence(guild, event.getAuthor(), amount.negate());
-
-        if (!guild.getMember(event.getAuthor()).equals(guild.getMemberById(id))) { //if the player is hurting themselves, only drain the one time.
-            bot.changeUserInfluence(guild.getMemberById(id), amount.negate().applyModifier(PRIVATE_RATE));
-
-            Utilities.sendPrivateMessage(event.getAuthor(),
-                    "Your anonymous smear of "
-                            + guild.getMemberById(id).getEffectiveName()
-                            + " has been noted, removing 35% of that influence. (" +
-                            String.format("%s", amount.applyModifier(PRIVATE_RATE) + ", -" +
-                            String.format("%s", amount) + ")"));
-
-            if (amount.getValue() != 0) {
-                Utilities.sendPrivateMessage(guild.getMemberById(id).getUser(),
-                        "You have been smeared! You have lost " + String.format("%s", amount.applyModifier(PRIVATE_RATE)) + " influence in " +
-                                guild.getName() + ".");
-            }
+        if (eventWrapper.isPublic()) {
+            eventWrapper.getMessage().delete().queue();
+            resultLines.add(bMember.getEffectiveName() + " has *opposed* " + targetMember.getEffectiveName() + ", reducing their influence here.");
+            Utilities.sendPrivateMessage(targetMember.getUserWrapper().getUser().get(),
+                    String.format("%s has *opposed* you, reducing your influence in %s by %s.",
+                            bMember.getEffectiveName(),
+                            eventWrapper.getBotGuild().get().getName(),
+                            transferAmount));
+            targetMember.adjustInfluence(transferAmount.negate());
         } else {
-
-            Utilities.sendPrivateMessage(event.getAuthor(),
-                    "Per your request, have lost " + amount + " influence for no good reason in " + guild.getName() + ".");
-
+            resultLines.add("You have *opposed* " + targetMember.getEffectiveName() + " silently, reducing their influence in " + eventWrapper.getBotGuild().get().getName() + ".");
+            Utilities.sendPrivateMessage(targetMember.getUserWrapper().getUser().get(),
+                    String.format("You have been smeared anonymously! Your influence in %s has been reduced by %s.",
+                            eventWrapper.getBotGuild().get().getName(),
+                            transferAmount.applyModifier(PRIVATE_MODIFIER)));
+            targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate());
         }
+        eventWrapper.sendResponse(resultLines);
+        return;
+
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
-        return "**" + bot.getPrefix() + "__o__ppose USER AMOUNT** - hurts your influence and someone else's by some amount (don't @ them)";
-    }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return "**" + bot.getPrefix() + "__o__ppose USER AMOUNT** - hurts your influence and someone else's (don't @ them) anonymously; only 35% of what you send is used";
+    protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (isPublic) {
+            return "**" + bot.getPrefix() + "__o__ppose PLAYER AMOUNT** - Oppose another player, reducing your influence and theirs by the set amount";
+        } else {
+            return "**" + bot.getPrefix() + "__o__ppose PLAYER AMOUNT** - Oppose another player secretly (they don't know who you are), reducing your influence by the set amount, and theirs by 35% of that";
+        }
     }
 }

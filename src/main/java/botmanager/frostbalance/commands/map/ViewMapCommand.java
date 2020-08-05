@@ -14,7 +14,7 @@ public class ViewMapCommand extends FrostbalanceHybridCommandBase {
     public ViewMapCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "map"
-        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
     @Override

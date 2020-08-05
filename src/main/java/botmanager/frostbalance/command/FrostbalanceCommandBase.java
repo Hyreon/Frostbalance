@@ -17,13 +17,13 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
     protected final String[] KEYWORDS;
 
-    protected final List<Conditions> CONDITIONS;
+    protected final List<Condition> CONDITIONS;
 
     protected final AuthorityLevel AUTHORITY_LEVEL;
 
     protected Frostbalance bot;
 
-    public FrostbalanceCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Conditions... conditions) {
+    public FrostbalanceCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Condition... conditions) {
         this.bot = bot;
         KEYWORDS = keywords;
         CONDITIONS = new ArrayList(Arrays.asList(conditions));
@@ -49,23 +49,26 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
         if (!hasKeywords(genericEvent)) return;
         parameters = minifyMessage(eventWrapper.getMessage().getContentRaw()).split(" ");
+        if (parameters.length == 1 && parameters[0].isEmpty()) {
+            parameters = new String[] {};
+        }
 
         if (!wouldAuthorize(eventWrapper.getAuthority())) {
             eventWrapper.sendResponse("You don't have sufficient privileges to do this.");
             return;
         }
 
-        if (CONDITIONS.contains(Conditions.PRIVATE) && eventWrapper.isPublic()) {
+        if (CONDITIONS.contains(Condition.PRIVATE) && eventWrapper.isPublic()) {
             eventWrapper.sendResponse("This command can only be run via DM.");
             return;
         }
 
-        if (CONDITIONS.contains(Conditions.PUBLIC) && !eventWrapper.isPublic()) {
+        if (CONDITIONS.contains(Condition.PUBLIC) && !eventWrapper.isPublic()) {
             eventWrapper.sendResponse("This command can only be run publicly in servers.");
             return;
         }
 
-        if (CONDITIONS.contains(Conditions.GUILD_EXISTS) && !eventWrapper.getGuild().isPresent()) {
+        if (CONDITIONS.contains(Condition.GUILD_EXISTS) && !eventWrapper.getGuild().isPresent()) {
             eventWrapper.sendResponse("This command only works if you have a default guild set for DM. Set it with `.guild GUILD`.");
             return;
         }
@@ -136,19 +139,18 @@ public abstract class FrostbalanceCommandBase implements ICommand {
     /**
      * Gets the public info of a thing. This is predefined to actually use the internal info command
      * and wrap around it, not showing anything the user doesn't have authority to see.
-     * @param authorityLevel
-     * @param isPublic
+     * @param context the context of the info gotten
      * @return
      */
-    public Optional<String> getInfo(GenericMessageReceivedEventWrapper eventWrapper) {
-        if (eventWrapper.getAuthority().hasAuthority(AUTHORITY_LEVEL) && (!CONDITIONS.contains(Conditions.GUILD_EXISTS) || eventWrapper.getGuildId().isPresent())) {
-            return Optional.ofNullable(info(eventWrapper.getAuthority(), eventWrapper.isPublic()));
+    public Optional<String> getInfo(GenericMessageReceivedEventWrapper context) {
+        if (context.getAuthority().hasAuthority(AUTHORITY_LEVEL) && (!CONDITIONS.contains(Condition.GUILD_EXISTS) || context.getGuildId().isPresent())) {
+            return Optional.ofNullable(info(context.getAuthority(), context.isPublic()));
         } else return Optional.empty();
     }
 
     protected abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
 
-    public enum Conditions {
+    public enum Condition {
         GUILD_EXISTS, PUBLIC, PRIVATE
     }
 }

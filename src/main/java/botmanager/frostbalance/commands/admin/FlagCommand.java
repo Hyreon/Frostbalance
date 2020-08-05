@@ -2,7 +2,6 @@ package botmanager.frostbalance.commands.admin;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceCommandBase;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import botmanager.frostbalance.menu.FlagMenu;
@@ -14,7 +13,7 @@ public class FlagCommand extends FrostbalanceHybridCommandBase {
         super(bot, new String[] {
                 bot.getPrefix() + "flags",
                 bot.getPrefix() + "settings"
-        }, AuthorityLevel.GENERIC, FrostbalanceCommandBase.Conditions.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
     @Override

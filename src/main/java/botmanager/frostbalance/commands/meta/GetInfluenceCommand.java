@@ -3,12 +3,11 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.DailyInfluenceSource;
+import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 
 public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
@@ -30,14 +29,13 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
             result = "Influence in all guilds:" + "\n";
 
             for (Guild guild : eventWrapper.getJDA().getGuilds()) {
-                if (guild.getMember(eventWrapper.getAuthor()) == null) {
-                    continue; //this user isn't in this guild.
-                }
 
-                result += "**" + guild.getName() + "**: " + String.format("%s", bot.getUserInfluence(guild, eventWrapper.getAuthor()));
+                MemberWrapper bMember = eventWrapper.getBotUser().getMember(guild.getId());
 
-                Influence remaining = DailyInfluenceSource.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(guild, eventWrapper.getAuthor()));
-                if (remaining.getValue() > 0) {
+                result += "**" + guild.getName() + "**: " + bMember.getInfluence();
+
+                Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
+                if (remaining.isNonZero()) {
                     result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
                 }
 
@@ -67,26 +65,26 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 publicPost = "Your influence has been sent to you via PM.";
             }
 
-            Member member = eventWrapper.getGuild().get().getMemberById(id);
-            Influence influence = bot.getUserInfluence(member);
-            Influence remaining = DailyInfluenceSource.DAILY_INFLUENCE_CAP.subtract(bot.getUserDailyAmount(member));
+            MemberWrapper bMember = bot.getUser(id).getMember(eventWrapper.getGuildId().get());
+            Influence influence = bMember.getInfluence();
+            Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
 
-            if (member.equals(eventWrapper.getMember())) {
+            if (bMember.equals(eventWrapper.getBotMember())) {
                 if (influence.getValue() <= 0) {
-                    result = "You have *no* influence in **" + eventWrapper.getGuild().get().getName() + "**.";
+                    result = "You have *no* influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
                 } else {
-                    result = "You have **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().get().getName() + "**.";
+                    result = "You have **" + influence + "** influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
                 }
             } else {
                 if (influence.getValue() <= 0) {
-                    result = member.getEffectiveName() + " has *no* influence in **" + eventWrapper.getGuild().get().getName() + "**.";
+                    result = bMember.getEffectiveName() + " has *no* influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
                 } else {
-                    result = member.getEffectiveName() + " has **" + String.format("%s", influence) + "** influence in **" + eventWrapper.getGuild().get().getName() + "**.";
+                    result = bMember.getEffectiveName() + " has **" + influence + "** influence in **" + eventWrapper.getBotGuild().get().getName() + "**.";
                 }
             }
 
-            if (remaining.getValue() > 0) {
-                result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
+            if (remaining.isNonZero()) {
+                result += " (**+" + remaining + "** from unclaimed daily)";
             }
 
         }

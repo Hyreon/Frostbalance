@@ -4,7 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 
 public abstract class FrostbalanceHybridCommandBase extends FrostbalanceCommandBase {
 
-    public FrostbalanceHybridCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Conditions... conditions) {
+    public FrostbalanceHybridCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Condition... conditions) {
         super(bot, keywords, authorityLevel, conditions);
     }
 

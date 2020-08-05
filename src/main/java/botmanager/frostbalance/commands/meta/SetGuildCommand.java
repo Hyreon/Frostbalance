@@ -3,62 +3,57 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
+import botmanager.frostbalance.command.GenericMessageReceivedEventWrapper;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class SetGuildCommand extends FrostbalanceSplitCommandBase {
+public class SetGuildCommand extends FrostbalanceHybridCommandBase {
 
     public SetGuildCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "guild"
-        });
+        }, AuthorityLevel.GENERIC, Condition.PRIVATE);
     }
 
     @Override
-    public void runPrivate(PrivateMessageReceivedEvent event, String message) {
+    protected void runHybrid(GenericMessageReceivedEventWrapper event, String... params) {
 
-        String[] words;
         String name;
-        String result = "";
+        List<String> resultLines = new ArrayList<>();
 
-        words = message.split(" ");
+        if (params.length == 0) {
+            event.getBotUser().resetDefaultGuild();
 
-        if (message.isEmpty()) {
-            bot.resetUserDefaultGuild(event.getAuthor());
-
-            result += "Removed default guild.";
-            Utilities.sendPrivateMessage(event.getAuthor(), result);
+            resultLines.add("Removed default guild.");
+            event.sendResponse(resultLines);
             return;
         }
 
-        name = Utilities.combineArrayStopAtIndex(words, words.length);
+        name = Utilities.combineArrayStopAtIndex(params, params.length);
         List<Guild> guilds = event.getJDA().getGuildsByName(name, true);
 
         if (guilds.isEmpty()) {
-            Utilities.sendPrivateMessage(event.getAuthor(), "Couldn't find guild '" + name + "'.");
+            resultLines.add("Couldn't find guild '" + name + "'.");
+            event.sendResponse(resultLines);
             return;
         }
 
-        bot.setUserDefaultGuild(event.getAuthor(), guilds.get(0));
+        event.getBotUser().setDefaultGuildId(guilds.get(0).getId());
 
-        result += "Set default guild to **" + guilds.get(0).getName() + "**.";
-
-        Utilities.sendPrivateMessage(event.getAuthor(), result);
+        resultLines.add("Set default guild to **" + guilds.get(0).getName() + "**.");
+        event.sendResponse(resultLines);
 
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
-        return null;
+    protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (isPublic) return null;
+        else {
+            return "**" + bot.getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
+                    "**" + bot.getPrefix() + "guild** - resets your default guild.";
+        }
     }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return "**" + bot.getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
-                "**" + bot.getPrefix() + "guild** - resets your default guild.";
-    }
-
 }

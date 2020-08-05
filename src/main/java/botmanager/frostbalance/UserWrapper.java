@@ -1,6 +1,7 @@
 package botmanager.frostbalance;
 
 import lombok.Getter;
+import lombok.Setter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 
@@ -31,8 +32,9 @@ public class UserWrapper {
     transient BufferedImage userIcon;
 
     @Getter
-    String lastKnownName;
+    Optional<String> lastKnownName;
 
+    @Getter @Setter
     Nation allegiance = Nation.NONE;
     @Getter
     Optional<String> defaultGuildId = Optional.empty();
@@ -44,15 +46,20 @@ public class UserWrapper {
         this.bot = bot;
         this.userId = user.getId();
 
-        lastKnownName = user.getName();
+        lastKnownName = Optional.of(user.getName());
 
     }
 
+    /**
+     * Gets this user as a member of the guild with the specified id.
+     * @param id The id of the guild this user is supposedly a member of.
+     * @return The MemberWrapper referencing this UserWrapper and a GuildId
+     */
     public MemberWrapper getMember(String id) {
         Optional<MemberWrapper> botMember = memberReference.stream().filter(member -> member.getGuildId().equals(id)).findFirst();
         if (!botMember.isPresent()) {
-            Objects.requireNonNull(bot.getJDA().getGuildById(id));
-            botMember = Optional.of(new MemberWrapper(bot, bot.getJDA().getGuildById(id).getMemberById(userId)));
+            Objects.requireNonNull(getJDA().getGuildById(id));
+            botMember = Optional.of(new MemberWrapper(bot, this, id));
             memberReference.add(botMember.get());
         }
         return botMember.get();
@@ -69,5 +76,17 @@ public class UserWrapper {
 
     public JDA getJDA() {
         return bot.getJDA();
+    }
+
+    public String getName() {
+        return getUser().map(user -> user.getName()).orElse("Deleted User");
+    }
+
+    public void resetDefaultGuild() {
+        defaultGuildId = Optional.empty();
+    }
+
+    public void setDefaultGuildId(String id) {
+        defaultGuildId = Optional.of(id);
     }
 }

@@ -12,7 +12,7 @@ public class MoveCommand extends FrostbalanceHybridCommandBase {
     public MoveCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "move",
-        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
     @Override

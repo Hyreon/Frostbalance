@@ -9,7 +9,6 @@ import botmanager.frostbalance.menu.HistoryMenu;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class HistoryCommand extends FrostbalanceHybridCommandBase {
 
@@ -18,20 +17,15 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     public HistoryCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "history"
-        }, AuthorityLevel.GENERIC, Conditions.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String... params) {
         String result = "";
         int page = 1;
         List<RegimeData> records;
-
-        if (eventWrapper.getGuild() == null) {
-            result += "You need to have a default server to do that.";
-            eventWrapper.sendResponse(result);
-            return;
-        }
 
         if (params.length >= 1) {
             try {
@@ -53,7 +47,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        records = bot.readRecords(eventWrapper.getGuild().get());
+        records = eventWrapper.getBotGuild().get().readRecords();
         Collections.reverse(records);
 
         if (page > maxPages(records)) {
@@ -75,16 +69,6 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
         return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes on a server.";
-    }
-
-    private String displayRecords(List<RegimeData> records, int page) {
-
-        List<RegimeData> sublist = records.subList((page - 1) * HISTORY_PAGE_SIZE, Math.min(page * HISTORY_PAGE_SIZE, records.size()));
-        List<String> displayList = sublist.stream().map(regimeData -> regimeData.forHumans()).collect(Collectors.toList());
-
-        return String.join("\n", displayList)
-                + "\nPage " + page + "/" + maxPages(records);
-
     }
 
     private int maxPages(List<?> list) {

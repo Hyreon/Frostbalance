@@ -13,7 +13,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
     public AdjustCommand(Frostbalance bot) {
         super(bot, new String[] {
                 bot.getPrefix() + "adjust"
-        }, AuthorityLevel.GUILD_ADMIN, Conditions.GUILD_EXISTS);
+        }, AuthorityLevel.GUILD_ADMIN, Condition.GUILD_EXISTS);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class AdjustCommand extends FrostbalanceHybridCommandBase {
             return;
         }
 
-        MemberWrapper recipient = bot.getMember(id, e.getGuildId().get());
+        MemberWrapper recipient = bot.getMemberWrapper(id, e.getGuildId().get());
 
         recipient.adjustInfluence(amount);
 

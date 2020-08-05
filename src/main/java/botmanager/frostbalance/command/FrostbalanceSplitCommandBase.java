@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 public abstract class FrostbalanceSplitCommandBase extends FrostbalanceCommandBase {
 
-    public FrostbalanceSplitCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Conditions... conditions) {
+    public FrostbalanceSplitCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Condition... conditions) {
         super(bot, keywords, authorityLevel, conditions);
     }
 

@@ -14,7 +14,7 @@ import botmanager.frostbalance.commands.map.ViewMapCommand;
 import botmanager.frostbalance.commands.meta.*;
 import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.data.TerminationCondition;
-import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.grid.*;
 import botmanager.frostbalance.menu.Menu;
 import botmanager.generic.BotBase;
 import botmanager.generic.ICommand;
@@ -96,9 +96,10 @@ public class Frostbalance extends BotBase {
                 new AllegianceCommand(this),
                 new MoveCommand(this),
                 new GetClaimsCommand(this),
+                new LoadLegacyCommand(this)
         });
 
-        loadMaps();
+        load();
 
         saverTimer.schedule(new TimerTask() {
 
@@ -114,6 +115,18 @@ public class Frostbalance extends BotBase {
         }, 300000, 300000);
 
 
+    }
+
+    private void load() {
+        try {
+            loadUsers();
+        } catch (NullPointerException e) {e.printStackTrace();}
+        try {
+            loadGuilds();
+        } catch (NullPointerException e) {e.printStackTrace();}
+        try {
+            loadMaps();
+        } catch (NullPointerException e) {e.printStackTrace();}
     }
 
     @Override
@@ -396,7 +409,7 @@ public class Frostbalance extends BotBase {
                     terminationCondition = TerminationCondition.UNKNOWN;
                 }
 
-                regimes.getOrDefault(guild, new ArrayList<>()).add(new RegimeData(guild, rulerId, startDay, endDay, terminationCondition, lastKnownUserName));
+                regimes.getOrDefault(guild, new ArrayList<>()).add(new RegimeData(getGuild(guild.getId()), rulerId, startDay, endDay, terminationCondition));
 
             }
         }
@@ -598,7 +611,7 @@ public class Frostbalance extends BotBase {
             } catch (IndexOutOfBoundsException e) {
                 System.err.println("Index out of bounds when trying to adjust the last regime! The history data may be lost.");
                 System.err.println("Creating a fragmented history.");
-                RegimeData regime = new RegimeData(guild, currentOwnerId);
+                RegimeData regime = new RegimeData(getGuild(guild.getId()), currentOwnerId);
                 regime.end(condition);
                 regimeData.add(regime);
                 logRegime(guild, regime);
@@ -625,7 +638,7 @@ public class Frostbalance extends BotBase {
 
     @Deprecated
     public void startRegime(Guild guild, User user) {
-        RegimeData regime = new RegimeData(guild, user.getId(), Utilities.todayAsLong());
+        RegimeData regime = new RegimeData(getGuild(guild.getId()), user.getId(), Utilities.todayAsLong());
         getRecords(guild).add(regime);
 
         guild.addRoleToMember(guild.getMember(user), getOwnerRole(guild)).queue();
@@ -636,7 +649,7 @@ public class Frostbalance extends BotBase {
 
     @Deprecated
     public Collection<OptionFlag> getSettings(Guild guild) {
-        Collection<OptionFlag> debugFlags = new ArrayList<OptionFlag>();
+        Collection<OptionFlag> debugFlags = new HashSet<OptionFlag>();
         List<String> flags = Utilities.readLines(new File("data/" + getName() + "/" + guild.getId() + "/flags.csv"));
         for (String flag : flags) {
             debugFlags.add(OptionFlag.valueOf(flag));
@@ -963,6 +976,7 @@ public class Frostbalance extends BotBase {
         }
     }
 
+    @Deprecated
     public Color getGuildColor(Guild guild) {
         Collection<OptionFlag> flags = getSettings(guild);
         if (flags.contains(OptionFlag.RED)) {
@@ -1007,7 +1021,6 @@ public class Frostbalance extends BotBase {
             exec.schedule(new Runnable() {
                 public void run() {
                     loadMaps();
-                    loadLegacy();
                 }
             }, 1, TimeUnit.SECONDS);
         } else {
@@ -1017,8 +1030,8 @@ public class Frostbalance extends BotBase {
                     WorldMap.readWorld(guild);
                 }
             }
+            mainMap = Optional.of(loadMainMap());
         }
-        mainMap = Optional.of(loadMainMap());
     }
 
     private WorldMap loadMainMap() {
@@ -1027,13 +1040,13 @@ public class Frostbalance extends BotBase {
 
     public void saveUsers() {
         for (UserWrapper user : userWrappers) {
-            writeObject(Optional.empty(), "users/" + user.getUserId(), user);
+            writeObject("users/" + user.getUserId(), user);
         }
     }
 
     private void saveGuilds() {
         for (GuildWrapper guild : guildWrappers) {
-            writeObject(Optional.of(guild.getGuildId()), "root", guild);
+            writeObject("guilds/" + guild.getGuildId(), guild);
         }
     }
 
@@ -1043,16 +1056,20 @@ public class Frostbalance extends BotBase {
             if (!folder.isDirectory()) continue;
             String guildId = folder.getName();
             System.out.println("GuildId:" + guildId);
-            Guild guild = getJDA().getGuildById(guildId);
-            if (guild == null) continue;
             try {
-                if (getJDA().getGuildById(guildId) != null) {
+                Guild guild = getJDA().getGuildById(guildId);
+                if (guild == null) continue;
+                System.out.println("Guild:" + guild);
+                try {
                     GuildWrapper bGuild = getGuild(guildId);
-                    bGuild.optionFlags = (List<OptionFlag>) getSettings(bGuild.getGuild().get());
+                    bGuild.optionFlags = (Set<OptionFlag>) getSettings(bGuild.getGuild().get());
                     bGuild.regimes = getRecords(bGuild.getGuild().get());
                     bGuild.ownerId = Optional.ofNullable(getOwnerId(bGuild.getGuild().get()));
                     bGuild.lastKnownName = bGuild.getGuild().get().getName();
                     guildWrappers.add(bGuild);
+                    System.out.println("Added guild:" + bGuild.getName());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             } catch (NumberFormatException e) {
 
@@ -1065,15 +1082,22 @@ public class Frostbalance extends BotBase {
             String fileName = file.getName();
             if (!fileName.contains(".csv")) continue;
             String userId = fileName.replace(".csv", "");
-            System.out.println(userId);
+            System.out.println("UserId: " + userId);
             try {
                 if (getJDA().getUserById(userId) != null) {
                     UserWrapper bUser = getUser(userId);
-                    bUser.allegiance = getMainAllegiance(bUser.getUser().get());
-                    bUser.defaultGuildId = Optional.ofNullable(getUserDefaultGuild(bUser.getUser().get()).getId());
-                    bUser.globallyBanned = isGloballyBanned(bUser.getUser().get());
-                    bUser.lastKnownName = bUser.getUser().get().getName();
-                    userWrappers.add(bUser);
+                    System.out.println("User: " + bUser.getUser().get());
+                    try {
+                        bUser.allegiance = getMainAllegiance(bUser.getUser().get());
+                        bUser.defaultGuildId = Optional.ofNullable(getUserDefaultGuild(bUser.getUser().get()))
+                                .map(defaultGuild -> defaultGuild.getId());
+                        bUser.globallyBanned = isGloballyBanned(bUser.getUser().get());
+                        bUser.lastKnownName = Optional.of(bUser.getUser().get().getName());
+                        userWrappers.add(bUser);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("Added: " + bUser.getName());
                 }
             } catch (NumberFormatException e) {
 
@@ -1087,9 +1111,9 @@ public class Frostbalance extends BotBase {
             if (!folder.isDirectory()) continue;
             String guildId = folder.getName();
             System.out.println("GuildId:" + guildId);
-            Guild guild = getJDA().getGuildById(guildId);
-            if (guild == null) continue;
             try {
+                Guild guild = getJDA().getGuildById(guildId);
+                if (guild == null) continue;
                 for (File file : folder.listFiles()) {
                     String fileName = file.getName();
                     if (!fileName.contains(".csv")) continue;
@@ -1097,7 +1121,7 @@ public class Frostbalance extends BotBase {
                     User user = getJDA().getUserById(userId);
                     try {
                         if (getJDA().getUserById(userId) != null) {
-                            MemberWrapper bMember = getMember(userId, guildId);
+                            MemberWrapper bMember = getMemberWrapper(userId, guildId);
                             bMember.banned = isLocallyBanned(guild, user);
                             bMember.dailyInfluence = new DailyInfluenceSource(
                                     getUserDailyAmount(guild, user),
@@ -1119,19 +1143,43 @@ public class Frostbalance extends BotBase {
     }
 
     public void loadUsers() {
-        for (File file : new File("data/" + getName() + "/global/users").listFiles()) {
-
+        for (File file : new File("data/" + getName() + "/users").listFiles()) {
+            if (file.exists()) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                Gson gson = gsonBuilder.create();
+                UserWrapper userWrapper = gson.fromJson(IOUtils.read(file), UserWrapper.class);
+                userWrapper.bot = this;
+                for (MemberWrapper memberWrapper : userWrapper.memberReference) {
+                    memberWrapper.userWrapper = userWrapper;
+                }
+                userWrappers.add(userWrapper);
+            }
         }
     }
 
-    public void writeObject(Optional<String> guildId, String filename, Object object, Pair<Class, TypeAdapter>... typeAdapters) {
+    public void loadGuilds() {
+        for (File file : new File("data/" + getName() + "/guilds").listFiles()) {
+            if (file.exists()) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                Gson gson = gsonBuilder.create();
+                GuildWrapper guildWrapper = gson.fromJson(IOUtils.read(file), GuildWrapper.class);
+                guildWrapper.bot = this;
+                for (RegimeData regimeData : guildWrapper.regimes) {
+                    regimeData.guildWrapper = guildWrapper;
+                }
+                guildWrappers.add(guildWrapper);
+            }
+        }
+    }
 
-        File file = new File("data/" + getName() + "/" + guildId.orElse("global") + "/" + filename + ".json");
+    public void writeObject(String filename, Object object, Pair<Class, TypeAdapter>... typeAdapters) {
+
+        File file = new File("data/" + getName() + "/" + filename + ".json");
         GsonBuilder gsonBuilder = new GsonBuilder();
         for (Pair<Class, TypeAdapter> typeAdapterPair : typeAdapters) {
             gsonBuilder.registerTypeAdapter(typeAdapterPair.getLeft(), typeAdapterPair.getRight());
         }
-        Gson gson = gsonBuilder.create();
+        Gson gson = gsonBuilder.setPrettyPrinting().create();
         IOUtils.write(file, gson.toJson(object));
     }
 
@@ -1166,7 +1214,7 @@ public class Frostbalance extends BotBase {
      * @param guildId
      * @return
      */
-    public MemberWrapper getMember(String userId, String guildId) {
+    public MemberWrapper getMemberWrapper(String userId, String guildId) {
         UserWrapper userWrapper = getUser(userId);
         return userWrapper.getMember(guildId);
     }
@@ -1185,5 +1233,14 @@ public class Frostbalance extends BotBase {
             guildWrappers.add(botGuild.get());
         }
         return botGuild.get();
+    }
+
+    public Optional<UserWrapper> getUserByName(String targetName) {
+        for (UserWrapper userWrapper : userWrappers) {
+            if (userWrapper.getName().equals(targetName)) {
+                return Optional.of(userWrapper);
+            }
+        }
+        return Optional.empty();
     }
 }

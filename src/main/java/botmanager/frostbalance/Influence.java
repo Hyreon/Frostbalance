@@ -29,7 +29,8 @@ public class Influence {
     }
 
     public Influence(String string) {
-        String[] words = string.split(".");
+        String[] words = string.split("\\.");
+        if (words.length <= 1) words = new String[] {words[0], ""};
         thousandths = Integer.parseInt(words[0]) * 1000;
         if (words[1].length() > 3) {
             words[1] = words[1].substring(0,3);
@@ -38,6 +39,7 @@ public class Influence {
             words[1] += "0";
         }
         thousandths += Integer.parseInt(words[1]);
+        System.out.println(thousandths);
     }
 
     public static Influence none() {
@@ -99,7 +101,7 @@ public class Influence {
         return thousandths != 0;
     }
 
-    public boolean isGreater(Influence influence) {
+    public boolean greaterThan(Influence influence) {
         return compareTo(influence) > 0;
     }
 }

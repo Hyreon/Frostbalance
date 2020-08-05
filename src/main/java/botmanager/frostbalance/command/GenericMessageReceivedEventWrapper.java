@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
+import java.util.List;
 import java.util.Optional;
 
 public class GenericMessageReceivedEventWrapper {
@@ -81,7 +82,7 @@ public class GenericMessageReceivedEventWrapper {
     }
 
     public Optional<MemberWrapper> getBotMember() {
-        return getGuild().map(guild -> bot.getMember(getAuthor().getId(), guild.getId()));
+        return getGuild().map(guild -> bot.getMemberWrapper(getAuthor().getId(), guild.getId()));
     }
 
     public User getAuthor() {
@@ -115,6 +116,10 @@ public class GenericMessageReceivedEventWrapper {
         } else {
             Utilities.sendPrivateMessage(getAuthor(), message);
         }
+    }
+
+    public void sendResponse(List<String> resultLines) {
+        sendResponse(String.join("\n", resultLines));
     }
 
     public void sendPrivateResponse(String message) {
