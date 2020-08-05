@@ -57,10 +57,9 @@ public class CommandContext {
     public @Nullable Guild getGuild() {
         if (isPublic()) {
             return publicEvent.getGuild();
-        }
-        System.out.println("botUser " + getBotUser().getUserId());
-        System.out.println("defaultBotGuild " + getBotUser().getDefaultBotGuild());
+        } else if (getBotUser().getDefaultBotGuild() != null)
         return getJDA().getGuildById(getBotUser().getDefaultBotGuild().getGuildId());
+        else return null;
     }
 
     public @Nullable String getGuildId() {

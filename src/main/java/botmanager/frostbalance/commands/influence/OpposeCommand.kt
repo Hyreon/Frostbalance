@@ -18,12 +18,12 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceHybridCommandBase(bot, arra
         val bMember = eventWrapper.botMember!!
         val targetName = java.lang.String.join(" ", *params.copyOfRange(0, params.size - 1))
         val targetUser = bot.getUserByName(targetName)
-        if (!targetUser.isPresent) {
+        if (targetUser == null) {
             resultLines.add("Could not find user '$targetName'.")
             eventWrapper.sendResponse(resultLines)
             return
         }
-        val targetMember = targetUser.get().getMember(eventWrapper.guildId!!)
+        val targetMember = targetUser.getMember(eventWrapper.guildId!!)
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to use. You will instead use all of your influence.")
