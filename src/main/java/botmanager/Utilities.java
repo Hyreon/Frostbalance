@@ -166,11 +166,13 @@ public class Utilities {
     }
     
     public static void sendPrivateMessage(User user, String message) {
-        if (message.length() > 1950) {
-            throw new RuntimeException("Message attempted to send too long:\n" + message);
+        if (!user.equals(user.getJDA().getSelfUser())) {
+            if (message.length() > 1950) {
+                throw new RuntimeException("Message attempted to send too long:\n" + message);
+            }
+
+            user.openPrivateChannel().queue((channel) -> channel.sendMessage(message).queue());
         }
-        
-        user.openPrivateChannel().queue((channel) -> channel.sendMessage(message).queue());
     }
     
     public static void sendPrivateMessageWithReactions(TextChannel channel, String message, String[] reactionNames) {

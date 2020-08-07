@@ -5,7 +5,6 @@ import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
 import botmanager.frostbalance.command.GuildCommandContext;
-import botmanager.frostbalance.data.TerminationCondition;
 import botmanager.frostbalance.menu.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
 
@@ -37,7 +36,7 @@ public class InterveneCommand extends FrostbalanceGuildCommandBase {
         }
 
         new ConfirmationMenu(bot, () -> {
-            bGuild.reset(TerminationCondition.RESET);
+            bGuild.reset();
 
             String result1;
             result1 = currentOwner.getAsMention() + " has been removed as leader by administrative action.";

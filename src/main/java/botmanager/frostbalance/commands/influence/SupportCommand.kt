@@ -38,7 +38,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
             return
         }
         if (targetMember == bMember) {
-            resultLines.add("You give yourself " + transferAmount + " influence in " + context.jdaGuild!!.name + " because you are awesome.")
+            resultLines.add("You support yourself with " + transferAmount + " influence in " + context.jdaGuild.name + ". You should return the favor.")
             context.sendResponse(resultLines)
             return
         }
@@ -54,11 +54,17 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
         } else {
 
             if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
-                resultLines.add("You have *supported* " + targetMember.effectiveName + " secretly, increasing their influence in " + context.guild!!.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
+                resultLines.add("You have *supported* " + targetMember.effectiveName + " secretly, increasing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
                 Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
                         context.guild!!.name,
                         transferAmount.applyModifier(PRIVATE_MODIFIER)))
                 targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER))
+
+                val refundAmount = transferAmount.remainderOfModifier(PRIVATE_MODIFIER)
+                if (refundAmount.isNonZero) {
+                    resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                    bMember.adjustInfluence(transferAmount)
+                }
             } else {
                 resultLines.add("After rounding, your support would have no effect. Your influence has been refunded.")
                 bMember.adjustInfluence(transferAmount)

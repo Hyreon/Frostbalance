@@ -1,7 +1,7 @@
 package botmanager.frostbalance
 
 import botmanager.Utilities
-import botmanager.frostbalance.Frostbalance.bot
+import botmanager.frostbalance.Frostbalance.Companion.bot
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
 import botmanager.frostbalance.grid.WorldMap
@@ -118,7 +118,7 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
         lastKnownName = Name
     }
 
-    fun reset(reset: TerminationCondition) {
+    fun reset() {
         endRegime(TerminationCondition.RESET)
         softReset()
     }
@@ -200,7 +200,7 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
         }.invoke()
 
     val leaderAsMember: Member?
-        get() = bot.getMemberWrapper(leaderId, id).member
+        get() = leaderId?.let { bot.getMemberWrapper(it, id).member }
 
     companion object {
         val Guild.wrapper: GuildWrapper

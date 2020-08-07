@@ -22,11 +22,17 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     private val userId: String
         get() = userWrapper.userId
 
-    fun adjustInfluence(amount: Influence?) {
+    /**
+     * @return The amount of influence that was NOT spent on the member wrapper.
+     */
+    fun adjustInfluence(amount: Influence?): Influence {
         influence = influence.add(amount)
         if (influence.isNegative) {
+            var amountSaved = influence.negate()
             influence = Influence.none()
+            return amountSaved
         }
+        return Influence.none()
     }
 
     fun gainDailyInfluence(): Influence {

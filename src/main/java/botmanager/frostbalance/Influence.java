@@ -1,6 +1,7 @@
 package botmanager.frostbalance;
 
 import com.google.gson.annotations.JsonAdapter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A simple wrapper around a double.
@@ -95,6 +96,21 @@ public class Influence {
 
     public Influence applyModifier(double modifier) {
         return new Influence(getValue() * modifier);
+    }
+
+    public Influence reverseModifier(double modifier) {
+        return new Influence((int) Math.ceil(getValue() / modifier * 1000));
+    }
+
+    /**
+     *
+     * @param modifier
+     * @return The amount of value rounded off when applying this modifier.
+     */
+    @NotNull
+    public Influence remainderOfModifier(double modifier) {
+        Influence resultingInfluence = applyModifier(modifier);
+        return new Influence(getValue() - resultingInfluence.getValue() / modifier);
     }
 
     public boolean isNegative() {

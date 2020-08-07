@@ -63,8 +63,8 @@ class UserWrapper(bot: Frostbalance, userId: String) {
 
     val user: User? //may be null if the user is now inaccessible
         get() = bot.jda.getUserById(userId)
-    val defaultBotGuild: GuildWrapper?
-        get() = bot.getGuildWrapper(defaultGuildId)
+    val defaultGuild: GuildWrapper?
+        get() = defaultGuildId?.let { bot.getGuildWrapper(it) }
     val jda: JDA
         get() = bot.jda
     val name: String

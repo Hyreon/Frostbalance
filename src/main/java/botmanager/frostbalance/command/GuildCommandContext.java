@@ -37,7 +37,7 @@ public class GuildCommandContext extends CommandContext {
     public Guild getJDAGuild() {
         if (isPublic()) {
             return publicEvent.getGuild();
-        } else return Objects.requireNonNull(getJDA().getGuildById(Objects.requireNonNull(getAuthor().getDefaultBotGuild()).getId()));
+        } else return Objects.requireNonNull(getJDA().getGuildById(Objects.requireNonNull(getAuthor().getDefaultGuild()).getId()));
     }
 
     public GuildWrapper getGuild() {

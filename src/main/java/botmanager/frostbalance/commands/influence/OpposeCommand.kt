@@ -39,27 +39,38 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, array
             context.sendResponse(resultLines)
             return
         }
-        if (context.isPublic) {
+
+        val refundAmount: Influence
+        refundAmount = if (context.isPublic) {
             context.message.delete().queue()
             resultLines.add(bMember.effectiveName + " has *opposed* " + targetMember.effectiveName + ", reducing their influence here.")
-            if (transferAmount > 0) {
+            val reduceAmount = targetMember.adjustInfluence(transferAmount.negate())
+            if (reduceAmount > 0) {
+                resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
                 Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
                         bMember.effectiveName,
                         context.guild.name,
-                        transferAmount))
+                        reduceAmount))
+            } else {
+                context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
             }
-            targetMember.adjustInfluence(transferAmount.negate())
+            reduceAmount
         } else {
             if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
-                resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
+                val reduceAmount = targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
+                resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
                 Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been smeared! Your influence in %s has been reduced by %s.",
                         context.guild.name,
-                        transferAmount.applyModifier(PRIVATE_MODIFIER)))
-                targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
+                        reduceAmount))
+                reduceAmount.reverseModifier(PRIVATE_MODIFIER)
+                        .add(transferAmount.remainderOfModifier(PRIVATE_MODIFIER))
             } else {
-                resultLines.add("After rounding, your opposition would have no effect. Your influence has been refunded.")
-                bMember.adjustInfluence(transferAmount)
+                transferAmount
             }
+        }
+        if (refundAmount.isNonZero) {
+            resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+            bMember.adjustInfluence(refundAmount)
         }
         context.sendResponse(resultLines)
         return
