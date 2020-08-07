@@ -44,25 +44,43 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, array
         refundAmount = if (context.isPublic) {
             context.message.delete().queue()
             resultLines.add(bMember.effectiveName + " has *opposed* " + targetMember.effectiveName + ", reducing their influence here.")
-            val reduceAmount = targetMember.adjustInfluence(transferAmount.negate())
-            if (reduceAmount > 0) {
-                resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
-                Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
-                        bMember.effectiveName,
-                        context.guild.name,
-                        reduceAmount))
-            } else {
-                context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
+            val reduceAmount = transferAmount.subtract(targetMember.adjustInfluence(transferAmount.negate()))
+            when {
+                reduceAmount > 0 -> {
+                    resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
+                    Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
+                            bMember.effectiveName,
+                            context.guild.name,
+                            reduceAmount))
+                }
+                transferAmount.isNonZero -> {
+                    context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
+                }
+                else -> {
+                    context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
+                }
             }
-            reduceAmount
+            transferAmount.subtract(reduceAmount)
         } else {
             if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
-                val reduceAmount = targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
-                resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
-                Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been smeared! Your influence in %s has been reduced by %s.",
-                        context.guild.name,
-                        reduceAmount))
-                reduceAmount.reverseModifier(PRIVATE_MODIFIER)
+                val remainAmount = targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
+                val reduceAmount = transferAmount.applyModifier(PRIVATE_MODIFIER).subtract(remainAmount)
+                when {
+                    reduceAmount > 0 -> {
+                        resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
+                        Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been smeared! Your influence in %s has been reduced by %s.",
+                                context.guild.name,
+                                reduceAmount))
+                    }
+                    transferAmount.isNonZero -> {
+                        context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
+                    }
+                    else -> {
+                        context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
+                    }
+                }
+
+                remainAmount.reverseModifier(PRIVATE_MODIFIER)
                         .add(transferAmount.remainderOfModifier(PRIVATE_MODIFIER))
             } else {
                 transferAmount
