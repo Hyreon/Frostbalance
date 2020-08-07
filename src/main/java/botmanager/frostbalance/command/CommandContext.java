@@ -2,15 +2,15 @@ package botmanager.frostbalance.command;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.GuildWrapper;
-import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -38,13 +38,13 @@ public class CommandContext {
         } else if (genericEvent instanceof GuildMessageReceivedEvent) {
             this.bot = bot;
             this.publicEvent = (GuildMessageReceivedEvent) genericEvent;
-        } else throw new IllegalStateException("GenericMessageReceivedEventWrapper cannot be initialized with this sort of event!");
+        } else throw new IllegalStateException("CommandContext cannot be initialized with this sort of event!");
     }
 
     public boolean isPublic() {
         if (publicEvent != null) return true;
         if (privateEvent != null) return false;
-        throw new IllegalStateException("GenericMessageReceivedEventWrapper is neither public nor private, as no valid event was found!");
+        throw new IllegalStateException("CommandContext is neither public nor private, as no valid event was found!");
     }
 
     public JDA getJDA() {
@@ -54,45 +54,16 @@ public class CommandContext {
         return privateEvent.getJDA();
     }
 
-    public @Nullable Guild getGuild() {
-        if (isPublic()) {
-            return publicEvent.getGuild();
-        } else if (getBotUser().getDefaultBotGuild() != null)
-        return getJDA().getGuildById(getBotUser().getDefaultBotGuild().getGuildId());
-        else return null;
-    }
-
-    public @Nullable String getGuildId() {
-        if (isPublic()) {
-            return publicEvent.getGuild().getId();
-        }
-        return getBotUser().getDefaultGuildId();
-    }
-
-    public @Nullable GuildWrapper getBotGuild() {
-        return bot.getGuildWrapper(getGuildId());
-    }
-
-    public @Nullable Member getMember() {
-        if (isPublic()) {
-            return publicEvent.getMember();
-        }
-        return getGuild().getMember(getAuthor());
-    }
-
-    public @Nullable MemberWrapper getBotMember() {
-        return bot.getMemberWrapper(getAuthor().getId(), getGuild().getId());
-    }
-
-    public User getAuthor() {
+    @Deprecated
+    public User getJDAUser() {
         if (isPublic()) {
             return publicEvent.getAuthor();
         }
         return privateEvent.getAuthor();
     }
 
-    public UserWrapper getBotUser() {
-        return bot.getUserWrapper(getAuthor().getId());
+    public UserWrapper getAuthor() {
+        return bot.getUserWrapper(getJDAUser().getId());
     }
 
     public Message getMessage() {
@@ -113,7 +84,7 @@ public class CommandContext {
         if (isPublic()) {
             Utilities.sendGuildMessage((TextChannel) getChannel(), message);
         } else {
-            Utilities.sendPrivateMessage(getAuthor(), message);
+            Utilities.sendPrivateMessage(getJDAUser(), message);
         }
     }
 
@@ -122,16 +93,28 @@ public class CommandContext {
     }
 
     public void sendPrivateResponse(String message) {
-        Utilities.sendPrivateMessage(getAuthor(), message);
+        Utilities.sendPrivateMessage(getJDAUser(), message);
     }
 
 
     public AuthorityLevel getAuthority() {
-        return bot.getAuthority(getGuild(), getAuthor());
+        if (hasGuild()) {
+            return bot.getAuthority(new GuildCommandContext(this).getJDAGuild(), getJDAUser());
+        }
+        return bot.getAuthority(getJDAUser());
     }
 
     public Event getEvent() {
         if (isPublic()) return publicEvent;
         else return privateEvent;
+    }
+
+    public boolean hasGuild() {
+        if (isPublic()) {
+            return true;
+        } else {
+            System.out.println(getAuthor().getDefaultGuildId());
+            return getAuthor().getDefaultGuildId() != null;
+        }
     }
 }

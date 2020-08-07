@@ -1,10 +1,10 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.OptionFlag;
 import botmanager.frostbalance.command.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
 
 import java.awt.*;
 
@@ -14,18 +14,18 @@ public class FlagMenu extends Menu {
      * If true, the flagMenu is turning ON certain flags, rather than turning them off.
      */
     boolean enabling = true;
-    Guild guild;
+    GuildWrapper bGuild;
 
-    public FlagMenu(Frostbalance bot, Guild guild) {
+    public FlagMenu(Frostbalance bot, GuildWrapper guild) {
         super(bot);
-        this.guild = guild;
+        this.bGuild = guild;
 
         for (OptionFlag flag : OptionFlag.values()) {
             menuResponses.add(new MenuResponse(flag.getEmoji(), flag.getLabel()) {
 
                 @Override
                 public void reactEvent() {
-                    bot.flipFlag(guild, flag);
+                    bot.getGuildWrapper(bGuild.getId()).flipFlag(flag);
 
                     updateMessage();
                 }
@@ -47,7 +47,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return !enabling && bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return !enabling && bot.getMemberWrapper(getActor().getId(), bGuild.getId()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -61,7 +61,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return enabling && bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return enabling && bot.getMemberWrapper(getActor().getId(), bGuild.getId()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -80,7 +80,7 @@ public class FlagMenu extends Menu {
     }
 
     private boolean isToggleable(OptionFlag flag) {
-        return (bot.getSettings(guild).contains(flag) ^ enabling) && bot.getAuthority(guild, getActor()).hasAuthority(flag.getAuthorityToChange());
+        return (bGuild.hasFlag(flag) ^ enabling) && bot.getMemberWrapper(getActor().getId(), bGuild.getId()).hasAuthority(flag.getAuthorityToChange());
     }
 
     @Override
@@ -89,11 +89,11 @@ public class FlagMenu extends Menu {
         if (closed) {
             builder.setColor(Color.DARK_GRAY);
         } else {
-            builder.setColor(bot.getGuildColor(guild));
+            builder.setColor(bGuild.getColor());
         }
-        builder.setTitle(guild.getName() + ": Flags");
+        builder.setTitle(bGuild.getName() + ": Flags");
         String flagsEnabled = "";
-        for (OptionFlag flag : bot.getSettings(guild)) {
+        for (OptionFlag flag : bGuild.getOptionFlags()) {
             flagsEnabled += flag.getEmoji() + " " + flag.getLabel() + "\n";
         }
         builder.setDescription(flagsEnabled);

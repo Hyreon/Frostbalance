@@ -25,7 +25,7 @@ public class Influence {
     }
 
     public Influence(double value) {
-        this.thousandths = (int) Math.round(value * 1000);
+        this.thousandths = (int) (value * 1000);
     }
 
     public Influence(String string) {
@@ -56,6 +56,10 @@ public class Influence {
 
     public int compareTo(Influence influence) {
         return thousandths - influence.thousandths; //very sad that you can't do shift operations on doubles :(
+    }
+
+    public int compareTo(Number number) {
+        return Double.compare(getValue(), number.doubleValue()); //very sad that you can't do shift operations on doubles :(
     }
 
     @Override

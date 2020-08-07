@@ -1,9 +1,9 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.MemberWrapper;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 import java.awt.*;
@@ -75,7 +75,7 @@ public class CheckMenu extends Menu {
         EmbedBuilder builder = new EmbedBuilder();
         if (closed) {
             if (showResult) {
-                builder.setColor(bot.getGuildColor(guild));
+                builder.setColor(bot.getGuildWrapper(guild.getId()).getColor());
                 builder.setTitle(guild.getMember(challenger).getEffectiveName() + " vs " + guild.getMember(getActor()).getEffectiveName());
                 builder.setDescription(check());
             } else {
@@ -87,7 +87,7 @@ public class CheckMenu extends Menu {
                     builder.setDescription("The request expired, as you placed a new one in the same channel.");
             }
         } else {
-            builder.setColor(bot.getGuildColor(guild));
+            builder.setColor(bot.getGuildWrapper(guild.getId()).getColor());
             builder.setTitle(guild.getMember(challenger).getEffectiveName() + " has asked " + guild.getMember(getActor()).getEffectiveName() + " to compare influence.");
             builder.setDescription("If they accept, this embed will display who has more influence, but no exact numbers will be shown.");
         }
@@ -95,11 +95,11 @@ public class CheckMenu extends Menu {
     }
 
     private String check() {
-        Member firstMember = guild.getMember(challenger);
-        Member targetMember = guild.getMember(actor);
-        if (bot.getUserInfluence(firstMember).compareTo(bot.getUserInfluence(targetMember)) > 0) {
+        MemberWrapper firstMember = bot.getMemberWrapper(challenger.getId(), guild.getId());
+        MemberWrapper targetMember = bot.getMemberWrapper(getActor().getId(), guild.getId());
+        if (firstMember.getInfluence().compareTo(targetMember.getInfluence()) > 0) {
             return firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".";
-        } else if (bot.getUserInfluence(firstMember) == bot.getUserInfluence(targetMember)) {
+        } else if (firstMember.getInfluence().equals(targetMember.getInfluence())) {
             if (firstMember.equals(targetMember)) {
                 return "To everyone's surprise, " + targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".";
             } else {

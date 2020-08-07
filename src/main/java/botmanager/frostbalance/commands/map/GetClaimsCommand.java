@@ -2,25 +2,25 @@ package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
-public class GetClaimsCommand extends FrostbalanceHybridCommandBase {
+public class GetClaimsCommand extends FrostbalanceGuildCommandBase {
 
     public GetClaimsCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "claims",
+                "claims",
         }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
     @Override
-    protected void runHybrid(CommandContext eventWrapper, String... params) {
+    protected void executeWithGuild(GuildCommandContext context, String... params) {
 
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
+        PlayerCharacter player = PlayerCharacter.get(context.getJDAUser(), context.getJDAGuild());
 
-        eventWrapper.sendResponse(String.format("Claims on %s:\n%s",
+        context.sendResponse(String.format("Claims on %s:\n%s",
                 player.getLocation().toString(),
                 player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, player)));
 

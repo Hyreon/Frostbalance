@@ -12,21 +12,22 @@ import java.util.List;
 
 public abstract class FrostbalanceCommandBase implements ICommand {
 
-    public static final boolean SPEEDTESTS = true;
+    public static final boolean SPEED_TESTS = true;
 
-    protected final String[] KEYWORDS;
+    protected final String[] aliases;
 
-    protected final List<Condition> CONDITIONS;
+    @Deprecated
+    protected final List<Condition> conditions;
 
-    protected final AuthorityLevel AUTHORITY_LEVEL;
+    protected final AuthorityLevel requiredAuthority;
 
     protected Frostbalance bot;
 
-    public FrostbalanceCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Condition... conditions) {
+    public FrostbalanceCommandBase(Frostbalance bot, String[] aliases, AuthorityLevel authorityLevel, Condition... conditions) {
         this.bot = bot;
-        KEYWORDS = keywords;
-        CONDITIONS = new ArrayList(Arrays.asList(conditions));
-        AUTHORITY_LEVEL = authorityLevel;
+        this.aliases = aliases;
+        this.conditions = new ArrayList(Arrays.asList(conditions));
+        requiredAuthority = authorityLevel;
     }
 
     /**
@@ -38,59 +39,54 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
         String[] parameters;
 
-        CommandContext eventWrapper;
+        CommandContext context;
         try {
-            eventWrapper = new CommandContext(bot, genericEvent);
+            context = new CommandContext(bot, genericEvent);
         } catch (IllegalArgumentException e) {
-            System.err.println(e.getStackTrace());
+            e.printStackTrace();
             return;
         }
 
-        if (!hasKeywords(genericEvent)) return;
-        parameters = minifyMessage(eventWrapper.getMessage().getContentRaw()).split(" ");
+        if (!hasAlias(genericEvent)) return;
+        parameters = minifyMessage(context.getMessage().getContentRaw()).split(" ");
         if (parameters.length == 1 && parameters[0].isEmpty()) {
             parameters = new String[] {};
         }
 
-        if (!wouldAuthorize(eventWrapper.getAuthority())) {
-            eventWrapper.sendResponse("You don't have sufficient privileges to do this.");
+        if (!wouldAuthorize(context.getAuthority())) {
+            context.sendResponse("You don't have sufficient privileges to do this.");
             return;
         }
 
-        if (CONDITIONS.contains(Condition.PRIVATE) && eventWrapper.isPublic()) {
-            eventWrapper.sendResponse("This command can only be run via DM.");
+        if (conditions.contains(Condition.PRIVATE) && context.isPublic()) {
+            context.sendResponse("This command can only be run via DM.");
             return;
         }
 
-        if (CONDITIONS.contains(Condition.PUBLIC) && !eventWrapper.isPublic()) {
-            eventWrapper.sendResponse("This command can only be run publicly in servers.");
+        if (conditions.contains(Condition.PUBLIC) && !context.isPublic()) {
+            context.sendResponse("This command can only be run publicly in servers.");
             return;
         }
 
-        if (CONDITIONS.contains(Condition.GUILD_EXISTS) && eventWrapper.getGuild() != null) {
-            eventWrapper.sendResponse("This command only works if you have a default guild set for DM. Set it with `.guild GUILD`.");
-            return;
-        }
-
-        if (SPEEDTESTS) {
+        if (SPEED_TESTS) {
 
             long startTime = System.nanoTime();
 
-            execute(eventWrapper, parameters);
+            execute(context, parameters);
 
             long stopTime = System.nanoTime();
             long elapsedTime = stopTime - startTime;
             System.out.println(elapsedTime + " nanoseconds to execute " + getClass().getCanonicalName());
         } else {
 
-            execute(eventWrapper, parameters);
+            execute(context, parameters);
 
         }
     }
 
-    public abstract void execute(CommandContext eventWrapper, String[] params);
+    protected abstract void execute(CommandContext eventWrapper, String[] params);
 
-    public boolean hasKeywords(Event genericEvent) {
+    public boolean hasAlias(Event genericEvent) {
         String message;
 
         if (genericEvent instanceof GuildMessageReceivedEvent) {
@@ -101,10 +97,11 @@ public abstract class FrostbalanceCommandBase implements ICommand {
             return false;
         }
 
-        for (String keyword : KEYWORDS) {
-            if (message.equalsIgnoreCase(keyword)) {
+        for (String alias : aliases) {
+            alias = bot.getPrefix() + alias;
+            if (message.equalsIgnoreCase(alias)) {
                 return true;
-            } else if (message.startsWith(keyword + " ")) {
+            } else if (message.startsWith(alias + " ")) {
                 return true;
             }
         }
@@ -115,7 +112,8 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
     public String minifyMessage(String message) {
 
-        for (String keyword : KEYWORDS) {
+        for (String keyword : aliases) {
+            keyword = bot.getPrefix() + keyword;
             if (message.equalsIgnoreCase(keyword)) {
                 return message.replace(keyword, "");
             } else if (message.startsWith(keyword + " ")) {
@@ -132,7 +130,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
      * @return Whether the user could run this command
      */
     public boolean wouldAuthorize(AuthorityLevel authorityLevel) {
-        return authorityLevel.hasAuthority(AUTHORITY_LEVEL);
+        return authorityLevel.hasAuthority(requiredAuthority);
     }
 
     /**
@@ -142,7 +140,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
      * @return
      */
     public String getInfo(CommandContext context) {
-        if (context.getAuthority().hasAuthority(AUTHORITY_LEVEL) && (!CONDITIONS.contains(Condition.GUILD_EXISTS) || context.getGuildId() != null)) {
+        if (context.getAuthority().hasAuthority(requiredAuthority)) {
             return info(context.getAuthority(), context.isPublic());
         } else return null;
     }
@@ -150,6 +148,14 @@ public abstract class FrostbalanceCommandBase implements ICommand {
     protected abstract String info(AuthorityLevel authorityLevel, boolean isPublic);
 
     public enum Condition {
-        GUILD_EXISTS, PUBLIC, PRIVATE
+
+        @Deprecated
+        GUILD_EXISTS,
+
+        @Deprecated
+        PUBLIC,
+
+        @Deprecated
+        PRIVATE
     }
 }

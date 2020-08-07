@@ -113,11 +113,15 @@ public class Claim implements Containable<ClaimData> {
     @Override
     public String toString() {
         if (!isActive()) {
-            return "~~" + Frostbalance.bot.getUserName(getUserId()) + ": " + getStrength() + "~~";
+            return "~~" + ownerName() + ": " + getStrength() + "~~";
         }
         if (!getStrength().equals(getInvestedStrength())) {
-            return Frostbalance.bot.getUserName(getUserId()) + ": ~~" + getInvestedStrength() + "~~ " + getStrength();
+            return ownerName() + ": ~~" + getInvestedStrength() + "~~ " + getStrength();
         }
-        return Frostbalance.bot.getUserName(getUserId()) + ": " + getInvestedStrength();
+        return ownerName() + ": " + getInvestedStrength();
+    }
+
+    private String ownerName() {
+        return Frostbalance.bot.getUserWrapper(getUserId()).getName();
     }
 }

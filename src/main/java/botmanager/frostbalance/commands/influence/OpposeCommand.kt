@@ -4,56 +4,64 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase
-import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
+import botmanager.frostbalance.command.GuildCommandContext
 import java.util.*
 
-class OpposeCommand(bot: Frostbalance) : FrostbalanceHybridCommandBase(bot, arrayOf(
-        bot.prefix + "oppose",
-        bot.prefix + "o"
-), AuthorityLevel.GENERIC, Condition.GUILD_EXISTS) {
-    override fun runHybrid(eventWrapper: CommandContext, vararg params: String) {
+class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
+        "oppose",
+        "o"
+), AuthorityLevel.GENERIC) {
+
+    override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
         val resultLines: MutableList<String> = ArrayList()
         var transferAmount = Influence(params[params.size - 1])
-        val bMember = eventWrapper.botMember!!
+        val bMember = context.member
         val targetName = java.lang.String.join(" ", *params.copyOfRange(0, params.size - 1))
         val targetUser = bot.getUserByName(targetName)
         if (targetUser == null) {
             resultLines.add("Could not find user '$targetName'.")
-            eventWrapper.sendResponse(resultLines)
+            context.sendResponse(resultLines)
             return
         }
-        val targetMember = targetUser.getMember(eventWrapper.guildId!!)
+        val targetMember = targetUser.getMember(context.guild.id)
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to use. You will instead use all of your influence.")
         } else if (transferAmount.isNegative || !transferAmount.isNonZero) { //'else' allows you to bluff when you have 0 influence.
             resultLines.add("You have to spend *some* influence to oppose someone.")
-            eventWrapper.sendResponse(resultLines)
+            context.sendResponse(resultLines)
             return
         }
         bMember.adjustInfluence(transferAmount.negate())
         if (targetMember == bMember) {
-            resultLines.add("You lose " + transferAmount + " influence in " + eventWrapper.guild!!.name + " as a result of hitting yourself.")
-            eventWrapper.sendResponse(resultLines)
+            resultLines.add("You lose " + transferAmount + " influence in " + context.jdaGuild.name + " as a result of hitting yourself.")
+            context.sendResponse(resultLines)
             return
         }
-        if (eventWrapper.isPublic) {
-            eventWrapper.message.delete().queue()
+        if (context.isPublic) {
+            context.message.delete().queue()
             resultLines.add(bMember.effectiveName + " has *opposed* " + targetMember.effectiveName + ", reducing their influence here.")
-            Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
-                    bMember.effectiveName,
-                    eventWrapper.botGuild!!.name,
-                    transferAmount))
+            if (transferAmount > 0) {
+                Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
+                        bMember.effectiveName,
+                        context.guild.name,
+                        transferAmount))
+            }
             targetMember.adjustInfluence(transferAmount.negate())
         } else {
-            resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + eventWrapper.botGuild!!.name + ".")
-            Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been smeared anonymously! Your influence in %s has been reduced by %s.",
-                    eventWrapper.botGuild!!.name,
-                    transferAmount.applyModifier(PRIVATE_MODIFIER)))
-            targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
+            if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
+                resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
+                Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been smeared! Your influence in %s has been reduced by %s.",
+                        context.guild.name,
+                        transferAmount.applyModifier(PRIVATE_MODIFIER)))
+                targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
+            } else {
+                resultLines.add("After rounding, your opposition would have no effect. Your influence has been refunded.")
+                bMember.adjustInfluence(transferAmount)
+            }
         }
-        eventWrapper.sendResponse(resultLines)
+        context.sendResponse(resultLines)
         return
     }
 

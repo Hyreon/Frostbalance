@@ -1,6 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.UserWrapper;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 
@@ -17,7 +18,7 @@ public abstract class Menu {
      * The message this menu is attached to. This can be null if the menu hasn't yet been sent.
      */
     Message message;
-    User actor;
+    UserWrapper actor;
     boolean closed = false;
 
     List<MenuResponse> menuResponses = new ArrayList<>();
@@ -28,7 +29,7 @@ public abstract class Menu {
 
     public void send(MessageChannel channel, User actor) {
         bot.addMenu(this);
-        this.actor = actor;
+        this.actor = bot.getUserWrapper(actor.getId());
         MessageEmbed me = getME();
         if (me.getImage() != null) {
             String fileName = me.getImage().getUrl().replace("attachment://", "");
@@ -120,7 +121,7 @@ public abstract class Menu {
     }
 
     public User getActor() {
-        return actor;
+        return actor.getUser();
     }
 
     /*

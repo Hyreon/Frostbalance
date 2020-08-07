@@ -3,48 +3,48 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
 import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.FrostbalanceCommandBase;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SetGuildCommand extends FrostbalanceHybridCommandBase {
+public class SetGuildCommand extends FrostbalanceCommandBase {
 
     public SetGuildCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "guild"
+                "guild"
         }, AuthorityLevel.GENERIC, Condition.PRIVATE);
     }
 
     @Override
-    protected void runHybrid(CommandContext event, String... params) {
+    protected void execute(CommandContext context, String... params) {
 
         String name;
         List<String> resultLines = new ArrayList<>();
 
         if (params.length == 0) {
-            event.getBotUser().resetDefaultGuild();
+            context.getAuthor().resetDefaultGuild();
 
             resultLines.add("Removed default guild.");
-            event.sendResponse(resultLines);
+            context.sendResponse(resultLines);
             return;
         }
 
         name = Utilities.combineArrayStopAtIndex(params, params.length);
-        List<Guild> guilds = event.getJDA().getGuildsByName(name, true);
+        List<Guild> guilds = context.getJDA().getGuildsByName(name, true);
 
         if (guilds.isEmpty()) {
             resultLines.add("Couldn't find guild '" + name + "'.");
-            event.sendResponse(resultLines);
+            context.sendResponse(resultLines);
             return;
         }
 
-        event.getBotUser().setDefaultGuildId(guilds.get(0).getId());
+        context.getAuthor().setDefaultGuildId(guilds.get(0).getId());
 
         resultLines.add("Set default guild to **" + guilds.get(0).getName() + "**.");
-        event.sendResponse(resultLines);
+        context.sendResponse(resultLines);
 
     }
 

@@ -12,12 +12,12 @@ import java.util.*
  * guaranteed to share any server with the main bot; this is intentional, so that players who
  * cease to play (or are banned) do not cease the game's functionality.
  */
-class UserWrapper(bot: Frostbalance, user: User) {
+class UserWrapper(bot: Frostbalance, userId: String) {
 
     @Transient
-    var bot: Frostbalance
+    var bot: Frostbalance = bot
 
-    var userId: String
+    var userId: String = userId
 
     /**
      * A list of a member instances of this player.
@@ -27,7 +27,7 @@ class UserWrapper(bot: Frostbalance, user: User) {
     @Transient
     var userIcon: BufferedImage? = null
 
-    var lastKnownName: String?
+    private var lastKnownName: String? = null
 
     var allegiance = Nation.NONE
 
@@ -50,6 +50,17 @@ class UserWrapper(bot: Frostbalance, user: User) {
         return botMember
     }
 
+    fun getMember(guild: GuildWrapper): MemberWrapper {
+
+        var botMember = memberReference.find { member: MemberWrapper -> member.guildId == guild.id }
+        if (botMember == null) {
+            botMember = MemberWrapper(this, guild.id)
+            memberReference.add(botMember)
+        }
+        return botMember
+
+    }
+
     val user: User? //may be null if the user is now inaccessible
         get() = bot.jda.getUserById(userId)
     val defaultBotGuild: GuildWrapper?
@@ -63,7 +74,7 @@ class UserWrapper(bot: Frostbalance, user: User) {
         defaultGuildId = null
     }
 
-    fun <T> legacyLoad(MainAllegiance: Nation, UserDefaultGuild: String, GloballyBanned: Boolean, Name: String, isBotAdmin: Boolean) {
+    fun legacyLoad(MainAllegiance: Nation, UserDefaultGuild: String, GloballyBanned: Boolean, Name: String, isBotAdmin: Boolean) {
 
         allegiance = MainAllegiance
         defaultGuildId = UserDefaultGuild
@@ -79,7 +90,7 @@ class UserWrapper(bot: Frostbalance, user: User) {
         }
     }
 
-    init {
+    constructor(bot: Frostbalance, user: User) : this(bot, user.id) {
         Objects.requireNonNull(bot)
         Objects.requireNonNull(user)
         this.bot = bot

@@ -926,6 +926,18 @@ public class Frostbalance extends BotBase {
         softReset(guild);
     }
 
+    public AuthorityLevel getAuthority(User user) {
+
+        if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
+            return AuthorityLevel.BOT;
+        } else if (getAdminIds().contains(user.getId())) {
+            return AuthorityLevel.BOT_ADMIN;
+        } else {
+            return AuthorityLevel.GENERIC;
+        }
+
+    }
+
     /**
      * Returns how much authority a user has in a given context.
      * @param guild The server they are operating in
@@ -934,15 +946,13 @@ public class Frostbalance extends BotBase {
      */
     public AuthorityLevel getAuthority(Guild guild, User user) {
 
+        if (guild == null) return getAuthority(user);
+
         if (this.getJDA().getSelfUser().getId().equals(user.getId())) {
             return AuthorityLevel.BOT;
         } else if (getAdminIds().contains(user.getId())) {
             return AuthorityLevel.BOT_ADMIN;
-        } else if (guild == null) {
-            return AuthorityLevel.GENERIC;
-        }
-
-        if (guild.getOwner().getUser().getId().equals(user.getId())) {
+        } else if (guild.getOwner().getUser().getId().equals(user.getId())) {
             return AuthorityLevel.GUILD_OWNER;
         } else if (guild.getMember(user).getRoles().contains(getSystemRole(guild))) {
             return AuthorityLevel.GUILD_ADMIN;
@@ -1026,7 +1036,7 @@ public class Frostbalance extends BotBase {
             for (Guild guild : getJDA().getGuilds()) {
                 if (!getSettings(guild).contains(OptionFlag.MAIN)) {
                     System.out.println("Loading map for " + guild.getName());
-                    WorldMap.readWorld(guild);
+                    WorldMap.readWorld(guild.getId());
                 }
             }
             mainMap = loadMainMap();
@@ -1045,7 +1055,7 @@ public class Frostbalance extends BotBase {
 
     private void saveGuilds() {
         for (GuildWrapper guild : guildWrappers) {
-            writeObject("guilds/" + guild.getGuildId(), guild);
+            writeObject("guilds/" + guild.getId(), guild);
         }
     }
 
@@ -1151,7 +1161,11 @@ public class Frostbalance extends BotBase {
                 Gson gson = gsonBuilder.create();
                 UserWrapper userWrapper = gson.fromJson(IOUtils.read(file), UserWrapper.class);
                 userWrapper.load(this);
-                userWrappers.add(userWrapper);
+                if (userWrapper.getUserId() != null) { //impossible condition test
+                    userWrappers.add(userWrapper);
+                } else {
+                    Thread.dumpStack();
+                }
             }
         }
     }
@@ -1163,7 +1177,11 @@ public class Frostbalance extends BotBase {
                 Gson gson = gsonBuilder.create();
                 GuildWrapper guildWrapper = gson.fromJson(IOUtils.read(file), GuildWrapper.class);
                 guildWrapper.load(this);
-                guildWrappers.add(guildWrapper);
+                if (guildWrapper.getId() != null) { //impossible condition test
+                    guildWrappers.add(guildWrapper);
+                } else {
+                    Thread.dumpStack();
+                }
             }
         }
     }
@@ -1183,6 +1201,7 @@ public class Frostbalance extends BotBase {
         return getJDA().getUserById(userId).getName();
     }
 
+    @Deprecated
     public Influence gainDailyInfluence(Member member) {
         return gainDailyInfluence(member, DailyInfluenceSource.DAILY_INFLUENCE_CAP);
     }
@@ -1196,7 +1215,12 @@ public class Frostbalance extends BotBase {
     public UserWrapper getUserWrapper(String id) {
         Optional<UserWrapper> botUser = userWrappers.stream().filter(user -> user.getUserId().equals(id)).findFirst();
         if (!botUser.isPresent()) {
-            botUser = Optional.of(new UserWrapper(this, getJDA().getUserById(id)));
+            User user = getJDA().getUserById(id);
+            if (user == null) {
+                botUser = Optional.of(new UserWrapper(this, id));
+            } else {
+                botUser = Optional.of(new UserWrapper(this, user));
+            }
             userWrappers.add(botUser.get());
         }
         return botUser.get();
@@ -1223,9 +1247,18 @@ public class Frostbalance extends BotBase {
      * @return
      */
     public GuildWrapper getGuildWrapper(String id) {
-        Optional<GuildWrapper> botGuild = guildWrappers.stream().filter(guild -> guild.getGuildId().equals(id)).findFirst();
+        Objects.requireNonNull(id);
+        Optional<GuildWrapper> botGuild = guildWrappers.stream().filter(guild -> {
+            System.out.println(guild.getId());
+            return guild.getId().equals(id);
+        }).findFirst();
         if (!botGuild.isPresent()) {
-            botGuild = Optional.of(new GuildWrapper(this, getJDA().getGuildById(id)));
+            Guild guild = getJDA().getGuildById(id);
+            if (guild == null) {
+                botGuild = Optional.of(new GuildWrapper(this, id));
+            } else {
+                botGuild = Optional.of(new GuildWrapper(this, guild));
+            }
             guildWrappers.add(botGuild.get());
         }
         return botGuild.get();

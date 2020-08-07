@@ -2,28 +2,25 @@ package botmanager.frostbalance.commands.meta
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.CommandContext
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase
+import botmanager.frostbalance.command.GuildCommandContext
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
 
 /**
  *
  * @author MC_2018 <mc2018.git></mc2018.git>@gmail.com>
  */
-class HelpCommand(bot: Frostbalance) : FrostbalanceHybridCommandBase(bot, arrayOf(
-        bot.prefix + "help"
+class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
+        "help"
 ), AuthorityLevel.GENERIC) {
-    override fun runHybrid(eventWrapper: CommandContext, vararg params: String) {
+    override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
         var result = "__**Frostbalance**__\n\n"
         for (command in bot.commands) {
-            val info = command.getInfo(eventWrapper)
+            val info = command.getInfo(context)
             if (info != null) {
-                result += """
-                    $info
-                    
-                    """.trimIndent()
+                result += info + "\n"
             }
         }
-        eventWrapper.sendResponse(result)
+        context.sendResponse(result)
     }
 
     public override fun info(authorityLevel: AuthorityLevel, isPublic: Boolean): String {

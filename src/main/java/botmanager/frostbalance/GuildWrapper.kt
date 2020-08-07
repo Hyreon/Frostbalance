@@ -1,6 +1,7 @@
 package botmanager.frostbalance
 
 import botmanager.Utilities
+import botmanager.frostbalance.Frostbalance.bot
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
 import botmanager.frostbalance.grid.WorldMap
@@ -10,15 +11,16 @@ import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Role
-import net.dv8tion.jda.api.entities.User
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
 
-class GuildWrapper(@field:Transient @field:Getter var bot: Frostbalance, guild: Guild) {
+class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
 
-    @Getter
-    var guildId: String = guild.id
+    constructor(bot: Frostbalance, guild: Guild) : this(bot, guild.id) {
+        this.bot = bot
+        this.id = guild.id
+    }
 
     @Transient
     var guildIcon: BufferedImage? = null
@@ -29,19 +31,19 @@ class GuildWrapper(@field:Transient @field:Getter var bot: Frostbalance, guild: 
 
     var leaderId: String? = null
     var map: WorldMap? = null
-    @JvmField
-    var optionFlags: Set<OptionFlag> = HashSet()
+    var optionFlags: MutableSet<OptionFlag> = HashSet()
+        get() = Collections.unmodifiableSet(field)
     @JvmField
     var regimes: MutableList<RegimeData> = ArrayList()
     val name: String?
         get() {
-            if (jda.getGuildById(guildId) != null) {
-                lastKnownName = jda.getGuildById(guildId)!!.name
+            if (jda.getGuildById(id) != null) {
+                lastKnownName = jda.getGuildById(id)!!.name
             }
             return lastKnownName
         }
     val guild: Guild?
-        get() = jda.getGuildById(guildId)
+        get() = jda.getGuildById(id)
     val jda: JDA
         get() = bot.jda
     val color: Color
@@ -66,9 +68,14 @@ class GuildWrapper(@field:Transient @field:Getter var bot: Frostbalance, guild: 
         return regimes.size > 0 && regimes[regimes.size - 1].userId == userId && regimes[regimes.size - 1].terminationCondition == TerminationCondition.RESET
     }
 
-    fun doCoup(user: User) {
+    fun doCoup(member: Member) {
         endRegime(TerminationCondition.COUP)
-        startRegime(user)
+        startRegime(member)
+    }
+
+    fun inaugurate(member: Member) {
+        endRegime(TerminationCondition.TRANSFER)
+        startRegime(member)
     }
 
     private fun endRegime(condition: TerminationCondition) {
@@ -90,11 +97,11 @@ class GuildWrapper(@field:Transient @field:Getter var bot: Frostbalance, guild: 
         }
     }
 
-    private fun startRegime(user: User) {
-        val regime = RegimeData(this, user.id, Utilities.todayAsLong())
+    private fun startRegime(member: Member) {
+        val regime = RegimeData(this, member.id, Utilities.todayAsLong())
         regimes.add(regime)
-        guild?.addRoleToMember(user.id, leaderRole)?.queue()
-        leaderId = user.id
+        guild?.addRoleToMember(member.id, leaderRole)?.queue()
+        leaderId = member.id
     }
 
     fun load(frostbalance: Frostbalance) {
@@ -109,6 +116,37 @@ class GuildWrapper(@field:Transient @field:Getter var bot: Frostbalance, guild: 
         regimes = Records
         leaderId = OwnerId
         lastKnownName = Name
+    }
+
+    fun reset(reset: TerminationCondition) {
+        endRegime(TerminationCondition.RESET)
+        softReset()
+    }
+
+    private fun softReset() {
+        val roles = guild!!.roles
+        for (role in roles) {
+            if (systemRole != role && leaderRole != role) {
+                role.delete()
+            }
+        }
+        //TODO don't unban players who are under a global ban.
+        for (ban in guild!!.retrieveBanList().complete()) {
+            if (!bot.getUserWrapper(ban.user.id).getMember(id).banned)
+            guild!!.unban(ban.user)
+        }
+    }
+
+    fun flipFlag(flag: OptionFlag) {
+        if (optionFlags.contains(flag)) {
+            optionFlags.remove(flag)
+        } else {
+            optionFlags.add(flag)
+        }
+    }
+
+    fun hasFlag(flag: OptionFlag): Boolean {
+        return optionFlags.contains(flag)
     }
 
     private val leaderRole: Role
@@ -161,9 +199,11 @@ class GuildWrapper(@field:Transient @field:Getter var bot: Frostbalance, guild: 
             }
         }.invoke()
 
-    private val leaderAsMember: Member?
-        get() = bot.getMemberWrapper(leaderId, guildId).member
+    val leaderAsMember: Member?
+        get() = bot.getMemberWrapper(leaderId, id).member
 
-    val Guild.wrapper: GuildWrapper
-        get() = bot.getGuildWrapper(id)
+    companion object {
+        val Guild.wrapper: GuildWrapper
+            get() = bot.getGuildWrapper(id)
+    }
 }

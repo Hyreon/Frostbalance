@@ -1,62 +1,64 @@
 package botmanager.frostbalance.commands.admin;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.data.TerminationCondition;
+import botmanager.frostbalance.menu.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class InterveneCommand extends FrostbalanceSplitCommandBase {
+public class InterveneCommand extends FrostbalanceGuildCommandBase {
 
     public InterveneCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "reset"
+                "reset"
         }, AuthorityLevel.GUILD_ADMIN);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
+    public void executeWithGuild(GuildCommandContext context, String[] params) {
 
         String id;
         String result;
         Member currentOwner;
 
-        id = event.getAuthor().getId();
+        GuildWrapper bGuild = context.getGuild();
 
-        currentOwner = bot.getOwner(event.getGuild());
+        id = context.getJDAUser().getId();
+
+        currentOwner = bGuild.getLeaderAsMember();
 
         if (currentOwner == null) {
             result = "You can't reset if there's no owner.";
-            Utilities.sendGuildMessage(event.getChannel(), result);
+            context.sendResponse(result);
             return;
         }
 
-        bot.endRegime(event.getGuild(), TerminationCondition.RESET);
+        new ConfirmationMenu(bot, () -> {
+            bGuild.reset(TerminationCondition.RESET);
 
-        result = currentOwner.getAsMention() + " has been removed as leader by administrative action.";
+            String result1;
+            result1 = currentOwner.getAsMention() + " has been removed as leader by administrative action.";
+            result1 += "\nAll non-system bans and player roles have been reset.";
 
-        bot.softReset(event.getGuild());
+            context.sendResponse(result1);
+        },
+                "This will depose the current leader, unban all players, and delete all roles.\nAre you sure?")
+                .send(context.getChannel(), context.getJDAUser());
 
-        result += "\nAll non-system bans and player roles have been reset.";
 
-        Utilities.sendGuildMessage(event.getChannel(), result);
 
     }
 
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
+    public String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (!isPublic) return null;
         return ""
                 + "**" + bot.getPrefix() + "reset** - Remove the current owner, unban all players, and reset all non-system roles. " +
                 "The current owner can't become owner until a new owner is in place.";
-    }
-
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return null;
     }
 
 }

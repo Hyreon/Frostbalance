@@ -2,26 +2,26 @@ package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
 
 import java.util.Collections;
 import java.util.List;
 
-public class HistoryCommand extends FrostbalanceHybridCommandBase {
+public class HistoryCommand extends FrostbalanceGuildCommandBase {
 
     private static final int HISTORY_PAGE_SIZE = 6;
 
     public HistoryCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "history"
-        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
+                "history"
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
-    public void runHybrid(CommandContext eventWrapper, String... params) {
+    public void executeWithGuild(GuildCommandContext context, String... params) {
         String result = "";
         int page = 1;
         List<RegimeData> records;
@@ -32,7 +32,7 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
             } catch (NumberFormatException e) {
                 result += "Couldn't recognize the number '" + params[0] + "'.";
 
-                eventWrapper.sendResponse(result);
+                context.sendResponse(result);
 
                 return;
             }
@@ -41,12 +41,12 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
         if (page < 0) {
             result += "This number is too low, it must be at least 1.";
 
-            eventWrapper.sendResponse(result);
+            context.sendResponse(result);
 
             return;
         }
 
-        records = eventWrapper.getBotGuild().readRecords();
+        records = context.getGuild().readRecords();
         Collections.reverse(records);
 
         if (page > maxPages(records)) {
@@ -57,11 +57,11 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
                 result += "This number is too high, it must be at most " + maxPages(records) + ".";
             }
 
-            eventWrapper.sendResponse(result);
+            context.sendResponse(result);
             return;
         }
 
-        new HistoryMenu(bot, records, page, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new HistoryMenu(bot, records, page, context.getJDAGuild()).send(context.getChannel(), context.getJDAUser());
 
     }
 

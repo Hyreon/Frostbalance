@@ -1,36 +1,35 @@
 package botmanager.frostbalance.commands.meta;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.GuildCommandContext;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
+public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
 
     public GetInfluenceCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "influence"
+                "influence"
         }, AuthorityLevel.GENERIC);
     }
 
     @Override
-    protected void runHybrid(CommandContext eventWrapper, String... params) {
-        String id;
+    protected void executeWithGuild(GuildCommandContext context, String... params) {
         String result, publicPost;
 
-        id = eventWrapper.getAuthor().getId();
+        UserWrapper bUser = context.getAuthor();
 
-        if (eventWrapper.getGuild() == null || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
+        if (context.getJDAGuild() == null || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
 
             result = "Influence in all guilds:" + "\n";
 
-            for (Guild guild : eventWrapper.getJDA().getGuilds()) {
+            for (Guild guild : context.getJDA().getGuilds()) {
 
-                MemberWrapper bMember = eventWrapper.getBotUser().getMember(guild.getId());
+                MemberWrapper bMember = context.getAuthor().getMember(guild.getId());
 
                 result += "**" + guild.getName() + "**: " + bMember.getInfluence();
 
@@ -47,12 +46,12 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
         } else {
 
             if (params.length > 0) {
-                if (eventWrapper.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-                    id = Utilities.findUserId(eventWrapper.getGuild(), String.join(" ", params));
+                if (context.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
+                    bUser = bot.getUserByName(String.join(" ", params));
 
-                    if (id == null) {
+                    if (bUser == null) {
                         result = "Could not find user '" + String.join(" ", params) + "'.";
-                        eventWrapper.sendResponse(result);
+                        context.sendResponse(result);
                         return;
                     } else {
                         publicPost = "This user's influence has been sent to you via PM.";
@@ -65,21 +64,21 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
                 publicPost = "Your influence has been sent to you via PM.";
             }
 
-            MemberWrapper bMember = bot.getUserWrapper(id).getMember(eventWrapper.getGuildId());
+            MemberWrapper bMember = bUser.getMember(context.getGuild());
             Influence influence = bMember.getInfluence();
             Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
 
-            if (bMember.equals(eventWrapper.getBotMember())) {
+            if (bMember.equals(context.getMember())) {
                 if (influence.getValue() <= 0) {
-                    result = "You have *no* influence in **" + eventWrapper.getBotGuild().getName() + "**.";
+                    result = "You have *no* influence in **" + context.getGuild().getName() + "**.";
                 } else {
-                    result = "You have **" + influence + "** influence in **" + eventWrapper.getBotGuild().getName() + "**.";
+                    result = "You have **" + influence + "** influence in **" + context.getGuild().getName() + "**.";
                 }
             } else {
                 if (influence.getValue() <= 0) {
-                    result = bMember.getEffectiveName() + " has *no* influence in **" + eventWrapper.getBotGuild().getName() + "**.";
+                    result = bMember.getEffectiveName() + " has *no* influence in **" + context.getGuild().getName() + "**.";
                 } else {
-                    result = bMember.getEffectiveName() + " has **" + influence + "** influence in **" + eventWrapper.getBotGuild().getName() + "**.";
+                    result = bMember.getEffectiveName() + " has **" + influence + "** influence in **" + context.getGuild().getName() + "**.";
                 }
             }
 
@@ -89,10 +88,10 @@ public class GetInfluenceCommand extends FrostbalanceHybridCommandBase {
 
         }
 
-        if (eventWrapper.isPublic()) {
-            eventWrapper.sendResponse(publicPost);
+        if (context.isPublic()) {
+            context.sendResponse(publicPost);
         }
-        eventWrapper.sendPrivateResponse(result);
+        context.sendPrivateResponse(result);
     }
 
     @Override

@@ -1,67 +1,71 @@
 package botmanager.frostbalance.commands.map;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
+public class ClaimTileCommand extends FrostbalanceGuildCommandBase {
 
     public ClaimTileCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "claim"
-        });
+                "claim"
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
+    protected void executeWithGuild(GuildCommandContext context, String... params) {
+        if (context.isPublic()) runPublic(context, String.join(" ", params));
+    }
+
+    public void runPublic(GuildCommandContext context, String message) {
 
         String[] words = message.split(" ");
         Influence amount;
-        Influence balance = bot.getUserInfluence(event.getMember());
-        PlayerCharacter player = PlayerCharacter.get(event.getAuthor(), event.getGuild());
-        Nation allegiance = bot.getMainAllegiance(event.getAuthor());
+        Influence balance = context.getMember().getInfluence();
+        PlayerCharacter player = PlayerCharacter.get(context.getJDAUser(), context.getJDAGuild());
+        Nation allegiance = context.getAuthor().getAllegiance();
 
         if (words.length < 1 || words[0].isEmpty()) {
-            Utilities.sendGuildMessage(event.getChannel(), publicInfo(AuthorityLevel.GENERIC));
+            context.sendResponse(getInfo(context));
+            return;
         }
 
         try {
             amount = new Influence(words[words.length - 1]);
 
             if (balance.compareTo(amount) < 0) {
-                Utilities.sendGuildMessage(event.getChannel(), "You don't have enough influence to make this claim. You will instead use all your influence.");
+                context.sendResponse("You don't have enough influence to make this claim. You will instead use all your influence.");
                 amount = balance;
             } else if (amount.getValue() <= 0) {
-                Utilities.sendGuildMessage(event.getChannel(), "You can't make a claim with that little influence!");
+                context.sendResponse("You can't make a claim with that little influence!");
                 return;
             }
         } catch (NumberFormatException e) {
-            Utilities.sendGuildMessage(event.getChannel(), "Proper format: " + publicInfo(AuthorityLevel.GENERIC));
+            context.sendResponse("Proper format: " + getInfo(context));
             return;
         }
 
         if ((player.getMap().isMainMap() || player.getMap().isTutorialMap()) && allegiance == Nation.NONE) {
 
-            new AllegianceMenu(bot).send(event.getChannel(), event.getAuthor());
+            new AllegianceMenu(bot).send(context.getChannel(), context.getJDAUser());
 
-        } else if (bot.getAllegianceIn(event.getGuild()) != Nation.NONE &&
-                allegiance != bot.getAllegianceIn(event.getGuild())) {
+        } else if (bot.getAllegianceIn(context.getJDAGuild()) != Nation.NONE &&
+                allegiance != bot.getAllegianceIn(context.getJDAGuild())) {
 
-            Utilities.sendGuildMessage(event.getChannel(), "You're in the wrong server for this!");
+            context.sendResponse("You're in the wrong server for this!");
 
         } else {
 
-            bot.changeUserInfluence(event.getMember(), amount.negate());
+            context.getMember().adjustInfluence(amount.negate());
             player.getTile().getClaimData().addClaim(player, amount);
 
-            Utilities.sendGuildMessage(event.getChannel(), "You have added " + String.format("%s", amount) + " to your nations' claim on this tile.\n" +
+            context.sendResponse("You have added " + String.format("%s", amount) + " to your nations' claim on this tile.\n" +
                     player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
 
         }
@@ -69,12 +73,7 @@ public class ClaimTileCommand extends FrostbalanceSplitCommandBase {
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
+    protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
         return "**" + bot.getPrefix() + "claim AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
-    }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return null;
     }
 }

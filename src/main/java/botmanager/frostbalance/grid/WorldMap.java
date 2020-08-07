@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid;
 
 import botmanager.IOUtils;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.OptionFlag;
 import com.google.gson.*;
@@ -47,10 +48,10 @@ public class WorldMap implements Container<Tile> {
      * The guild this map is tied to.
      * If null, that means this is the main/global map.
      */
-    transient Guild guild;
+    transient GuildWrapper bGuild;
 
     public WorldMap(Guild guild) {
-        this.guild = guild;
+        this.bGuild = Frostbalance.bot.getGuildWrapper(guild.getId());
     }
 
     public static Collection<WorldMap> getMaps() {
@@ -58,13 +59,10 @@ public class WorldMap implements Container<Tile> {
     }
 
 
-    public static WorldMap readWorld(Guild guild) {
+    public static WorldMap readWorld(String guildId) {
 
-        String guildId;
-        if (guild == null) {
+        if (guildId == null) {
             guildId = "global";
-        } else {
-            guildId = guild.getId();
         }
 
         File file = new File("data/" + Frostbalance.bot.getName() + "/" + guildId + "/map.json");
@@ -73,7 +71,9 @@ public class WorldMap implements Container<Tile> {
             gsonBuilder.registerTypeAdapter(TileObject.class, new TileObjectAdapter());
             Gson gson = gsonBuilder.create();
             WorldMap worldMap = gson.fromJson(IOUtils.read(file), WorldMap.class);
-            worldMap.guild = guild;
+            if (!guildId.equals("global")) {
+                worldMap.bGuild = Frostbalance.bot.getGuildWrapper(guildId);
+            }
             for (Tile tile : worldMap.loadedTiles) {
                 tile.map = worldMap;
                 for (TileData tileData : tile.getObjects()) {
@@ -85,7 +85,7 @@ public class WorldMap implements Container<Tile> {
                 }
                 System.out.println("Loaded data for tile at " + tile.getLocation() + " (" + guildId + ")");
             }
-            System.out.println("Added " + worldMap.guild + " world map to worldMaps list.");
+            System.out.println("Added " + worldMap.bGuild + " world map to worldMaps list.");
             worldMaps.add(worldMap);
 
             return worldMap;
@@ -157,19 +157,22 @@ public class WorldMap implements Container<Tile> {
      * @return Whether this is the main map
      */
     public boolean isMainMap() {
-        if (guild == null) {
+        if (getGuild() == null) {
             return true;
         } else return false;
     }
 
     public boolean isTutorialMap() {
-        if (!isMainMap() && Frostbalance.bot.getSettings(guild).contains(OptionFlag.TUTORIAL)) {
+        if (!isMainMap() && bGuild.hasFlag(OptionFlag.TUTORIAL)) {
             return true;
         } else return false;
     }
 
     public Guild getGuild() {
-        return guild;
+        if (bGuild == null) {
+            return null;
+        }
+        return bGuild.getGuild();
     }
 
     @Override

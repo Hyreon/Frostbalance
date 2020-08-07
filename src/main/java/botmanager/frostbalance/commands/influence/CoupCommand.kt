@@ -2,23 +2,23 @@ package botmanager.frostbalance.commands.influence
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase
-import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
+import botmanager.frostbalance.command.GuildCommandContext
 
-class CoupCommand(bot: Frostbalance) : FrostbalanceHybridCommandBase(bot, arrayOf(
-        bot.prefix + "coup"
+class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
+        "coup"
 ), AuthorityLevel.GENERIC, Condition.PUBLIC) {
 
-    override fun runHybrid(eventWrapper: CommandContext, vararg params: String) {
+    override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
         val result: String
         val privateResult: String?
         val success: Boolean
-        val bMember = eventWrapper.botMember!!
-        val guildId = eventWrapper.guildId!!
-        val currentOwnerId: String? = eventWrapper.botGuild!!.leaderId
+        val bMember = context.member
+        val guildId = context.guild.id
+        val currentOwnerId: String? = context.guild.leaderId
         if (bMember.hasBeenForciblyRemoved()) {
             result = "You have been recently removed by administrative action. Wait until someone else is leader."
-            eventWrapper.sendResponse(result)
+            context.sendResponse(result)
             return
         }
         if (currentOwnerId == null ||
@@ -28,40 +28,40 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceHybridCommandBase(bot, arrayO
             privateResult = null
             success = true
         } else {
-            val currentOwner = bot.getMemberWrapper(currentOwnerId, guildId)
-            if (currentOwner == bMember) {
+            val currentLeader = bot.getMemberWrapper(currentOwnerId, guildId)
+            if (currentLeader == bMember) {
                 result = "You realize that you're no match for yourself, and call it off."
-                eventWrapper.sendResponse(result)
+                context.sendResponse(result)
                 return
             }
             val influence = bMember.influence
-            val ownerInfluence = currentOwner.influence
-            if (influence > ownerInfluence) {
-                bMember.adjustInfluence(ownerInfluence.negate())
-                currentOwner.adjustInfluence(ownerInfluence.negate())
+            val leaderInfluence = currentLeader.influence
+            if (influence > leaderInfluence) {
+                bMember.adjustInfluence(leaderInfluence.negate())
+                currentLeader.adjustInfluence(leaderInfluence.negate())
                 result = "**" + bMember.effectiveName + "** has successfully supplanted **" +
-                        currentOwner.member!!.asMention + "** as leader, reducing both users' influence and becoming" +
+                        currentLeader.member?.asMention + "** as leader, reducing both users' influence and becoming" +
                         " the new leader!"
-                privateResult = "*This maneuver has cost you $ownerInfluence influence. " +
-                    "${currentOwner.effectiveName} has lost **ALL** of their influence.*"
+                privateResult = "*This maneuver has cost you $leaderInfluence influence. " +
+                    "${currentLeader.effectiveName} has lost **ALL** of their influence.*"
                 success = true
             } else {
                 bMember.adjustInfluence(influence.negate())
-                currentOwner.adjustInfluence(influence.negate())
-                result = "**${bMember.effectiveName}** has attempted a coup on **${currentOwner.member?.asMention}**," +
+                currentLeader.adjustInfluence(influence.negate())
+                result = "**${bMember.effectiveName}** has attempted a coup on **${currentLeader.member?.asMention}**," +
                         "which has backfired. Both players have lost influence" +
                         " and the leader has not changed."
                 privateResult = "*This maneuver has cost you **ALL** of your influence. " +
-                        "${currentOwner.effectiveName} has lost $influence of their influence.*"
+                        "${currentLeader.effectiveName} has lost $influence of their influence.*"
                 success = false
             }
         }
         if (success) {
-            bot.getGuildWrapper(guildId).doCoup(eventWrapper.author)
+            bot.getGuildWrapper(guildId).doCoup(context.jdaMember)
         }
-        eventWrapper.sendResponse(result)
+        context.sendResponse(result)
         if (privateResult != null) {
-            eventWrapper.sendPrivateResponse(privateResult)
+            context.sendPrivateResponse(privateResult)
         }
     }
 

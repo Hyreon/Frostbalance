@@ -2,25 +2,25 @@ package botmanager.frostbalance.commands.admin;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.menu.FlagMenu;
 
-public class FlagCommand extends FrostbalanceHybridCommandBase {
+public class FlagCommand extends FrostbalanceGuildCommandBase {
 
 
     public FlagCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "flags",
-                bot.getPrefix() + "settings"
+                "flags",
+                "settings"
         }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
     }
 
     @Override
-    public void runHybrid(CommandContext eventWrapper, String... params) {
+    public void executeWithGuild(GuildCommandContext context, String... params) {
         String result = "";
 
-        new FlagMenu(bot, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new FlagMenu(bot, context.getGuild()).send(context.getChannel(), context.getJDAUser());
 
     }
 
