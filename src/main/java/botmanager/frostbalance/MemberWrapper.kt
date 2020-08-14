@@ -1,17 +1,18 @@
 package botmanager.frostbalance
 
-import botmanager.frostbalance.GuildWrapper.Companion.wrapper
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.grid.Containable
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
+import net.dv8tion.jda.api.exceptions.ErrorResponseException
+import net.dv8tion.jda.api.exceptions.HierarchyException
 
-class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String) : Containable<UserWrapper?> {
+class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String) : Containable<UserWrapper> {
 
 
     val authority: AuthorityLevel
-        get() = bot.getAuthority(guildWrapper.guild!!, userWrapper.user!!)
+        get() = bot.getAuthority(guildWrapper.guild!!, userWrapper.jdaUser!!)
     private var lastKnownNickname: String?
 
     var influence: Influence = Influence(0)
@@ -20,7 +21,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     val banned: Boolean
         get() = userWrapper.globallyBanned || locallyBanned
     private val userId: String
-        get() = userWrapper.userId
+        get() = userWrapper.id
 
     /**
      * @return The amount of influence that was NOT spent on the member wrapper.
@@ -45,7 +46,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
         return influenceGained
     }
 
-    val effectiveName: String?
+    val effectiveName: String
         get() {
             val nickname = member?.nickname
             if (nickname != null) {
@@ -64,7 +65,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     val online: Boolean
         get() = member != null
 
-    private val guildWrapper: GuildWrapper
+    val guildWrapper: GuildWrapper
         get() = userWrapper.bot.getGuildWrapper(guildId)
     private val guild: Guild?
         get() = jda.getGuildById(guildId)
@@ -96,10 +97,34 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
         return authority.hasAuthority(authorityLevel)
     }
 
+    fun pardon(): Boolean {
+        locallyBanned = false
+        try {
+            userWrapper.jdaUser?.let {guildWrapper.guild?.unban(it)?.queue() ?: return false} ?: return false
+        } catch (e: ErrorResponseException) {
+            return false
+        }
+        return true
+    }
+
+    fun ban() {
+        locallyBanned = true
+        try {
+            userWrapper.jdaUser?.let { guildWrapper.guild?.ban(it, 0)?.queue() }
+        } catch (e: HierarchyException) {
+            System.err.println("Unable to ban admin user $effectiveName.")
+            e.printStackTrace()
+        }
+    }
+
     init {
         lastKnownNickname = guild?.getMemberById(userId)?.nickname
     }
 
     val Member.wrapper: MemberWrapper
         get() = bot.getMemberWrapper(id, guild.id)
+
+    override fun setParent(parent: UserWrapper) {
+        userWrapper = parent
+    }
 }

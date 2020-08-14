@@ -27,13 +27,13 @@ public class DailyRewardCommand extends FrostbalanceGuildCommandBase {
         Influence gain = context.getMember().gainDailyInfluence();
 
         if (gain.getValue() > 0) {
-            Utilities.sendGuildMessage((TextChannel) context.getChannel(), context.getJDAMember().getEffectiveName() + ", your influence increases in " + context.getGuild().getName());
+            Utilities.sendGuildMessage((TextChannel) context.getChannel(), context.getMember().getEffectiveName() + ", your influence increases in " + context.getGuild().getName() + ".");
 
             Influence influence = context.getMember().getInfluence();
-            Utilities.sendPrivateMessage(context.getJDAUser(), "You now have **" + String.format("%s", influence) + "** influence in **" + context.getJDAGuild().getName() + "**.");
+            context.sendPrivateResponse("You now have **" + String.format("%s", influence) + "** influence in **" + context.getGuild().getName() + "**.");
         } else {
             int hrsDelay = (24 - Integer.parseInt(hours.format(new Date())));
-            context.sendResponse(context.getJDAMember().getEffectiveName() + ", try again at midnight EST "
+            context.sendResponse(context.getMember().getEffectiveName() + ", try again at midnight EST "
                     + "(around " + hrsDelay + " hour" + (hrsDelay > 1 ? "s" : "") + ").");
         }
     }

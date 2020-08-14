@@ -19,13 +19,10 @@ public class InterveneCommand extends FrostbalanceGuildCommandBase {
     @Override
     public void executeWithGuild(GuildCommandContext context, String[] params) {
 
-        String id;
         String result;
         Member currentOwner;
 
         GuildWrapper bGuild = context.getGuild();
-
-        id = context.getJDAUser().getId();
 
         currentOwner = bGuild.getLeaderAsMember();
 
@@ -45,7 +42,7 @@ public class InterveneCommand extends FrostbalanceGuildCommandBase {
             context.sendResponse(result1);
         },
                 "This will depose the current leader, unban all players, and delete all roles.\nAre you sure?")
-                .send(context.getChannel(), context.getJDAUser());
+                .send(context.getChannel(), context.getAuthor());
 
 
 

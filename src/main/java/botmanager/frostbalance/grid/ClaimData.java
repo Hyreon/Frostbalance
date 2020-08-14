@@ -196,7 +196,7 @@ public class ClaimData extends TileData implements Container<Claim> {
     @Override
     public Claim deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         Claim claim = context.deserialize(json, ClaimData.class);
-        claim.claimData = this;
+        claim.setParent(this);
         return claim;
     }
 

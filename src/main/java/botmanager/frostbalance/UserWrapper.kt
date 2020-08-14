@@ -3,6 +3,8 @@ package botmanager.frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.User
+import net.dv8tion.jda.api.exceptions.ErrorResponseException
+import net.dv8tion.jda.api.exceptions.HierarchyException
 import java.awt.image.BufferedImage
 import java.util.*
 
@@ -17,7 +19,7 @@ class UserWrapper(bot: Frostbalance, userId: String) {
     @Transient
     var bot: Frostbalance = bot
 
-    var userId: String = userId
+    var id: String = userId
 
     /**
      * A list of a member instances of this player.
@@ -61,14 +63,14 @@ class UserWrapper(bot: Frostbalance, userId: String) {
 
     }
 
-    val user: User? //may be null if the user is now inaccessible
-        get() = bot.jda.getUserById(userId)
+    val jdaUser: User? //may be null if the user is now inaccessible
+        get() = bot.jda.getUserById(id)
     val defaultGuild: GuildWrapper?
         get() = defaultGuildId?.let { bot.getGuildWrapper(it) }
     val jda: JDA
         get() = bot.jda
     val name: String
-        get() = user?.name ?: "Deleted User"
+        get() = jdaUser?.name ?: "*Deleted User*"
 
     fun resetDefaultGuild() {
         defaultGuildId = null
@@ -90,11 +92,37 @@ class UserWrapper(bot: Frostbalance, userId: String) {
         }
     }
 
+    fun globalBan() {
+        globallyBanned = true
+        for (member in memberReference) {
+            try {
+                jdaUser?.let{ member.member?.guild?.ban(it, 0)?.queue() }
+            } catch (e: HierarchyException) {
+                System.err.println("Unable to fully ban user " + member.effectiveName + " because they have admin privileges in some servers!")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun globalPardon(): Boolean {
+        return if (globallyBanned) {
+            globallyBanned = false
+            for (member in memberReference) {
+                try {
+                    jdaUser?.let {member.guildWrapper.guild?.unban(it)?.queue()}
+                } catch (e: ErrorResponseException) {
+                    //nothing
+                }
+            }
+            true
+        } else false
+    }
+
     constructor(bot: Frostbalance, user: User) : this(bot, user.id) {
         Objects.requireNonNull(bot)
         Objects.requireNonNull(user)
         this.bot = bot
-        userId = user.id
+        id = user.id
         lastKnownName = user.name
     }
 

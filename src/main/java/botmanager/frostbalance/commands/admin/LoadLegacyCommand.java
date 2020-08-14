@@ -23,7 +23,7 @@ public class LoadLegacyCommand extends FrostbalanceCommandBase {
                 ":warning: Loading legacy data will overwrite any data in the new format.\n" +
                 "This will affect ALL servers that run on this bot.\n" +
                 "Before confirming, make sure you have created a backup! :warning:")
-        .send(context.getChannel(), context.getJDAUser());
+        .send(context.getChannel(), context.getAuthor());
     }
 
     @Override

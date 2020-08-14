@@ -133,7 +133,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
         Collection<CheckMenu> channelCheckRequests = checkMenuCache.getOrDefault(channel, new ArrayList<>());
         CheckMenu menuToRemove = null;
         for (CheckMenu menu : channelCheckRequests) {
-            if (menu.getActor().equals(menuToAdd.getActor()) && menu.getChallenger().equals(menuToAdd.getChallenger())) {
+            if (menu.getJdaActor().equals(menuToAdd.getJdaActor()) && menu.getChallenger().equals(menuToAdd.getChallenger())) {
                 menuToRemove = menu;
                 break;
             }

@@ -82,19 +82,19 @@ public class AllegianceMenu extends Menu {
         if (isClosed()) {
             builder.setTitle("Allegiance set");
             if (cause == Cause.NOT_SET) {
-                builder.setDescription("You will now claim tiles in the name of " + bot.getMainAllegiance(getActor()).getEffectiveName() + ". You may now make claims.");
+                builder.setDescription("You will now claim tiles in the name of " + bot.getMainAllegiance(getJdaActor()).getEffectiveName() + ". You may now make claims.");
             } else if (cause == Cause.CHANGE) {
-                builder.setDescription("Your allegiance has been moved to " + bot.getMainAllegiance(getActor()).getEffectiveName());
+                builder.setDescription("Your allegiance has been moved to " + bot.getMainAllegiance(getJdaActor()).getEffectiveName());
             }
-            builder.setColor(bot.getMainAllegiance(getActor()).getColor());
+            builder.setColor(bot.getMainAllegiance(getJdaActor()).getColor());
         } else {
             builder.setTitle("Set allegiance");
             if (cause == Cause.NOT_SET) {
                 builder.setDescription("This claim cannot be made. In order to claim tiles, you must first set your allegiance." + ADDENDUM);
                 builder.setColor(Color.GRAY);
             } else if (cause == Cause.CHANGE) {
-                builder.setDescription("Pick your new allegiance. Current allegiance: " + bot.getMainAllegiance(getActor()).getEffectiveName() + ADDENDUM);
-                builder.setColor(bot.getUserWrapper(getActor().getId()).getAllegiance().getColor());
+                builder.setDescription("Pick your new allegiance. Current allegiance: " + bot.getMainAllegiance(getJdaActor()).getEffectiveName() + ADDENDUM);
+                builder.setColor(bot.getUserWrapper(getJdaActor().getId()).getAllegiance().getColor());
             }
         }
         return builder;

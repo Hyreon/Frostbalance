@@ -59,11 +59,16 @@ public class Tile implements Containable<WorldMap>, Container<TileData> {
     @Override
     public TileData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         TileData tileData = context.deserialize(json, TileData.class);
-        tileData.tile = this;
+        tileData.setParent(this);
         return tileData;
     }
 
     public void removeObject(TileObject tileObject) {
         this.objects.remove(tileObject);
+    }
+
+    @Override
+    public void setParent(WorldMap parent) {
+        this.map = parent;
     }
 }

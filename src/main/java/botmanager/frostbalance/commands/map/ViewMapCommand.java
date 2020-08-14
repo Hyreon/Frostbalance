@@ -14,7 +14,7 @@ public class ViewMapCommand extends FrostbalanceGuildCommandBase {
     public ViewMapCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "map"
-        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class ViewMapCommand extends FrostbalanceGuildCommandBase {
         } else {
             try {
                 destination = new Hex(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
-                new MapMenu(bot, map, PlayerCharacter.get(context.getJDAUser().getId(), map), destination).send(context.getChannel(), context.getJDAUser());
+                new MapMenu(bot, map, PlayerCharacter.get(context.getJDAUser().getId(), map), destination).send(context.getChannel(), context.getAuthor());
             } catch (NumberFormatException e) {
                 context.sendResponse("One or more of these numbers aren't really numbers.");
                 return;

@@ -28,7 +28,7 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
             context.getAuthor().resetDefaultGuild();
 
             resultLines.add("Removed default guild.");
-            context.sendResponse(resultLines);
+            context.sendEmbedResponse(resultLines);
             return;
         }
 
@@ -37,14 +37,14 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
 
         if (guilds.isEmpty()) {
             resultLines.add("Couldn't find guild '" + name + "'.");
-            context.sendResponse(resultLines);
+            context.sendEmbedResponse(resultLines);
             return;
         }
 
         context.getAuthor().setDefaultGuildId(guilds.get(0).getId());
 
         resultLines.add("Set default guild to **" + guilds.get(0).getName() + "**.");
-        context.sendResponse(resultLines);
+        context.sendEmbedResponse(resultLines);
 
     }
 

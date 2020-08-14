@@ -76,19 +76,19 @@ public class CheckMenu extends Menu {
         if (closed) {
             if (showResult) {
                 builder.setColor(bot.getGuildWrapper(guild.getId()).getColor());
-                builder.setTitle(guild.getMember(challenger).getEffectiveName() + " vs " + guild.getMember(getActor()).getEffectiveName());
+                builder.setTitle(guild.getMember(challenger).getEffectiveName() + " vs " + getActor().getMember(guild.getId()).getEffectiveName());
                 builder.setDescription(check());
             } else {
                 builder.setColor(Color.DARK_GRAY);
                 builder.setTitle(guild.getMember(challenger).getEffectiveName() + ": Check revoked");
                 if (hiddenReason == HiddenReason.REFUSED)
-                    builder.setDescription(guild.getMember(getActor()).getEffectiveName() + " refused your check.");
+                    builder.setDescription(getActor().getMember(guild.getId()).getEffectiveName() + " refused your check.");
                 else if (hiddenReason == HiddenReason.EXPIRED)
                     builder.setDescription("The request expired, as you placed a new one in the same channel.");
             }
         } else {
             builder.setColor(bot.getGuildWrapper(guild.getId()).getColor());
-            builder.setTitle(guild.getMember(challenger).getEffectiveName() + " has asked " + guild.getMember(getActor()).getEffectiveName() + " to compare influence.");
+            builder.setTitle(guild.getMember(challenger).getEffectiveName() + " has asked " + getActor().getMember(guild.getId()).getEffectiveName() + " to compare influence.");
             builder.setDescription("If they accept, this embed will display who has more influence, but no exact numbers will be shown.");
         }
         return builder;
@@ -96,7 +96,7 @@ public class CheckMenu extends Menu {
 
     private String check() {
         MemberWrapper firstMember = bot.getMemberWrapper(challenger.getId(), guild.getId());
-        MemberWrapper targetMember = bot.getMemberWrapper(getActor().getId(), guild.getId());
+        MemberWrapper targetMember = getActor().getMember(guild.getId());
         if (firstMember.getInfluence().compareTo(targetMember.getInfluence()) > 0) {
             return firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".";
         } else if (firstMember.getInfluence().equals(targetMember.getInfluence())) {

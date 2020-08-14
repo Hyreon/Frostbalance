@@ -12,7 +12,7 @@ public class GetClaimsCommand extends FrostbalanceGuildCommandBase {
     public GetClaimsCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "claims",
-        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override

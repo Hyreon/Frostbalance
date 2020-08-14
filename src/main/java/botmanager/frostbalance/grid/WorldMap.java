@@ -178,7 +178,7 @@ public class WorldMap implements Container<Tile> {
     @Override
     public Tile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         Tile tile = context.deserialize(json, Tile.class);
-        tile.map = this;
+        tile.setParent(this);
         return tile;
     }
 }

@@ -33,7 +33,7 @@ public class GuildCommandContext extends CommandContext {
         if (!hasGuild()) throw new IllegalStateException("Tried to create a GuildCommandContext on a user without a default guild!");
     }
 
-    @NotNull
+    @NotNull @Deprecated
     public Guild getJDAGuild() {
         if (isPublic()) {
             return publicEvent.getGuild();
@@ -51,6 +51,7 @@ public class GuildCommandContext extends CommandContext {
         return getAuthor().getDefaultGuildId();
     }
 
+    @Deprecated
     public Member getJDAMember() {
         if (isPublic()) {
             return publicEvent.getMember();

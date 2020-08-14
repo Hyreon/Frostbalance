@@ -1,34 +1,31 @@
 package botmanager.frostbalance.menu;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
+import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
 
 public class BanManageMenu extends Menu {
 
-    Guild guild;
-    User target;
-    String knownName;
+    GuildWrapper guild;
+    MemberWrapper target;
     Alternative outcome = Alternative.LOCAL;
 
-    public BanManageMenu(Frostbalance bot, Guild guild, User target) {
+    public BanManageMenu(Frostbalance bot, GuildWrapper guild, UserWrapper targetUser) {
         super(bot);
 
         this.guild = guild;
-        this.target = target;
+        this.target = targetUser.getMember(guild);
 
-        knownName = Utilities.getEffectiveName(guild, target);
-
-        if (bot.isBanned(guild, target)) {
+        if (target.getBanned()) {
             outcome = Alternative.FAILED;
         } else {
-            bot.banUser(guild, target);
+            target.setLocallyBanned(true);
         }
 
-        if (bot.isGloballyBanned(target) && !bot.isLocallyBanned(guild, target)) {
+        if (target.getUserWrapper().getGloballyBanned() && !target.getLocallyBanned()) {
             outcome = Alternative.INCOMPLETE;
         }
 
@@ -37,15 +34,15 @@ public class BanManageMenu extends Menu {
             @Override
             public void reactEvent() {
                 outcome = Alternative.GLOBAL;
-                bot.globallyBanUser(target);
-                bot.pardonUser(guild, target);
+                target.getUserWrapper().globalBan();
+                target.pardon();
                 close(false);
             }
 
             @Override
             public boolean validConditions() {
-                return bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.BOT_ADMIN) &&
-                        !bot.isGloballyBanned(target);
+                return actor.getMember(guild).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
+                        target.getUserWrapper().getGloballyBanned();
             }
         });
 
@@ -54,7 +51,7 @@ public class BanManageMenu extends Menu {
             @Override
             public void reactEvent() {
                 outcome = Alternative.LOCAL;
-                bot.banUser(guild, target);
+                target.ban();
                 close(false);
             }
 
@@ -69,7 +66,7 @@ public class BanManageMenu extends Menu {
             @Override
             public void reactEvent() {
                 outcome = Alternative.UNDONE;
-                bot.pardonUser(guild, target);
+                target.pardon();
                 close(false);
             }
 
@@ -82,16 +79,12 @@ public class BanManageMenu extends Menu {
 
     }
 
-    private Alternative getOutcome() {
-        return outcome;
-    }
-
     private String getMenuResponseName(Alternative outcome) {
         switch (outcome) {
             case GLOBAL:
                 switch (this.outcome) {
                     default:
-                        return "Make ban global";
+                        return "Globally ban instead";
                 }
             case LOCAL:
                 switch (this.outcome) {
@@ -116,25 +109,25 @@ public class BanManageMenu extends Menu {
     @Override
     public EmbedBuilder getMEBuilder() {
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setColor(bot.getGuildColor(guild));
+        builder.setColor(guild.getColor());
         if (outcome.equals(Alternative.GLOBAL)) {
-            builder.setTitle("**" + knownName + " globally banned**");
-            builder.setDescription("This player has been removed from **all** Frostbalance guilds, and will be immediately banned when entering any other one.");
+            builder.setTitle("**" + target.getEffectiveName() + " globally banned**");
+            builder.setDescription("This player has been instead removed from **all** Frostbalance guilds, and will be immediately banned when entering any one.");
         } else if (outcome.equals(Alternative.LOCAL)) {
-            builder.setTitle(knownName + " banned");
+            builder.setTitle(target.getEffectiveName() + " banned");
             builder.setDescription("This player has been removed from this Frostbalance guild and can no longer re-join it.");
         } else if (outcome.equals(Alternative.UNDONE)) {
-            builder.setTitle(knownName + " kicked");
+            builder.setTitle(target.getEffectiveName() + " kicked");
             builder.setDescription("This player has been removed from this Frostbalance guild, but is free to re-join when desired.");
         } else if (outcome.equals(Alternative.FAILED)) {
-            builder.setTitle("*" + knownName + " already banned*");
-            if (bot.isGloballyBanned(target)) {
+            builder.setTitle("*" + target.getEffectiveName() + " already banned*");
+            if (target.getUserWrapper().getGloballyBanned()) {
                 builder.setDescription("This player already has a system-enforced ban on **all** guilds, in addition to an existing ban for this guild.");
             } else {
                 builder.setDescription("This player already has a system-enforced ban on this guild.");
             }
         } else if (outcome.equals(Alternative.INCOMPLETE)) {
-            builder.setTitle("*" + knownName + " has global ban*");
+            builder.setTitle("*" + target.getEffectiveName() + " has global ban*");
             builder.setDescription("This player already has a system-enforced ban on **all** guilds. You can add a local ban in case this global ban is lifted.");
         }
         return builder;

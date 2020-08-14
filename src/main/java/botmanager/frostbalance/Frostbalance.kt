@@ -3,10 +3,6 @@ package botmanager.frostbalance
 import botmanager.IOUtils
 import botmanager.Utilities
 import botmanager.Utils
-import botmanager.frostbalance.GuildWrapper
-import botmanager.frostbalance.Nation
-import botmanager.frostbalance.OptionFlag
-import botmanager.frostbalance.UserWrapper
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.FrostbalanceCommandBase
 import botmanager.frostbalance.commands.admin.*
@@ -99,7 +95,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
         var targetMenu: Menu
         for (menu in getActiveMenus()) {
-            if (event.user == menu.actor) {
+            if (event.user == menu.jdaActor) {
                 try {
                     if (menu.message.id == event.messageId) {
                         targetMenu = menu
@@ -117,7 +113,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     override fun onPrivateMessageReactionAdd(event: PrivateMessageReactionAddEvent) {
         var targetMenu: Menu? = null
         for (menu in getActiveMenus()) {
-            if (event.user == menu.actor) {
+            if (event.user == menu.jdaActor) {
                 if (menu.message.id == event.messageId) {
                     targetMenu = menu
                     break
@@ -791,6 +787,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         softReset(guild)
     }
 
+    @Deprecated("")
     fun getAuthority(user: User): AuthorityLevel {
         return if (this.jda.selfUser.id == user.id) {
             AuthorityLevel.BOT
@@ -807,6 +804,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @param user The user that is operating
      * @return The authority level of the user
      */
+    @Deprecated("")
     fun getAuthority(guild: Guild?, user: User): AuthorityLevel {
         if (guild == null) return getAuthority(user)
         return if (this.jda.selfUser.id == user.id) {
@@ -826,10 +824,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
+    @Deprecated("")
     fun getAuthority(member: Member): AuthorityLevel {
         return getAuthority(member.guild, member.user)
     }
 
+    @Deprecated("")
     fun getAllegianceIn(guild: Guild): Nation {
         val flags = getSettings(guild)
         if (!flags.contains(OptionFlag.MAIN)) {
@@ -849,14 +849,19 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     @Deprecated("")
     fun getGuildColor(guild: Guild): Color {
         val flags = getSettings(guild)
-        return if (flags.contains(OptionFlag.RED)) {
-            Color.RED
-        } else if (flags.contains(OptionFlag.GREEN)) {
-            Color.GREEN
-        } else if (flags.contains(OptionFlag.BLUE)) {
-            Color.BLUE
-        } else {
-            Color.LIGHT_GRAY
+        return when {
+            flags.contains(OptionFlag.RED) -> {
+                Color.RED
+            }
+            flags.contains(OptionFlag.GREEN) -> {
+                Color.GREEN
+            }
+            flags.contains(OptionFlag.BLUE) -> {
+                Color.BLUE
+            }
+            else -> {
+                Color.LIGHT_GRAY
+            }
         }
     }
 
@@ -905,7 +910,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     fun saveUsers() {
         for (user in userWrappers) {
-            writeObject("users/" + user.userId, user)
+            writeObject("users/" + user.id, user)
         }
     }
 
@@ -951,14 +956,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             try {
                 if (jda.getUserById(userId) != null) {
                     val bUser = getUserWrapper(userId)
-                    println("User: " + bUser.user)
+                    println("User: " + bUser.jdaUser)
                     try {
                         bUser.legacyLoad(
-                                getMainAllegiance(Objects.requireNonNull(bUser.user)!!),
-                                getUserDefaultGuild(bUser.user)!!.id,
-                                isGloballyBanned(bUser.user),
-                                bUser.user!!.name,
-                                adminIds.contains(bUser.userId)
+                                getMainAllegiance(Objects.requireNonNull(bUser.jdaUser)!!),
+                                getUserDefaultGuild(bUser.jdaUser)!!.id,
+                                isGloballyBanned(bUser.jdaUser),
+                                bUser.jdaUser!!.name,
+                                adminIds.contains(bUser.id)
                         )
                         userWrappers.add(bUser)
                     } catch (e: Exception) {
@@ -1011,7 +1016,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val gson = gsonBuilder.create()
                 val userWrapper = gson.fromJson(IOUtils.read(file), UserWrapper::class.java)
                 userWrapper.load(this)
-                if (userWrapper.userId != null) { //impossible condition test
+                if (userWrapper.id != null) { //impossible condition test
                     userWrappers.add(userWrapper)
                 } else {
                     Thread.dumpStack()
@@ -1062,7 +1067,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @return
      */
     fun getUserWrapper(id: String): UserWrapper {
-        var botUser = userWrappers.stream().filter { user: UserWrapper -> user.userId == id }.findFirst()
+        var botUser = userWrappers.stream().filter { user: UserWrapper -> user.id == id }.findFirst()
         if (!botUser.isPresent) {
             val user = jda.getUserById(id)
             botUser = if (user == null) {

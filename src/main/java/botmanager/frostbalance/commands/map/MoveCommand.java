@@ -12,16 +12,11 @@ public class MoveCommand extends FrostbalanceGuildCommandBase {
     public MoveCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "move",
-        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
     protected void executeWithGuild(GuildCommandContext context, String... params) {
-
-        if (context.getJDAGuild() == null) {
-            context.sendResponse("You need to have a default guild set with `.guild` in order to move on its map.");
-            return;
-        }
 
         PlayerCharacter player = PlayerCharacter.get(context.getJDAUser(), context.getJDAGuild());
         Hex destination;
@@ -38,7 +33,7 @@ public class MoveCommand extends FrostbalanceGuildCommandBase {
         }
 
         player.setDestination(destination);
-        context.sendResponse(context.getJDAMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
+        context.sendResponse(context.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
         + player.getTravelTime() + ".");
 
     }

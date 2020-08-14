@@ -8,10 +8,7 @@ import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
 import botmanager.frostbalance.command.GuildCommandContext
 import java.util.*
 
-/**
- *
- * @author MC_2018 <mc2018.git></mc2018.git>@gmail.com>
- */
+//FIXME `.support Shade` returns an error with no error message.
 class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
         "support",
         "s"
@@ -25,7 +22,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
         val targetUser = bot.getUserByName(targetName)
         if (targetUser == null) {
             resultLines.add("Could not find user '$targetName'.")
-            context.sendResponse(resultLines)
+            context.sendEmbedResponse(resultLines)
             return
         }
         val targetMember = targetUser.getMember(context.guild.id)
@@ -34,19 +31,19 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
             resultLines.add("You don't have that much influence to give. You will instead use all of your influence.")
         } else if (transferAmount.isNegative || !transferAmount.isNonZero) { //'else' allows you to bluff when you have 0 influence.
             resultLines.add("You have to spend *some* influence to support someone.")
-            context.sendResponse(resultLines)
+            context.sendEmbedResponse(resultLines)
             return
         }
         if (targetMember == bMember) {
             resultLines.add("You support yourself with " + transferAmount + " influence in " + context.jdaGuild.name + ". You should return the favor.")
-            context.sendResponse(resultLines)
+            context.sendEmbedResponse(resultLines)
             return
         }
         bMember.adjustInfluence(transferAmount.negate())
         if (context.isPublic) {
             context.message.delete().queue()
             resultLines.add(bMember.effectiveName + " has *supported* " + targetMember.effectiveName + ", increasing their influence here.")
-            Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("%s has *supported* you, increasing your influence in %s by %s.",
+            Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("%s has *supported* you, increasing your influence in %s by %s.",
                     bMember.effectiveName,
                     context.guild!!.name,
                     transferAmount))
@@ -55,7 +52,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
 
             if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
                 resultLines.add("You have *supported* " + targetMember.effectiveName + " secretly, increasing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
-                Utilities.sendPrivateMessage(targetMember.userWrapper.user, String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
+                Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
                         context.guild!!.name,
                         transferAmount.applyModifier(PRIVATE_MODIFIER)))
                 targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER))
@@ -70,7 +67,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
                 bMember.adjustInfluence(transferAmount)
             }
         }
-        context.sendResponse(resultLines)
+        context.sendEmbedResponse(resultLines)
         return
     }
 

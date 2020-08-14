@@ -124,4 +124,9 @@ public class Claim implements Containable<ClaimData> {
     private String ownerName() {
         return Frostbalance.bot.getUserWrapper(getUserId()).getName();
     }
+
+    @Override
+    public void setParent(ClaimData parent) {
+        claimData = parent;
+    }
 }

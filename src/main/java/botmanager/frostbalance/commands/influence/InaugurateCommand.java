@@ -6,6 +6,7 @@ import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
 import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.menu.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
 
 public class InaugurateCommand extends FrostbalanceGuildCommandBase {
@@ -63,11 +64,14 @@ public class InaugurateCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        context.getGuild().inaugurate(targetMember.getMember());
+        new ConfirmationMenu(bot, () -> {
 
-        result = "**" + authorAsMember.getEffectiveName() + "** has transferred ownership to " +
-                targetMember.getMember().getAsMention() + " for this server.";
-        context.sendResponse(result);
+            context.getGuild().inaugurate(targetMember.getMember());
+
+            context.sendResponse("**" + authorAsMember.getEffectiveName() + "** has transferred ownership to " +
+                    targetMember.getMember().getAsMention() + " for this server.");
+
+        }, "This will remove all of your abilities as leader, and grant those abilities to " + targetMember.getMember().getAsMention() + ".\nAre you sure?");
 
     }
 }

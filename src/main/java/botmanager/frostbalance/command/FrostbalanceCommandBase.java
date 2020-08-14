@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class FrostbalanceCommandBase implements ICommand {
@@ -26,7 +27,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
     public FrostbalanceCommandBase(Frostbalance bot, String[] aliases, AuthorityLevel authorityLevel, Condition... conditions) {
         this.bot = bot;
         this.aliases = aliases;
-        this.conditions = new ArrayList(Arrays.asList(conditions));
+        this.conditions = new ArrayList<>(Arrays.asList(conditions));
         requiredAuthority = authorityLevel;
     }
 
@@ -72,11 +73,16 @@ public abstract class FrostbalanceCommandBase implements ICommand {
 
             long startTime = System.nanoTime();
 
-            execute(context, parameters);
+            try {
+                execute(context, parameters);
+            } catch (Exception e) {
+                e.printStackTrace();
+                context.sendEmbedResponse(new ArrayList<>(Collections.singleton("An internal error occurred when performing this command.")));
+            }
 
             long stopTime = System.nanoTime();
             long elapsedTime = stopTime - startTime;
-            System.out.println(elapsedTime + " nanoseconds to execute " + getClass().getCanonicalName());
+            System.out.println((elapsedTime * 1e-9) + " seconds to execute " + getClass().getSimpleName());
         } else {
 
             execute(context, parameters);

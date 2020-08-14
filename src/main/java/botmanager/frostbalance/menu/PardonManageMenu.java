@@ -1,34 +1,31 @@
 package botmanager.frostbalance.menu;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
+import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
 
 public class PardonManageMenu extends Menu {
 
-    Guild guild;
-    User target;
-    String knownName;
+    GuildWrapper guild;
+    MemberWrapper target;
     Alternative outcome = Alternative.CONFIRM;
 
-    public PardonManageMenu(Frostbalance bot, Guild guild, User target) {
+    public PardonManageMenu(Frostbalance bot, GuildWrapper guild, UserWrapper targetUser) {
         super(bot);
 
         this.guild = guild;
-        this.target = target;
+        this.target = targetUser.getMember(guild);
 
-        knownName = Utilities.getEffectiveName(guild, target);
-
-        if (!bot.isBanned(guild, target)) {
+        if (!target.getBanned()) {
             outcome = Alternative.FAILED;
         } else {
-            bot.pardonUser(guild, target);
+            target.pardon();
         }
 
-        if (bot.isGloballyBanned(target) && !bot.isLocallyBanned(guild, target)) {
+        if (target.getUserWrapper().getGloballyBanned() && !target.getLocallyBanned()) {
             outcome = Alternative.INCOMPLETE;
         }
 
@@ -37,14 +34,14 @@ public class PardonManageMenu extends Menu {
             @Override
             public void reactEvent() {
                 outcome = Alternative.GLOBAL;
-                bot.globallyPardonUser(target);
+                target.getUserWrapper().globalPardon();
                 close(false);
             }
 
             @Override
             public boolean validConditions() {
-                return bot.getAuthority(guild, getActor()).hasAuthority(AuthorityLevel.BOT_ADMIN) &&
-                        bot.isGloballyBanned(target);
+                return actor.getMember(guild).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
+                        target.getUserWrapper().getGloballyBanned();
             }
         });
 
@@ -66,7 +63,7 @@ public class PardonManageMenu extends Menu {
             @Override
             public void reactEvent() {
                 outcome = Alternative.UNDONE;
-                bot.banUser(guild, target);
+                target.ban();
                 close(false);
             }
 
@@ -112,21 +109,21 @@ public class PardonManageMenu extends Menu {
     @Override
     public EmbedBuilder getMEBuilder() {
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setColor(bot.getGuildColor(guild));
+        builder.setColor(guild.getColor());
         if (outcome.equals(Alternative.GLOBAL)) {
-            builder.setTitle("**" + knownName + " globally pardoned**");
-            builder.setDescription("This player has been allowed into **all** Frostbalance guilds, and all bans have been lifted.");
+            builder.setTitle("**" + target.getEffectiveName() + " globally pardoned**");
+            builder.setDescription("This player is no longer banned in **all** Frostbalance guilds, and all bans have been lifted.");
         } else if (outcome.equals(Alternative.CONFIRM)) {
-            builder.setTitle(knownName + " pardoned");
+            builder.setTitle(target.getEffectiveName() + " pardoned");
             builder.setDescription("This player has been allowed into this Frostbalance guild and can now re-join it.");
         } else if (outcome.equals(Alternative.UNDONE)) {
-            builder.setTitle(knownName + " banned");
+            builder.setTitle(target.getEffectiveName() + " banned");
             builder.setDescription("This player has been removed from this Frostbalance guild and can no longer re-join it.");
         } else if (outcome.equals(Alternative.FAILED)) {
-            builder.setTitle("*" + knownName + " not banned*");
+            builder.setTitle("*" + target.getEffectiveName() + " not banned*");
             builder.setDescription("This player isn't banned from this guild.");
         } else if (outcome.equals(Alternative.INCOMPLETE)) {
-            builder.setTitle("*" + knownName + " has global ban*");
+            builder.setTitle("*" + target.getEffectiveName() + " has global ban*");
             builder.setDescription("This player already has a system-enforced ban on **all** guilds.");
         }
         return builder;

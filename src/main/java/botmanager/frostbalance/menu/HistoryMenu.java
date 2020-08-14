@@ -1,9 +1,9 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.data.RegimeData;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
 
 import java.awt.*;
 import java.util.List;
@@ -16,9 +16,9 @@ public class HistoryMenu extends Menu {
     List<RegimeData> regimeList;
     int page = 1; //1-indexed.
 
-    Guild guildContext;
+    GuildWrapper guildContext;
 
-    public HistoryMenu(Frostbalance bot, List<RegimeData> regimeList, int page, Guild guildContext) {
+    public HistoryMenu(Frostbalance bot, List<RegimeData> regimeList, int page, GuildWrapper guildContext) {
         super(bot);
         this.regimeList = regimeList;
         this.page = page;
@@ -106,7 +106,7 @@ public class HistoryMenu extends Menu {
         if (closed) {
             embedBuilder.setColor(Color.DARK_GRAY);
         } else {
-            embedBuilder.setColor(bot.getGuildColor(guildContext));
+            embedBuilder.setColor(guildContext.getColor());
         }
         embedBuilder.setTitle("\nPage " + page + "/" + maxPages());
         embedBuilder.setDescription(displayRecords());
@@ -116,7 +116,7 @@ public class HistoryMenu extends Menu {
     private String displayRecords() {
 
         List<RegimeData> sublist = regimeList.subList((page - 1) * HISTORY_PAGE_SIZE, Math.min(page * HISTORY_PAGE_SIZE, regimeList.size()));
-        List<String> displayList = sublist.stream().map(regimeData -> regimeData.forHumans()).collect(Collectors.toList());
+        List<String> displayList = sublist.stream().map(RegimeData::forHumans).collect(Collectors.toList());
 
         return String.join("\n", displayList);
 

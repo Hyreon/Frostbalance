@@ -27,9 +27,9 @@ public abstract class Menu {
         this.bot = bot;
     }
 
-    public void send(MessageChannel channel, User actor) {
+    public void send(MessageChannel channel, UserWrapper actor) {
         bot.addMenu(this);
-        this.actor = bot.getUserWrapper(actor.getId());
+        this.actor = actor;
         MessageEmbed me = getME();
         if (me.getImage() != null) {
             String fileName = me.getImage().getUrl().replace("attachment://", "");
@@ -38,6 +38,10 @@ public abstract class Menu {
             message = channel.sendMessage(me).complete();
         }
         updateEmojis();
+    }
+
+    public void send(MessageChannel channel, User actor) {
+        send(channel, bot.getUserWrapper(actor.getId()));
     }
 
     public void updateMessage() {
@@ -120,8 +124,13 @@ public abstract class Menu {
         }
     }
 
-    public User getActor() {
-        return actor.getUser();
+    @Deprecated
+    public User getJdaActor() {
+        return actor.getJdaUser();
+    }
+
+    public UserWrapper getActor() {
+        return actor;
     }
 
     /*

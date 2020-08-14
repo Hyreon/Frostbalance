@@ -3,11 +3,9 @@ package botmanager.frostbalance.command;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.UserWrapper;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
@@ -88,8 +86,14 @@ public class CommandContext {
         }
     }
 
-    public void sendResponse(List<String> resultLines) {
-        sendResponse(String.join("\n", resultLines));
+    public void sendEmbedResponse(List<String> resultLines) {
+        String message = String.join("\n", resultLines);
+        MessageEmbed messageEmbed = new EmbedBuilder().setDescription(message).build();
+        if (isPublic()) {
+            Utilities.sendGuildMessage((TextChannel) getChannel(), messageEmbed);
+        } else {
+            Utilities.sendPrivateMessage(getJDAUser(), messageEmbed);
+        }
     }
 
     public void sendPrivateResponse(String message) {

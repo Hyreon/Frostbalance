@@ -13,14 +13,14 @@ public class FlagCommand extends FrostbalanceGuildCommandBase {
         super(bot, new String[] {
                 "flags",
                 "settings"
-        }, AuthorityLevel.GENERIC, Condition.GUILD_EXISTS);
+        }, AuthorityLevel.GENERIC);
     }
 
     @Override
     public void executeWithGuild(GuildCommandContext context, String... params) {
         String result = "";
 
-        new FlagMenu(bot, context.getGuild()).send(context.getChannel(), context.getJDAUser());
+        new FlagMenu(bot, context.getGuild()).send(context.getChannel(), context.getAuthor());
 
     }
 

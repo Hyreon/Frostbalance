@@ -57,6 +57,16 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
             Color.LIGHT_GRAY
         }
 
+    override fun toString() : String = if (isOnline()) name!! else name?.let { "~~$it~~" }?:"*Inaccessible Guild*"
+
+    fun isOnline(): Boolean {
+        return guild != null
+    }
+
+    fun getMember(user: UserWrapper): MemberWrapper {
+        return user.getMember(id)
+    }
+
     /**
      * Returns a modifiable clone of this server's records.
      */

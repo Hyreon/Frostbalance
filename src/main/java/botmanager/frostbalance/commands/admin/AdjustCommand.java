@@ -57,7 +57,7 @@ public class AdjustCommand extends FrostbalanceGuildCommandBase {
                         + " has been noted, giving them " + amount + " influence.");
 
         if (amount.isNonZero()) {
-            Utilities.sendPrivateMessage(recipient.getUserWrapper().getUser(),
+            Utilities.sendPrivateMessage(recipient.getUserWrapper().getJdaUser(),
                     context.getMember().getEffectiveName() + " has adjusted your influence, changing it by " + amount + " in " +
                             context.getGuild().getName() + ".");
         }

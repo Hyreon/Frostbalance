@@ -47,7 +47,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return !enabling && bot.getMemberWrapper(getActor().getId(), bGuild.getId()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return !enabling && getActor().getMember(bGuild).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -61,7 +61,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return enabling && bot.getMemberWrapper(getActor().getId(), bGuild.getId()).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return enabling && getActor().getMember(bGuild).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -80,7 +80,7 @@ public class FlagMenu extends Menu {
     }
 
     private boolean isToggleable(OptionFlag flag) {
-        return (bGuild.hasFlag(flag) ^ enabling) && bot.getMemberWrapper(getActor().getId(), bGuild.getId()).hasAuthority(flag.getAuthorityToChange());
+        return (bGuild.hasFlag(flag) ^ enabling) && getActor().getMember(bGuild).hasAuthority(flag.getAuthorityToChange());
     }
 
     @Override
