@@ -1,6 +1,8 @@
 package botmanager.frostbalance
 
 import botmanager.frostbalance.command.AuthorityLevel
+import botmanager.frostbalance.grid.Containable
+import botmanager.frostbalance.grid.Container
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
@@ -14,7 +16,10 @@ import java.util.*
  * guaranteed to share any server with the main bot; this is intentional, so that players who
  * cease to play (or are banned) do not cease the game's functionality.
  */
-class UserWrapper(bot: Frostbalance, userId: String) {
+class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Frostbalance> {
+
+    val authority: AuthorityLevel
+     get() = minimumAuthorityLevel
 
     @Transient
     var bot: Frostbalance = bot
@@ -85,13 +90,6 @@ class UserWrapper(bot: Frostbalance, userId: String) {
         minimumAuthorityLevel = if (isBotAdmin) AuthorityLevel.BOT_ADMIN else AuthorityLevel.GENERIC
     }
 
-    fun load(frostbalance: Frostbalance) {
-        bot = frostbalance
-        for (memberWrapper in memberReference) {
-            memberWrapper.userWrapper = this
-        }
-    }
-
     fun globalBan() {
         globallyBanned = true
         for (member in memberReference) {
@@ -128,4 +126,14 @@ class UserWrapper(bot: Frostbalance, userId: String) {
 
     val User.wrapper: UserWrapper
         get() = bot.getUserWrapper(id)
+
+    override fun adopt() {
+        for (member in memberReference) {
+            member.setParent(this)
+        }
+    }
+
+    override fun setParent(parent: Frostbalance) {
+        bot = parent
+    }
 }

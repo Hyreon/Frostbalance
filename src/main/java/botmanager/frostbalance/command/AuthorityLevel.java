@@ -2,22 +2,20 @@ package botmanager.frostbalance.command;
 
 public enum AuthorityLevel {
 
+    /**
+     * Possessed by all users.
+     */
+    GENERIC(0),
 
     /**
-     * Possessed by the Bot itself and by Shade. There is no higher level of authority.
+     * Possessed by users with administrator privileges in the guild
      */
-    BOT(6),
+    SERVER_ADMIN(1),
 
     /**
-     * Possessed by manually whitelisted Discord user ids.
+     * Possessed by users with the leader rank in the guild
      */
-    BOT_ADMIN(5),
-
-    /**
-     * Possessed by the user who owns the guild - in some contexts this rank
-     * doesn't make sense
-     */
-    GUILD_OWNER(4),
+    SERVER_LEADER(2),
 
     /**
      * Possessed by users with the Frostbalance rank in the guild - in some
@@ -26,19 +24,21 @@ public enum AuthorityLevel {
     GUILD_ADMIN(3),
 
     /**
-     * Possessed by users with the leader rank in the guild
+     * Possessed by the user who owns the guild - in some contexts this rank
+     * doesn't make sense
      */
-    SERVER_LEADER(2),
+    GUILD_OWNER(4),
 
     /**
-     * Possessed by users with administrator privileges in the guild
+     * Possessed by manually whitelisted Discord user ids.
      */
-    SERVER_ADMIN(1),
+    BOT_ADMIN(5),
+
 
     /**
-     * Possessed by all users.
+     * Possessed by the Bot itself and by Shade. There is no higher level of authority.
      */
-    GENERIC(0);
+    BOT(6);
 
     int rank;
 

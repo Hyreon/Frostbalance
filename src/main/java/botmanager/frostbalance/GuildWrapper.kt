@@ -4,6 +4,7 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance.Companion.bot
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
+import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.WorldMap
 import lombok.Getter
 import net.dv8tion.jda.api.JDA
@@ -15,7 +16,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
 
-class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
+class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance> {
 
     constructor(bot: Frostbalance, guild: Guild) : this(bot, guild.id) {
         this.bot = bot
@@ -114,13 +115,6 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
         leaderId = member.id
     }
 
-    fun load(frostbalance: Frostbalance) {
-        bot = frostbalance
-        for (regimeData in regimes) {
-            regimeData.guildWrapper = this
-        }
-    }
-
     fun loadLegacy(Settings: MutableSet<OptionFlag>, Records: MutableList<RegimeData>, OwnerId: String, Name: String) {
         optionFlags = Settings
         regimes = Records
@@ -159,7 +153,7 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
         return optionFlags.contains(flag)
     }
 
-    private val leaderRole: Role
+    val leaderRole: Role
         get() = {
             if (guild == null) {
                 throw IllegalStateException("Tried to get the leader role in a non-existent guild!")
@@ -183,7 +177,7 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
             }
         }.invoke()
 
-    private val systemRole: Role
+    val systemRole: Role
         get() = {
             if (guild == null) {
                 throw IllegalStateException("Tried to get the leader role in a non-existent guild!")
@@ -215,5 +209,9 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) {
     companion object {
         val Guild.wrapper: GuildWrapper
             get() = bot.getGuildWrapper(id)
+    }
+
+    override fun setParent(parent: Frostbalance) {
+        bot = parent
     }
 }

@@ -1,15 +1,10 @@
 package botmanager.frostbalance.grid;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class Tile implements Containable<WorldMap>, Container<TileData> {
+public class Tile implements Containable<WorldMap>, Container {
 
     transient WorldMap map;
 
@@ -56,13 +51,6 @@ public class Tile implements Containable<WorldMap>, Container<TileData> {
         return claimData;
     }
 
-    @Override
-    public TileData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        TileData tileData = context.deserialize(json, TileData.class);
-        tileData.setParent(this);
-        return tileData;
-    }
-
     public void removeObject(TileObject tileObject) {
         this.objects.remove(tileObject);
     }
@@ -70,5 +58,13 @@ public class Tile implements Containable<WorldMap>, Container<TileData> {
     @Override
     public void setParent(WorldMap parent) {
         this.map = parent;
+    }
+
+    @Override
+    public void adopt() {
+        for (TileObject tileObject: objects) {
+            tileObject.setParent(this);
+        }
+        claimData.setParent(this);
     }
 }

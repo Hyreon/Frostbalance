@@ -3,6 +3,7 @@ package botmanager.frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.grid.Containable
 import net.dv8tion.jda.api.JDA
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
@@ -12,7 +13,26 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
 
 
     val authority: AuthorityLevel
-        get() = bot.getAuthority(guildWrapper.guild!!, userWrapper.jdaUser!!)
+        get() = {
+            when {
+                guild?.owner?.user?.id == userId -> {
+                    AuthorityLevel.GUILD_OWNER
+                }
+                member?.roles?.contains(guildWrapper.systemRole) ?: false -> {
+                    AuthorityLevel.GUILD_ADMIN
+                }
+                member?.roles?.contains(guildWrapper.leaderRole) ?: false -> {
+                    AuthorityLevel.SERVER_LEADER
+                }
+                member?.hasPermission(Permission.ADMINISTRATOR) ?: false -> {
+                    AuthorityLevel.SERVER_ADMIN
+                }
+                else -> {
+                    AuthorityLevel.GENERIC
+                }
+            }
+        }.invoke().coerceAtLeast(userWrapper.authority)
+
     private var lastKnownNickname: String?
 
     var influence: Influence = Influence(0)

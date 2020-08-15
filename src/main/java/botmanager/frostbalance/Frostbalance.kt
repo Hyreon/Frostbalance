@@ -14,6 +14,7 @@ import botmanager.frostbalance.commands.map.ViewMapCommand
 import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
+import botmanager.frostbalance.grid.Container
 import botmanager.frostbalance.grid.WorldMap
 import botmanager.frostbalance.menu.Menu
 import botmanager.generic.BotBase
@@ -163,14 +164,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             }
             try {
                 val effectToUse = javaClass.classLoader.getResource("icon_tweak/effect.png")
-                val baseImage = ImageIO.read(connection!!.inputStream)
+                val baseImage = ImageIO.read(connection.inputStream)
                 val effect = ImageIO.read(File(effectToUse.file))
 
                 //FIXME cause this to work on smaller images
                 //FIXME increase image intensity
                 run {
                     val effectChanges = effect.createGraphics()
-                    effectChanges.scale(baseImage.width.toFloat() / effect.width as Double, baseImage.height.toFloat() / effect.height as Double)
+                    effectChanges.scale(baseImage.width.toFloat() / effect.width.toDouble(), baseImage.height.toFloat() / effect.height.toDouble())
                     effectChanges.composite = AlphaComposite.SrcAtop
                     effectChanges.color = getGuildColor(event.guild)
                     effectChanges.fillRect(0, 0, effect.width, effect.height)
@@ -276,7 +277,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     private val adminIds: List<String>
-        private get() = Utilities.readLines(File("data/$name/staff.csv"))
+        get() = Utilities.readLines(File("data/$name/staff.csv"))
 
     @Deprecated("")
     fun loadRecords(guild: Guild?) {
@@ -1009,13 +1010,19 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    fun loadUsers() {
+    private fun loadUsers() {
+        val gsonBuilder = GsonBuilder()
+        gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
+        val gson = gsonBuilder.create()
+        println(gson.getAdapter(Container::class.java))
         for (file in File("data/$name/users").listFiles()) {
             if (file.exists()) {
-                val gsonBuilder = GsonBuilder()
-                val gson = gsonBuilder.create()
                 val userWrapper = gson.fromJson(IOUtils.read(file), UserWrapper::class.java)
-                userWrapper.load(this)
+                userWrapper.setParent(this)
+                userWrapper.adopt() //TODO auto-adopt, which is what containerAdapter should be doing
+                //but it's not doing its job
+                //so >:(
+                println(userWrapper.memberReference)
                 if (userWrapper.id != null) { //impossible condition test
                     userWrappers.add(userWrapper)
                 } else {
@@ -1025,13 +1032,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    fun loadGuilds() {
+    private fun loadGuilds() {
         for (file in File("data/$name/guilds").listFiles()) {
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
+                gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 val gson = gsonBuilder.create()
                 val guildWrapper = gson.fromJson(IOUtils.read(file), GuildWrapper::class.java)
-                guildWrapper.load(this)
+                guildWrapper.setParent(this)
                 if (guildWrapper.id != null) { //impossible condition test
                     guildWrappers.add(guildWrapper)
                 } else {
@@ -1041,7 +1049,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<*>?, TypeAdapter<*>?>) {
+    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<*>?, TypeAdapter<*>?>) {
         val file = File("data/$name/$filename.json")
         val gsonBuilder = GsonBuilder()
         for (typeAdapterPair in typeAdapters) {
@@ -1051,11 +1059,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         IOUtils.write(file, gson.toJson(`object`))
     }
 
-    fun getUserName(userId: String?): String {
-        return jda.getUserById(userId!!)!!.name
-    }
-
-    @Deprecated("")
+    @Deprecated("", ReplaceWith("member.gainDailyInfluence()"))
     fun gainDailyInfluence(member: Member): Influence {
         return gainDailyInfluence(member, DailyInfluenceSource.DAILY_INFLUENCE_CAP)
     }

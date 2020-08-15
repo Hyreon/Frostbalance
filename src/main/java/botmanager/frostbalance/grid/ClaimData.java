@@ -3,15 +3,11 @@ package botmanager.frostbalance.grid;
 import botmanager.Utils;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ClaimData extends TileData implements Container<Claim> {
+public class ClaimData extends TileData implements Container {
 
     /**
      * The strength of each players' claim to a specific tile. See Claim for details.
@@ -194,10 +190,10 @@ public class ClaimData extends TileData implements Container<Claim> {
     }
 
     @Override
-    public Claim deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        Claim claim = context.deserialize(json, ClaimData.class);
-        claim.setParent(this);
-        return claim;
+    public void adopt() {
+        for (Claim claim: claims) {
+            claim.setParent(this);
+        }
     }
 
     public String getClaimList() {

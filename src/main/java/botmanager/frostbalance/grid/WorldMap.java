@@ -5,11 +5,11 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.OptionFlag;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.io.File;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */
-public class WorldMap implements Container<Tile> {
+public class WorldMap implements Container {
 
     @Deprecated
     static List<WorldMap> worldMaps = new ArrayList<>();
@@ -176,9 +176,9 @@ public class WorldMap implements Container<Tile> {
     }
 
     @Override
-    public Tile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        Tile tile = context.deserialize(json, Tile.class);
-        tile.setParent(this);
-        return tile;
+    public void adopt() {
+        for (Tile tile : loadedTiles) {
+            tile.setParent(this);
+        }
     }
 }
