@@ -67,4 +67,8 @@ public class Tile implements Containable<WorldMap>, Container {
         }
         claimData.setParent(this);
     }
+
+    public boolean isEmpty() {
+        return claimData.getClaims().isEmpty() && objects.isEmpty();
+    }
 }

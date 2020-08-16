@@ -25,7 +25,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
             context.sendEmbedResponse(resultLines)
             return
         }
-        val targetMember = targetUser.getMember(context.guild.id)
+        val targetMember = targetUser.memberIn(context.guild.id)
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to give. You will instead use all of your influence.")

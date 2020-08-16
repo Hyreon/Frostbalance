@@ -47,9 +47,17 @@ import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 
 class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
-    var userWrappers: MutableList<UserWrapper> = ArrayList()
-    private val guildWrappers: MutableList<GuildWrapper> = ArrayList()
-    var mainMap: WorldMap? = null
+
+    private val gameNetworks: MutableList<GameNetwork> = ArrayList()
+    private val userWrappers: MutableList<UserWrapper> = ArrayList()
+
+    var mainNetwork: GameNetwork
+        get() = gameNetworks[0]
+        set(it) = {
+            gameNetworks.remove(it)
+            gameNetworks.add(0, it)
+        }.invoke()
+
     var regimes: Map<Guild?, MutableList<RegimeData>?> = HotMap()
     private val activeMenus: MutableList<Menu> = ArrayList()
     private val guildIconCache: MutableList<Guild> = ArrayList()
@@ -61,21 +69,15 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             e.printStackTrace()
         }
         try {
-            loadGuilds()
-        } catch (e: NullPointerException) {
-            e.printStackTrace()
-        }
-        try {
-            loadMaps()
+            loadGames()
         } catch (e: NullPointerException) {
             e.printStackTrace()
         }
     }
 
     override fun shutdown() {
-        saveMaps()
         saveUsers()
-        saveGuilds()
+        saveGames()
     }
 
     val prefix: String
@@ -130,13 +132,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         val guildFlags = getSettings(event.guild)
         if (urlString == null) {
             val iconNameToUse: String
-            iconNameToUse = if (!guildFlags.contains(OptionFlag.MAIN)) {
+            iconNameToUse = if (!guildFlags.contains(OldOptionFlag.MAIN)) {
                 "icon_tweak/snowflake.png"
-            } else if (guildFlags.contains(OptionFlag.RED)) {
+            } else if (guildFlags.contains(OldOptionFlag.RED)) {
                 "icon_tweak/snowflake_r.png"
-            } else if (guildFlags.contains(OptionFlag.GREEN)) {
+            } else if (guildFlags.contains(OldOptionFlag.GREEN)) {
                 "icon_tweak/snowflake_g.png"
-            } else if (guildFlags.contains(OptionFlag.BLUE)) {
+            } else if (guildFlags.contains(OldOptionFlag.BLUE)) {
                 "icon_tweak/snowflake_b.png"
             } else {
                 "icon_tweak/snowflake_w.png"
@@ -150,7 +152,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 System.err.println("Cannot put in the default guild icon: the file " + iconToUse + "didn't load correctly!")
                 e.printStackTrace()
             }
-        } else if (guildFlags.contains(OptionFlag.MAIN)) {
+        } else if (guildFlags.contains(OldOptionFlag.MAIN)) {
             var connection: HttpURLConnection? = null
             try {
                 val url = URL(urlString)
@@ -226,7 +228,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             event.guild.retrieveBan(event.user).complete() //verify this player was banned and didn't just leave
             if (hasDiplomatStatus(event.user)
                     && !isBanned(event.guild, event.user)
-                    && getSettings(event.guild).contains(OptionFlag.MAIN)) {
+                    && getSettings(event.guild).contains(OldOptionFlag.MAIN)) {
                 event.guild.unban(event.user).complete()
                 Utilities.sendGuildMessage(event.guild.defaultChannel,
                         event.user.name + " has been unbanned because they are the leader of a main server.")
@@ -498,7 +500,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     @Deprecated("")
     fun hasDiplomatStatus(user: User): Boolean {
         for (guild in jda.guilds) {
-            if (getSettings(guild).contains(OptionFlag.MAIN) && getOwner(guild)!!.user == user) {
+            if (getSettings(guild).contains(OldOptionFlag.MAIN) && getOwner(guild)!!.user == user) {
                 return true
             }
         }
@@ -515,51 +517,51 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     @Deprecated("")
-    fun getSettings(guild: Guild): Collection<OptionFlag> {
-        val debugFlags: MutableCollection<OptionFlag> = HashSet()
+    fun getSettings(guild: Guild): Collection<OldOptionFlag> {
+        val debugFlagOlds: MutableCollection<OldOptionFlag> = HashSet()
         val flags = Utilities.readLines(File("data/" + name + "/" + guild.id + "/flags.csv"))
         for (flag in flags) {
-            debugFlags.add(OptionFlag.valueOf(flag!!))
+            debugFlagOlds.add(OldOptionFlag.valueOf(flag!!))
         }
-        return debugFlags
+        return debugFlagOlds
     }
 
     /**
      * Flips a flag for a guild.
      * @param guild
-     * @param toggledFlag
+     * @param toggledFlagOld
      * @return Whether the debug flag got turned on (TRUE) or off (FALSE)
      */
     @Deprecated("")
-    fun flipFlag(guild: Guild, toggledFlag: OptionFlag): Boolean {
-        return if (getSettings(guild).contains(toggledFlag)) {
-            removeDebugFlag(guild, toggledFlag)
+    fun flipFlag(guild: Guild, toggledFlagOld: OldOptionFlag): Boolean {
+        return if (getSettings(guild).contains(toggledFlagOld)) {
+            removeDebugFlag(guild, toggledFlagOld)
             false
         } else {
             for (previousFlag in getSettings(guild)) {
-                if (previousFlag.isExclusiveWith(toggledFlag)) {
+                if (previousFlag.isExclusiveWith(toggledFlagOld)) {
                     removeDebugFlag(guild, previousFlag)
                 }
             }
-            addDebugFlag(guild, toggledFlag)
+            addDebugFlag(guild, toggledFlagOld)
             true
         }
     }
 
     @Deprecated("")
-    fun addDebugFlag(guild: Guild, debugFlag: OptionFlag) {
+    fun addDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
         val file = File("data/" + name + "/" + guild.id + "/flags.csv")
-        Utilities.append(file, debugFlag.toString())
+        Utilities.append(file, debugFlagOld.toString())
     }
 
     @Deprecated("")
-    fun removeDebugFlag(guild: Guild, debugFlag: OptionFlag) {
+    fun removeDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
         val file = File("data/" + name + "/" + guild.id + "/flags.csv")
         val lines = Utilities.readLines(file)
         val i = lines.iterator()
         while (i.hasNext()) {
             val line = i.next()
-            if (debugFlag == OptionFlag.valueOf(line)) {
+            if (debugFlagOld == OldOptionFlag.valueOf(line)) {
                 i.remove()
                 break
             }
@@ -631,6 +633,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             changeUserInfluence(member, influenceGained)
             influenceGained
         }
+    }
+
+    @Deprecated("", ReplaceWith("member.gainDailyInfluence()"))
+    fun gainDailyInfluence(member: Member): Influence {
+        return gainDailyInfluence(member, DailyInfluenceSource.DAILY_INFLUENCE_CAP)
     }
 
     @Deprecated("")
@@ -706,14 +713,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     @Deprecated("")
-    fun setMainAllegiance(user: User, nation: Nation) {
-        setUserCSVAtIndex(null, user, 1, nation.toString())
+    fun setMainAllegiance(user: User, nationColor: NationColor) {
+        setUserCSVAtIndex(null, user, 1, nationColor.toString())
     }
 
     @Deprecated("")
-    fun getMainAllegiance(user: User): Nation {
+    fun getMainAllegiance(user: User): NationColor {
         val allegiance = getUserCSVAtIndex(null, user.id, 1)
-        return if (Utils.isNullOrEmpty(allegiance)) Nation.NONE else Nation.valueOf(allegiance)
+        return if (Utils.isNullOrEmpty(allegiance)) NationColor.NONE else NationColor.valueOf(allegiance)
     }
 
     @Deprecated("")
@@ -728,7 +735,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     fun loadLegacy() {
         loadUsersFromCSV()
         loadMembersFromCSV()
+        loadGamesFromCSV()
         loadGuildsFromCSV()
+        loadMapsLegacy()
     }
 
     override fun getCommands(): Array<FrostbalanceCommandBase> {
@@ -817,9 +826,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         } else if (guild.getMember(user)!!.roles.contains(getSystemRole(guild))) {
             AuthorityLevel.GUILD_ADMIN
         } else if (guild.getMember(user)!!.roles.contains(getOwnerRole(guild))) {
-            AuthorityLevel.SERVER_LEADER
+            AuthorityLevel.NATION_LEADER
         } else if (guild.getMember(user)!!.hasPermission(Permission.ADMINISTRATOR)) {
-            AuthorityLevel.SERVER_ADMIN
+            AuthorityLevel.NATION_ADMIN
         } else {
             AuthorityLevel.GENERIC
         }
@@ -831,19 +840,19 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     @Deprecated("")
-    fun getAllegianceIn(guild: Guild): Nation {
+    fun getAllegianceIn(guild: Guild): NationColor {
         val flags = getSettings(guild)
-        if (!flags.contains(OptionFlag.MAIN)) {
-            return Nation.NONE
+        if (!flags.contains(OldOptionFlag.MAIN)) {
+            return NationColor.NONE
         }
-        return if (flags.contains(OptionFlag.RED)) {
-            Nation.RED
-        } else if (flags.contains(OptionFlag.GREEN)) {
-            Nation.GREEN
-        } else if (flags.contains(OptionFlag.BLUE)) {
-            Nation.BLUE
+        return if (flags.contains(OldOptionFlag.RED)) {
+            NationColor.RED
+        } else if (flags.contains(OldOptionFlag.GREEN)) {
+            NationColor.GREEN
+        } else if (flags.contains(OldOptionFlag.BLUE)) {
+            NationColor.BLUE
         } else {
-            Nation.NONE
+            NationColor.NONE
         }
     }
 
@@ -851,13 +860,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     fun getGuildColor(guild: Guild): Color {
         val flags = getSettings(guild)
         return when {
-            flags.contains(OptionFlag.RED) -> {
+            flags.contains(OldOptionFlag.RED) -> {
                 Color.RED
             }
-            flags.contains(OptionFlag.GREEN) -> {
+            flags.contains(OldOptionFlag.GREEN) -> {
                 Color.GREEN
             }
-            flags.contains(OptionFlag.BLUE) -> {
+            flags.contains(OldOptionFlag.BLUE) -> {
                 Color.BLUE
             }
             else -> {
@@ -868,13 +877,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     /**
      *
-     * @param nation
+     * @param nationColor
      * @return Null if no guild exists for this nation
      */
-    fun getGuildFor(nation: Nation): Guild? {
+    fun getGuildFor(nationColor: NationColor): Guild? {
         for (guild in jda.guilds) {
-            if (getSettings(guild).contains(OptionFlag.MAIN)) {
-                if (nation == getAllegianceIn(guild)) {
+            if (getSettings(guild).contains(OldOptionFlag.MAIN)) {
+                if (nationColor == getAllegianceIn(guild)) {
                     return guild
                 }
             }
@@ -882,31 +891,21 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return null
     }
 
-    fun saveMaps() {
-        for (map in WorldMap.getMaps()) {
-            WorldMap.writeWorld(map.guild, map)
-        }
-    }
-
     //FIXME add a flag for whether the maps have been loaded - there's a risk of losing all map data if someone is fast enough
     //TODO test if this ever loads a subset of the guilds the bot is a part of, as that would leave a subset of the maps actually loaded.
-    fun loadMaps() {
+    private fun loadMapsLegacy() {
         if (jda.guilds.isEmpty()) {
             val exec = ScheduledThreadPoolExecutor(1)
-            exec.schedule({ loadMaps() }, 1, TimeUnit.SECONDS)
+            exec.schedule({ loadMapsLegacy() }, 1, TimeUnit.SECONDS)
         } else {
             for (guild in jda.guilds) {
-                if (!getSettings(guild).contains(OptionFlag.MAIN)) {
+                if (!getSettings(guild).contains(OldOptionFlag.MAIN)) {
                     println("Loading map for " + guild.name)
                     WorldMap.readWorld(guild.id)
                 }
             }
-            mainMap = loadMainMap()
+            WorldMap.readWorld(null)
         }
-    }
-
-    private fun loadMainMap(): WorldMap {
-        return WorldMap.readWorld(null)
     }
 
     fun saveUsers() {
@@ -915,13 +914,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    private fun saveGuilds() {
-        for (guild in guildWrappers) {
-            writeObject("guilds/" + guild.id, guild)
+    private fun saveGames() {
+        for (network in gameNetworks) {
+            writeObject("games/" + network.id, network)
         }
     }
 
-    fun loadGuildsFromCSV() {
+    private fun loadGamesFromCSV() {
+        gameNetworks.add(GameNetwork(this, "global"))
+        gameNetworks.add(GameNetwork(this, "tutorial"))
+    }
+
+    private fun loadGuildsFromCSV() {
         for (folder in File("data/$name").listFiles()) {
             println("Folder:$folder")
             if (!folder.isDirectory) continue
@@ -933,12 +937,19 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 try {
                     val bGuild = getGuildWrapper(guildId)
                     bGuild.loadLegacy(
-                            getSettings(Objects.requireNonNull(bGuild.guild)!!) as MutableSet<OptionFlag>,
+                            getSettings(bGuild.guild!!) as MutableSet<OldOptionFlag>,
                             getRecords(bGuild.guild)!!,
                             getOwnerId(bGuild.guild),
                             bGuild.guild!!.name
                     )
-                    guildWrappers.add(bGuild)
+                    if (bGuild.hasFlag(OldOptionFlag.MAIN)) {
+                        getGameNetwork("global").addGuild(bGuild)
+                        getGameNetwork("global").adopt()
+                    }
+                    if (bGuild.hasFlag(OldOptionFlag.TUTORIAL)) {
+                        getGameNetwork("tutorial").addGuild(bGuild)
+                        getGameNetwork("tutorial").adopt()
+                    }
                     println("Added guild:" + bGuild.name)
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -948,7 +959,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    fun loadUsersFromCSV() {
+    private fun loadUsersFromCSV() {
         for (file in File("data/$name/global").listFiles()) {
             val fileName = file.name
             if (!fileName.contains(".csv")) continue
@@ -959,7 +970,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val bUser = getUserWrapper(userId)
                     println("User: " + bUser.jdaUser)
                     try {
-                        bUser.legacyLoad(
+                        bUser.loadLegacy(
                                 getMainAllegiance(Objects.requireNonNull(bUser.jdaUser)!!),
                                 getUserDefaultGuild(bUser.jdaUser)!!.id,
                                 isGloballyBanned(bUser.jdaUser),
@@ -977,7 +988,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    fun loadMembersFromCSV() {
+    private fun loadMembersFromCSV() {
         for (folder in File("data/$name").listFiles()) {
             println("Folder:$folder")
             if (!folder.isDirectory) continue
@@ -1032,16 +1043,16 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    private fun loadGuilds() {
-        for (file in File("data/$name/guilds").listFiles()) {
+    private fun loadGames() {
+        for (file in File("data/$name/games").listFiles()) {
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 val gson = gsonBuilder.create()
-                val guildWrapper = gson.fromJson(IOUtils.read(file), GuildWrapper::class.java)
-                guildWrapper.setParent(this)
-                if (guildWrapper.id != null) { //impossible condition test
-                    guildWrappers.add(guildWrapper)
+                val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
+                gameNetwork.setParent(this)
+                if (gameNetwork.id != null) { //impossible condition test
+                    gameNetworks.add(gameNetwork)
                 } else {
                     Thread.dumpStack()
                 }
@@ -1057,11 +1068,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
         val gson = gsonBuilder.setPrettyPrinting().create()
         IOUtils.write(file, gson.toJson(`object`))
-    }
-
-    @Deprecated("", ReplaceWith("member.gainDailyInfluence()"))
-    fun gainDailyInfluence(member: Member): Influence {
-        return gainDailyInfluence(member, DailyInfluenceSource.DAILY_INFLUENCE_CAP)
     }
 
     /**
@@ -1091,9 +1097,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @param guildId
      * @return
      */
-    fun getMemberWrapper(userId: String, guildId: String?): MemberWrapper {
+    fun getMemberWrapper(userId: String, guildId: String): MemberWrapper {
         val userWrapper = getUserWrapper(userId)
-        return userWrapper.getMember(guildId!!)
+        return userWrapper.memberIn(guildId)
     }
 
     /**
@@ -1104,29 +1110,43 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      */
     fun getGuildWrapper(id: String): GuildWrapper {
         Objects.requireNonNull(id)
-        var botGuild = guildWrappers.stream().filter { guild: GuildWrapper ->
-            println(guild.id)
-            guild.id == id
-        }.findFirst()
-        if (!botGuild.isPresent) {
-            val guild = jda.getGuildById(id)
-            botGuild = if (guild == null) {
-                Optional.of(GuildWrapper(this, id))
-            } else {
-                Optional.of(GuildWrapper(this, guild))
+        gameNetworks.forEach{ network ->
+            network.associatedGuilds.firstOrNull{ guild -> guild.id == id }?.let {
+                return it
             }
-            guildWrappers.add(botGuild.get())
         }
-        return botGuild.get()
+
+        //no guild found in any network
+        var network = getGameNetwork(id)
+        var guild = GuildWrapper(network, id)
+        network.addGuild(guild)
+        return guild
+    }
+
+
+    fun getGameNetwork(id: String): GameNetwork {
+        Objects.requireNonNull(id)
+        var gameNetwork = gameNetworks.firstOrNull { gameInstance ->
+            println(gameInstance.id)
+            gameInstance.id == id
+        }
+        if (gameNetwork == null) {
+            gameNetwork = GameNetwork(this, id)
+            gameNetworks.add(gameNetwork)
+        }
+        return gameNetwork
     }
 
     fun getUserByName(targetName: String): UserWrapper? {
-        for (userWrapper in userWrappers) {
-            if (userWrapper.name == targetName) {
-                return userWrapper
-            }
-        }
-        return null
+        return userWrappers.firstOrNull { user -> user.name == targetName }
+    }
+
+    /**
+     * Returns a newly created (and therefore safe instance) of
+     * all guilds containing this map.
+     */
+    fun getNetworkByMap(map: WorldMap) : GameNetwork {
+        return gameNetworks.first { network -> network.worldMap == map }
     }
 
     companion object {
@@ -1164,9 +1184,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         load()
         saverTimer.schedule(object : TimerTask() {
             override fun run() {
-                saveMaps()
+                saveGames()
                 saveUsers()
-                saveGuilds()
             }
         }, 300000, 300000)
     }

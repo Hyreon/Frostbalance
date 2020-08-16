@@ -29,7 +29,7 @@ public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
 
             for (Guild guild : context.getJDA().getGuilds()) {
 
-                MemberWrapper bMember = context.getAuthor().getMember(guild.getId());
+                MemberWrapper bMember = context.getAuthor().memberIn(guild.getId());
 
                 result += "**" + guild.getName() + "**: " + bMember.getInfluence();
 
@@ -64,7 +64,7 @@ public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
                 publicPost = "Your influence has been sent to you via PM.";
             }
 
-            MemberWrapper bMember = bUser.getMember(context.getGuild());
+            MemberWrapper bMember = bUser.memberIn(context.getGuild());
             Influence influence = bMember.getInfluence();
             Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
 

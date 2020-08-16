@@ -5,7 +5,6 @@ import botmanager.frostbalance.Frostbalance.Companion.bot
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
 import botmanager.frostbalance.grid.Containable
-import botmanager.frostbalance.grid.WorldMap
 import lombok.Getter
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.Permission
@@ -16,12 +15,10 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
 
-class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance> {
+class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Containable<GameNetwork> {
 
-    constructor(bot: Frostbalance, guild: Guild) : this(bot, guild.id) {
-        this.bot = bot
-        this.id = guild.id
-    }
+
+    constructor(gameNetwork: GameNetwork, guild: Guild) : this(gameNetwork, guild.id)
 
     @Transient
     var guildIcon: BufferedImage? = null
@@ -31,8 +28,7 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containab
     var lastKnownName: String? = null
 
     var leaderId: String? = null
-    var map: WorldMap? = null
-    var optionFlags: MutableSet<OptionFlag> = HashSet()
+    var oldOptionFlags: MutableSet<OldOptionFlag> = HashSet()
         get() = Collections.unmodifiableSet(field)
     @JvmField
     var regimes: MutableList<RegimeData> = ArrayList()
@@ -48,11 +44,11 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containab
     val jda: JDA
         get() = bot.jda
     val color: Color
-        get() = if (optionFlags.contains(OptionFlag.RED)) {
+        get() = if (oldOptionFlags.contains(OldOptionFlag.RED)) {
             Color.RED
-        } else if (optionFlags.contains(OptionFlag.GREEN)) {
+        } else if (oldOptionFlags.contains(OldOptionFlag.GREEN)) {
             Color.GREEN
-        } else if (optionFlags.contains(OptionFlag.BLUE)) {
+        } else if (oldOptionFlags.contains(OldOptionFlag.BLUE)) {
             Color.BLUE
         } else {
             Color.LIGHT_GRAY
@@ -65,7 +61,7 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containab
     }
 
     fun getMember(user: UserWrapper): MemberWrapper {
-        return user.getMember(id)
+        return user.memberIn(id)
     }
 
     /**
@@ -115,8 +111,8 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containab
         leaderId = member.id
     }
 
-    fun loadLegacy(Settings: MutableSet<OptionFlag>, Records: MutableList<RegimeData>, OwnerId: String, Name: String) {
-        optionFlags = Settings
+    fun loadLegacy(settings: MutableSet<OldOptionFlag>, Records: MutableList<RegimeData>, OwnerId: String, Name: String) {
+        oldOptionFlags = settings
         regimes = Records
         leaderId = OwnerId
         lastKnownName = Name
@@ -136,21 +132,21 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containab
         }
         //TODO don't unban players who are under a global ban.
         for (ban in guild!!.retrieveBanList().complete()) {
-            if (!bot.getUserWrapper(ban.user.id).getMember(id).banned)
+            if (!bot.getUserWrapper(ban.user.id).memberIn(id).banned)
             guild!!.unban(ban.user)
         }
     }
 
-    fun flipFlag(flag: OptionFlag) {
-        if (optionFlags.contains(flag)) {
-            optionFlags.remove(flag)
+    fun flipFlag(flagOld: OldOptionFlag) {
+        if (oldOptionFlags.contains(flagOld)) {
+            oldOptionFlags.remove(flagOld)
         } else {
-            optionFlags.add(flag)
+            oldOptionFlags.add(flagOld)
         }
     }
 
-    fun hasFlag(flag: OptionFlag): Boolean {
-        return optionFlags.contains(flag)
+    fun hasFlag(flagOld: OldOptionFlag): Boolean {
+        return oldOptionFlags.contains(flagOld)
     }
 
     val leaderRole: Role
@@ -211,7 +207,32 @@ class GuildWrapper(@Transient var bot: Frostbalance, var id: String) : Containab
             get() = bot.getGuildWrapper(id)
     }
 
-    override fun setParent(parent: Frostbalance) {
-        bot = parent
+    override fun setParent(parent: GameNetwork) {
+        gameNetwork = parent
     }
+
+    fun usesNations(): Boolean {
+        return hasFlag(OldOptionFlag.MAIN) || hasFlag(OldOptionFlag.TUTORIAL)
+    }
+
+    val nationColor: NationColor?
+        get() = when {
+            !usesNations() -> {
+                null
+            }
+            hasFlag(OldOptionFlag.BLUE) -> {
+                NationColor.BLUE
+            }
+            hasFlag(OldOptionFlag.RED) -> {
+                NationColor.RED
+            }
+            hasFlag(OldOptionFlag.GREEN) -> {
+                NationColor.GREEN
+            }
+            else -> {
+                null
+            }
+        }
+
+
 }

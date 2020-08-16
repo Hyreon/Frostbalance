@@ -1,10 +1,10 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.frostbalance.Player;
 import botmanager.Utils;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.NationColor;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 import java.io.IOException;
@@ -81,11 +81,11 @@ public class PlayerCharacter extends TileObject {
      * @return The nation this player is a part of, if relevant.
      * Note the user can change this at any time.
      */
-    public Nation getNation() {
+    public NationColor getNation() {
         if (getMap().isMainMap() || getMap().isTutorialMap()) {
             return Frostbalance.bot.getMainAllegiance(getUser());
         } else {
-            return Nation.NONE;
+            return NationColor.NONE;
         }
     }
 
@@ -156,30 +156,12 @@ public class PlayerCharacter extends TileObject {
         }
     }
 
-    /**
-     * Gets this player as though it were a member of the guild it has its allegiance to.
-     * @return null if the guild doesn't exist, or if the user isn't in the guild.
-     */
-    public Member getMember() {
-        if (getMap().getGuild() == null) {
-            Guild guild = Frostbalance.bot.getGuildFor(getNation());
-            if (guild == null) {
-                return null;
-            } else {
-                return guild.getMember(getUser());
-            }
-        } else {
-            return getMap().getGuild().getMember(getUser());
-        }
+    private Player getPlayer() {
+        return Frostbalance.bot.getUserWrapper(userId).playerIn(getMap().getGameNetwork());
     }
 
     public String getName() {
-        Member member = getMember();
-        if (member == null) {
-            return getUser().getName();
-        } else {
-            return member.getEffectiveName();
-        }
+        return getPlayer().getName();
     }
 
     public String getTravelTime() {

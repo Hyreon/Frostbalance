@@ -122,7 +122,7 @@ public class MapMenu extends Menu {
         if (map.isMainMap()) {
             builder.setTitle("World Map");
         } else {
-            builder.setTitle("Map of " + map.getGuild().getName());
+            builder.setTitle("Map of " + map.getGameNetwork().getId());
         }
         String description = "";
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {

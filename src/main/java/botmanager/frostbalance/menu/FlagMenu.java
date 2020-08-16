@@ -2,7 +2,7 @@ package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.GuildWrapper;
-import botmanager.frostbalance.OptionFlag;
+import botmanager.frostbalance.OldOptionFlag;
 import botmanager.frostbalance.command.AuthorityLevel;
 import net.dv8tion.jda.api.EmbedBuilder;
 
@@ -20,7 +20,7 @@ public class FlagMenu extends Menu {
         super(bot);
         this.bGuild = guild;
 
-        for (OptionFlag flag : OptionFlag.values()) {
+        for (OldOptionFlag flag : OldOptionFlag.values()) {
             menuResponses.add(new MenuResponse(flag.getEmoji(), flag.getLabel()) {
 
                 @Override
@@ -47,7 +47,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return !enabling && getActor().getMember(bGuild).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return !enabling && getActor().memberIn(bGuild).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -61,7 +61,7 @@ public class FlagMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return enabling && getActor().getMember(bGuild).hasAuthority(AuthorityLevel.GUILD_ADMIN);
+                return enabling && getActor().memberIn(bGuild).hasAuthority(AuthorityLevel.GUILD_ADMIN);
             }
         });
 
@@ -79,8 +79,8 @@ public class FlagMenu extends Menu {
         });
     }
 
-    private boolean isToggleable(OptionFlag flag) {
-        return (bGuild.hasFlag(flag) ^ enabling) && getActor().getMember(bGuild).hasAuthority(flag.getAuthorityToChange());
+    private boolean isToggleable(OldOptionFlag flag) {
+        return (bGuild.hasFlag(flag) ^ enabling) && getActor().memberIn(bGuild).hasAuthority(flag.getAuthorityToChange());
     }
 
     @Override
@@ -93,7 +93,7 @@ public class FlagMenu extends Menu {
         }
         builder.setTitle(bGuild.getName() + ": Flags");
         String flagsEnabled = "";
-        for (OptionFlag flag : bGuild.getOptionFlags()) {
+        for (OldOptionFlag flag : bGuild.getOldOptionFlags()) {
             flagsEnabled += flag.getEmoji() + " " + flag.getLabel() + "\n";
         }
         builder.setDescription(flagsEnabled);

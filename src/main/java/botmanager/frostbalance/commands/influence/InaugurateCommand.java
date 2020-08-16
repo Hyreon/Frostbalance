@@ -15,7 +15,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommandBase {
         super(bot, new String[] {
                 "inaugurate",
                 "transfer"
-        }, AuthorityLevel.SERVER_LEADER, Condition.PUBLIC);
+        }, AuthorityLevel.NATION_LEADER, Condition.PUBLIC);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        MemberWrapper targetMember = targetUser.getMember(context.getGuild());
+        MemberWrapper targetMember = targetUser.memberIn(context.getGuild());
 
         if (!targetMember.getOnline()) {
             result = targetName + " isn't in " + context.getGuild().getName() + " right now.";

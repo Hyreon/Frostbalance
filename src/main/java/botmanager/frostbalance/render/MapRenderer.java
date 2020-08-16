@@ -1,6 +1,6 @@
 package botmanager.frostbalance.render;
 
-import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.NationColor;
 import botmanager.frostbalance.grid.*;
 
 import javax.imageio.ImageIO;
@@ -22,10 +22,10 @@ public class MapRenderer {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            renderTile(g, map.getTileLazy(drawHex), center);
+            renderTile(g, map.getRenderTile(drawHex), center);
         }
         for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            renderTileObjects(g, map.getTileLazy(drawHex), center);
+            renderTileObjects(g, map.getRenderTile(drawHex), center);
         }
         g.dispose();
 
@@ -115,21 +115,21 @@ public class MapRenderer {
     }
 
     private static Color getPoliticalColor(Tile tile) {
-        Nation owningNation = tile.getClaimData().getOwningNation();
+        NationColor owningNationColor = tile.getClaimData().getOwningNation();
         Color color = Color.BLACK;
-        if (owningNation != Nation.NONE && tile.getMap().getStrongestClaim().getValue() > 0) {
+        if (owningNationColor != NationColor.NONE && tile.getMap().getStrongestClaim().getValue() > 0) {
             //darken according to fraction of strongest political color.
-            for (Nation nation : Nation.getNations()) {
-                double ratio = tile.getClaimData().getNationalStrength(nation).getValue()
+            for (NationColor nationColor : NationColor.getNationColors()) {
+                double ratio = tile.getClaimData().getNationalStrength(nationColor).getValue()
                         / tile.getMap().getStrongestClaim().getValue();
                 int drawValue;
-                if (nation != owningNation) {
+                if (nationColor != owningNationColor) {
                     drawValue = (BCOLOR + (int) ((255 - BCOLOR) * ratio)) / 2;
                 } else {
                     drawValue = BCOLOR + (int) ((255 - BCOLOR) * ratio);
                 }
                 System.out.println("DrawValue: " + drawValue);
-                color = nation.adjustDisplayColor(color, drawValue);
+                color = nationColor.adjustDisplayColor(color, drawValue);
             }
         } else {
             color = new Color(BCOLOR, BCOLOR, BCOLOR);

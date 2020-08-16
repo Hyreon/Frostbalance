@@ -7,7 +7,7 @@ import java.awt.Color
  * Main guilds have the three nations; all other guilds have the NONE nation.
  * The NONE nation can also be used in some contexts for the main nations.
  */
-enum class Nation(var color: Color) {
+enum class NationColor(var color: Color) {
     RED(Color.RED), GREEN(Color.GREEN), BLUE(Color.BLUE), NONE(Color.LIGHT_GRAY);
 
     fun adjustDisplayColor(color: Color, drawValue: Int): Color {
@@ -31,7 +31,7 @@ enum class Nation(var color: Color) {
          * @return All nations without NONE
          */
         @JvmStatic
-        val nations: Array<Nation>
+        val nationColors: Array<NationColor>
             get() = arrayOf(RED, GREEN, BLUE)
     }
 }

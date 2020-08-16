@@ -24,7 +24,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, array
             context.sendEmbedResponse(resultLines)
             return
         }
-        val targetMember = targetUser.getMember(context.guild.id)
+        val targetMember = targetUser.memberIn(context.guild.id)
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to use. You will instead use all of your influence.")

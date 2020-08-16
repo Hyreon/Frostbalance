@@ -10,12 +10,12 @@ public enum AuthorityLevel {
     /**
      * Possessed by users with administrator privileges in the guild
      */
-    SERVER_ADMIN(1),
+    NATION_ADMIN(1),
 
     /**
      * Possessed by users with the leader rank in the guild
      */
-    SERVER_LEADER(2),
+    NATION_LEADER(2),
 
     /**
      * Possessed by users with the Frostbalance rank in the guild - in some
@@ -30,15 +30,25 @@ public enum AuthorityLevel {
     GUILD_OWNER(4),
 
     /**
-     * Possessed by manually whitelisted Discord user ids.
+     * Possessed by users granted special permission over a map, which is
+     * a network of guilds
      */
-    BOT_ADMIN(5),
-
+    MAP_ADMIN(5),
 
     /**
-     * Possessed by the Bot itself and by Shade. There is no higher level of authority.
+     * Possessed by the player who has requested access to a map
      */
-    BOT(6);
+    MAP_OWNER(6),
+
+    /**
+     * Possessed by manually whitelisted Discord user ids.
+     */
+    BOT_ADMIN(7),
+
+    /**
+     * Possessed by the Bot itself. There is no higher level of authority.
+     */
+    BOT(8);
 
     int rank;
 

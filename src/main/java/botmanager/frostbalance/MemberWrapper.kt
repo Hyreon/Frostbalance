@@ -22,10 +22,10 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
                     AuthorityLevel.GUILD_ADMIN
                 }
                 member?.roles?.contains(guildWrapper.leaderRole) ?: false -> {
-                    AuthorityLevel.SERVER_LEADER
+                    AuthorityLevel.NATION_LEADER
                 }
                 member?.hasPermission(Permission.ADMINISTRATOR) ?: false -> {
-                    AuthorityLevel.SERVER_ADMIN
+                    AuthorityLevel.NATION_ADMIN
                 }
                 else -> {
                     AuthorityLevel.GENERIC

@@ -2,7 +2,7 @@ package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.NationColor;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
 import botmanager.frostbalance.command.GuildCommandContext;
@@ -29,7 +29,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommandBase {
         Influence amount;
         Influence balance = context.getMember().getInfluence();
         PlayerCharacter player = PlayerCharacter.get(context.getJDAUser(), context.getJDAGuild());
-        Nation allegiance = context.getAuthor().getAllegiance();
+        NationColor allegiance = context.getAuthor().getAllegiance();
 
         if (words.length < 1 || words[0].isEmpty()) {
             context.sendResponse(getInfo(context));
@@ -51,11 +51,11 @@ public class ClaimTileCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        if ((player.getMap().isMainMap() || player.getMap().isTutorialMap()) && allegiance == Nation.NONE) {
+        if ((context.getGuild().usesNations()) && allegiance == NationColor.NONE) {
 
             new AllegianceMenu(bot).send(context.getChannel(), context.getAuthor());
 
-        } else if (bot.getAllegianceIn(context.getJDAGuild()) != Nation.NONE &&
+        } else if (context.getGuild().getNationColor() != NationColor.NONE &&
                 allegiance != bot.getAllegianceIn(context.getJDAGuild())) {
 
             context.sendResponse("You're in the wrong server for this!");

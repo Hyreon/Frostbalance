@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.NationColor;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -20,7 +20,7 @@ public class AllegianceMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                bot.getUserWrapper(getActor().getId()).setAllegiance(Nation.RED);
+                bot.getUserWrapper(getActor().getId()).setAllegiance(NationColor.RED);
                 close(false);
             }
 
@@ -34,7 +34,7 @@ public class AllegianceMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                bot.getUserWrapper(getActor().getId()).setAllegiance(Nation.GREEN);
+                bot.getUserWrapper(getActor().getId()).setAllegiance(NationColor.GREEN);
                 close(false);
             }
 
@@ -48,7 +48,7 @@ public class AllegianceMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                bot.getUserWrapper(getActor().getId()).setAllegiance(Nation.BLUE);
+                bot.getUserWrapper(getActor().getId()).setAllegiance(NationColor.BLUE);
                 close(false);
             }
 

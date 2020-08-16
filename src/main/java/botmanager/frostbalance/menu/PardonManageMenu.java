@@ -17,7 +17,7 @@ public class PardonManageMenu extends Menu {
         super(bot);
 
         this.guild = guild;
-        this.target = targetUser.getMember(guild);
+        this.target = targetUser.memberIn(guild);
 
         if (!target.getBanned()) {
             outcome = Alternative.FAILED;
@@ -40,7 +40,7 @@ public class PardonManageMenu extends Menu {
 
             @Override
             public boolean validConditions() {
-                return actor.getMember(guild).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
+                return actor.memberIn(guild).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
                         target.getUserWrapper().getGloballyBanned();
             }
         });

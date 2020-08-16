@@ -44,7 +44,7 @@ public class AdjustCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        MemberWrapper recipient = bUser.getMember(context.getGuild());
+        MemberWrapper recipient = bUser.memberIn(context.getGuild());
 
         recipient.adjustInfluence(amount);
 

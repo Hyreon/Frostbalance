@@ -2,7 +2,7 @@ package botmanager.frostbalance.grid;
 
 import botmanager.Utils;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.NationColor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,7 +14,7 @@ public class ClaimData extends TileData implements Container {
      */
     List<Claim> claims = new ArrayList<>();
 
-    private Nation lastOwningNation = Nation.NONE;
+    private NationColor lastOwningNationColor = NationColor.NONE;
     private String lastOwningUserId;
 
     public ClaimData(Tile tile) {
@@ -35,7 +35,7 @@ public class ClaimData extends TileData implements Container {
         String selectedUserId = null;
         Influence selectedStrength = new Influence(0);
         for (Claim claim : getActiveClaims()) {
-            if (claim.getNation() != lastOwningNation) continue;
+            if (claim.getNationColor() != lastOwningNationColor) continue;
             if (!claim.isActive()) continue;
             if (claim.getStrength().compareTo(selectedStrength) > 0 ||
                     (lastOwningUserId.equals(claim.getUserId()) && claim.getStrength().equals(selectedStrength))) {
@@ -52,23 +52,23 @@ public class ClaimData extends TileData implements Container {
      * Note that this will return NONE every time for world maps outside the global set.
      * @return The nation that owns this tile (or NONE if there are no national claims).
      */
-    public Nation getOwningNation() {
-        if (getClaims().isEmpty()) return Nation.NONE;
-        Nation selectedNation = lastOwningNation;
-        Influence selectedStrength = getNationalStrength(lastOwningNation);
+    public NationColor getOwningNation() {
+        if (getClaims().isEmpty()) return NationColor.NONE;
+        NationColor selectedNationColor = lastOwningNationColor;
+        Influence selectedStrength = getNationalStrength(lastOwningNationColor);
 
-        for (Nation nation : Nation.getNations()) {
-            Influence nationalStrength = getNationalStrength(nation);
+        for (NationColor nationColor : NationColor.getNationColors()) {
+            Influence nationalStrength = getNationalStrength(nationColor);
             if (nationalStrength.compareTo(selectedStrength) > 0) {
-                selectedNation = nation;
+                selectedNationColor = nationColor;
                 selectedStrength = nationalStrength;
             }
         }
         if (selectedStrength.getThousandths() <= 0) {
-            return Nation.NONE;
+            return NationColor.NONE;
         }
-        lastOwningNation = selectedNation;
-        return selectedNation;
+        lastOwningNationColor = selectedNationColor;
+        return selectedNationColor;
     }
 
     public String getOwningNationName() {
@@ -84,12 +84,12 @@ public class ClaimData extends TileData implements Container {
     /**
      * Adds a claim with the given parameters to this tile.
      * @param player
-     * @param nation
+     * @param nationColor
      * @param strength
      */
-    public Claim addClaim(PlayerCharacter player, Nation nation, Influence strength) {
+    public Claim addClaim(PlayerCharacter player, NationColor nationColor, Influence strength) {
         for (Claim claim : getClaims()) {
-            if (claim.overlaps(this, player, nation)) {
+            if (claim.overlaps(this, player, nationColor)) {
                 claim.add(strength);
                 getOwningNation();
                 getTile().getMap().updateStrongestClaim();
@@ -97,7 +97,7 @@ public class ClaimData extends TileData implements Container {
             }
         }
 
-        Claim newClaim = new Claim(player, nation, strength);
+        Claim newClaim = new Claim(player, nationColor, strength);
         getOwningNation();
         getTile().getMap().updateStrongestClaim();
         return newClaim;
@@ -119,9 +119,9 @@ public class ClaimData extends TileData implements Container {
         return newClaim;
     }
 
-    public Claim getClaim(PlayerCharacter player, Nation nation) {
+    public Claim getClaim(PlayerCharacter player, NationColor nationColor) {
         for (Claim claim : getClaims()) {
-            if (claim.overlaps(this, player, nation)) {
+            if (claim.overlaps(this, player, nationColor)) {
                 return claim;
             }
         }
@@ -133,8 +133,8 @@ public class ClaimData extends TileData implements Container {
      * Any player can do this to their own claims at no cost, but with no refund.
      * @return
      */
-    public Influence reduceClaim(PlayerCharacter player, Nation nation, Influence amount) {
-        Claim claim = getClaim(player, nation);
+    public Influence reduceClaim(PlayerCharacter player, NationColor nationColor, Influence amount) {
+        Claim claim = getClaim(player, nationColor);
         if (claim == null) {
             return new Influence(0);
         }
@@ -152,11 +152,11 @@ public class ClaimData extends TileData implements Container {
         return new Influence(0);
     }
 
-    public Influence getNationalStrength(Nation nation) {
-        if (nation == null) return new Influence(0);
+    public Influence getNationalStrength(NationColor nationColor) {
+        if (nationColor == null) return new Influence(0);
         Influence nationalStrength = new Influence(0);
         for (Claim claim : getActiveClaims()) {
-            if (claim.getNation() == nation) {
+            if (claim.getNationColor() == nationColor) {
                 nationalStrength = nationalStrength.add(claim.getStrength());
             }
         }
@@ -164,14 +164,14 @@ public class ClaimData extends TileData implements Container {
     }
 
     public Influence getNationalStrength() {
-        HashMap<Nation, Influence> nationalClaimStrengths = new HashMap<>();
+        HashMap<NationColor, Influence> nationalClaimStrengths = new HashMap<>();
         for (Claim claim : getActiveClaims()) {
-            nationalClaimStrengths.put(claim.getNation(), nationalClaimStrengths.getOrDefault(claim.getNation(), new Influence(0)).add(claim.getStrength()));
+            nationalClaimStrengths.put(claim.getNationColor(), nationalClaimStrengths.getOrDefault(claim.getNationColor(), new Influence(0)).add(claim.getStrength()));
         }
         Influence selectedStrength = new Influence(0);
-        for (Nation nation : nationalClaimStrengths.keySet()) {
-            if (nationalClaimStrengths.get(nation).compareTo(selectedStrength) > 0) {
-                selectedStrength = nationalClaimStrengths.get(nation);
+        for (NationColor nationColor : nationalClaimStrengths.keySet()) {
+            if (nationalClaimStrengths.get(nationColor).compareTo(selectedStrength) > 0) {
+                selectedStrength = nationalClaimStrengths.get(nationColor);
             }
         }
         return selectedStrength;
@@ -199,18 +199,18 @@ public class ClaimData extends TileData implements Container {
     public String getClaimList() {
 
         List<String> lines = new ArrayList<>();
-        Nation owningNation = getOwningNation();
-        if (owningNation != null) {
-            for (Nation nation : Nation.getNations()) {
-                Influence strength = getNationalStrength(nation);
+        NationColor owningNationColor = getOwningNation();
+        if (owningNationColor != null) {
+            for (NationColor nationColor : NationColor.getNationColors()) {
+                Influence strength = getNationalStrength(nationColor);
                 if (strength.getThousandths() == 0) continue;
                 String effectiveString;
                 if (getTile().getMap().isTutorialMap()) {
-                    effectiveString = nation.toString() + ": " + String.format("%s", strength);
+                    effectiveString = nationColor.toString() + ": " + String.format("%s", strength);
                 } else {
-                    effectiveString = nation.getEffectiveName() + ": " + String.format("%s", strength);
+                    effectiveString = nationColor.getEffectiveName() + ": " + String.format("%s", strength);
                 }
-                if (owningNation == nation) {
+                if (owningNationColor == nationColor) {
                     lines.add("**" + effectiveString + "**");
                 } else {
                     lines.add(effectiveString);
@@ -251,12 +251,12 @@ public class ClaimData extends TileData implements Container {
             }
             String nationalCompetitionByColor = "";
             List<String> nationalCompetitors = new ArrayList<>();
-            for (Nation nation : Nation.getNations()) {
-                if (nation == getOwningNation()) continue;
-                if (getNationalStrength(nation).getThousandths() > 0) {
+            for (NationColor nationColor : NationColor.getNationColors()) {
+                if (nationColor == getOwningNation()) continue;
+                if (getNationalStrength(nationColor).getThousandths() > 0) {
                     nationalCompetitors.add(String.format("%s: %s",
-                            nation,
-                            getNationalStrength(nation)));
+                            nationColor,
+                            getNationalStrength(nationColor)));
                 }
             }
             if (!nationalCompetitors.isEmpty()) {
@@ -281,12 +281,12 @@ public class ClaimData extends TileData implements Container {
             }
             String nationalCompetition = "";
             List<String> nationalCompetitors = new ArrayList<>();
-            for (Nation nation : Nation.getNations()) {
-                if (nation == getOwningNation()) continue;
-                if (getNationalStrength(nation).getThousandths() > 0.0) {
+            for (NationColor nationColor : NationColor.getNationColors()) {
+                if (nationColor == getOwningNation()) continue;
+                if (getNationalStrength(nationColor).getThousandths() > 0.0) {
                     nationalCompetitors.add(String.format("%s: %s",
-                            nation.getEffectiveName(),
-                            getNationalStrength(nation)));
+                            nationColor.getEffectiveName(),
+                            getNationalStrength(nationColor)));
                 }
             }
             if (!nationalCompetitors.isEmpty()) {
@@ -301,7 +301,7 @@ public class ClaimData extends TileData implements Container {
             if (claims.size() > amount) {
                 claims = claims.subList(0, amount);
             }
-            if (askerClaim != null && !claims.contains(askerClaim) && askerClaim.isActive() && askerClaim.getNation() == getOwningNation()) {
+            if (askerClaim != null && !claims.contains(askerClaim) && askerClaim.isActive() && askerClaim.getNationColor() == getOwningNation()) {
                 claims.add(getClaim(asker, asker.getNation()));
             }
             List<String> claimDisplays = claims.stream().map(x -> x.toString()).collect(Collectors.toList());

@@ -31,12 +31,20 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
      */
     var memberReference: MutableList<MemberWrapper> = ArrayList()
 
+    /**
+     * A list of independent players this user controls.
+     * There is only one player per GameInstance, but there
+     * may be no player in a GameInstance if that player
+     * hasn't ever joined the server.
+     */
+    var playerReference: MutableList<Player> = ArrayList()
+
     @Transient
     var userIcon: BufferedImage? = null
 
     private var lastKnownName: String? = null
 
-    var allegiance = Nation.NONE
+    var allegiance = NationColor.NONE
 
     var defaultGuildId: String? = null
     var minimumAuthorityLevel: AuthorityLevel = AuthorityLevel.GENERIC
@@ -47,7 +55,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
      * @param id The id of the guild this user is supposedly a member of.
      * @return The MemberWrapper referencing this UserWrapper and a GuildId
      */
-    fun getMember(id: String): MemberWrapper {
+    fun memberIn(id: String): MemberWrapper {
 
         var botMember = memberReference.find { member: MemberWrapper -> member.guildId == id }
         if (botMember == null) {
@@ -57,7 +65,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         return botMember
     }
 
-    fun getMember(guild: GuildWrapper): MemberWrapper {
+    fun memberIn(guild: GuildWrapper): MemberWrapper {
 
         var botMember = memberReference.find { member: MemberWrapper -> member.guildId == guild.id }
         if (botMember == null) {
@@ -81,9 +89,9 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         defaultGuildId = null
     }
 
-    fun legacyLoad(MainAllegiance: Nation, UserDefaultGuild: String, GloballyBanned: Boolean, Name: String, isBotAdmin: Boolean) {
+    fun loadLegacy(mainAllegiance: NationColor, UserDefaultGuild: String, GloballyBanned: Boolean, Name: String, isBotAdmin: Boolean) {
 
-        allegiance = MainAllegiance
+        allegiance = mainAllegiance
         defaultGuildId = UserDefaultGuild
         globallyBanned = GloballyBanned
         lastKnownName = Name
@@ -135,5 +143,13 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
 
     override fun setParent(parent: Frostbalance) {
         bot = parent
+    }
+
+    /**
+     * Return this user as if it were a player in the given game instance.
+     * If this player hasn't yet joined this game, then it returns null instead.
+     */
+    fun playerIn(gameNetwork: GameNetwork): Player? {
+        return playerReference.firstOrNull { player -> player.gameNetwork == gameNetwork}
     }
 }
