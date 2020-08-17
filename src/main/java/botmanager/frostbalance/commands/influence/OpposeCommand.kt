@@ -36,7 +36,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, array
 
         bMember.adjustInfluence(transferAmount.negate())
         if (targetMember == bMember) {
-            resultLines.add("You lose " + transferAmount + " influence in " + context.jdaGuild.name + " as a result of hitting yourself.")
+            resultLines.add("You lose " + transferAmount + " influence in ${context.guild.name} as a result of hitting yourself.")
             context.sendEmbedResponse(resultLines)
             return
         }
@@ -44,11 +44,10 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, array
         val refundAmount: Influence
         refundAmount = if (context.isPublic) {
             context.message.delete().queue()
-            resultLines.add(bMember.effectiveName + " has *opposed* " + targetMember.effectiveName + ", reducing their influence here.")
             val reduceAmount = transferAmount.subtract(targetMember.adjustInfluence(transferAmount.negate()))
             when {
                 reduceAmount > 0 -> {
-                    resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
+                    resultLines.add(bMember.effectiveName + " has *opposed* " + targetMember.effectiveName + ", reducing their influence here.")
                     Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
                             bMember.effectiveName,
                             context.guild.name,

@@ -2,7 +2,8 @@ package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.NationColor;
+import botmanager.frostbalance.Player;
+import botmanager.frostbalance.Nation;
 
 /**
  * A claim on a tile.
@@ -14,15 +15,15 @@ public class Claim implements Containable<ClaimData> {
 
     transient ClaimData claimData;
     String userId;
-    NationColor nationColor;
+    Nation nation;
 
     Influence strength;
     Influence evictionStrength = new Influence(0);
 
-    Claim(PlayerCharacter player, NationColor nationColor, Influence strength) {
+    Claim(PlayerCharacter player, Nation nation, Influence strength) {
         this.claimData = player.getTile().getClaimData();
         this.userId = player.getUserId();
-        this.nationColor = nationColor;
+        this.nation = nation;
         this.strength = strength;
         claimData.addClaim(this);
     }
@@ -37,17 +38,17 @@ public class Claim implements Containable<ClaimData> {
     public boolean overlaps(Claim claim) {
         return this.claimData.equals(claim.claimData) &&
                 this.userId.equals(claim.userId) &&
-                this.nationColor.equals(claim.nationColor);
+                this.nation.equals(claim.nation);
     }
 
     /**
      * Tests if a claim's parameters are already extant.
      * @return True if the claims overlap.
      */
-    public boolean overlaps(ClaimData claimData, PlayerCharacter player, NationColor nationColor) {
+    public boolean overlaps(ClaimData claimData, PlayerCharacter player, Nation nation) {
         return this.claimData.equals(claimData) &&
                 this.userId.equals(player.getUserId()) &&
-                this.nationColor.equals(nationColor);
+                this.nation.equals(nation);
     }
 
     public void add(Influence strength) {
@@ -67,8 +68,8 @@ public class Claim implements Containable<ClaimData> {
         return amount;
     }
 
-    public NationColor getNationColor() {
-        return nationColor;
+    public Nation getNation() {
+        return nation;
     }
 
     public Influence getStrength() {
@@ -79,8 +80,8 @@ public class Claim implements Containable<ClaimData> {
         return strength;
     }
 
-    public PlayerCharacter getPlayer() {
-        return PlayerCharacter.get(userId, claimData.getTile().getMap());
+    public Player getPlayer() {
+        return Frostbalance.bot.getUserWrapper(userId).playerIn(claimData.getTile().getMap().getGameNetwork());
     }
 
     public boolean isActive() {
@@ -88,7 +89,7 @@ public class Claim implements Containable<ClaimData> {
     }
 
     private boolean ownerIsInNation() {
-        return getPlayer().getNation() == nationColor;
+        return getPlayer().getAllegiance() == nation;
     }
 
     /**
@@ -96,7 +97,7 @@ public class Claim implements Containable<ClaimData> {
      * @return the amount of influence actually transferred.
      */
     public Influence transferToClaim(PlayerCharacter player, Influence amount) {
-        Claim claim = claimData.getClaim(player, nationColor);
+        Claim claim = claimData.getClaim(player, nation);
         if (claim == null) {
             return new Influence(0);
         }

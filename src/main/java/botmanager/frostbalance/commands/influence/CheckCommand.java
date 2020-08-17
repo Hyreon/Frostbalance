@@ -4,6 +4,7 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.HotMap;
 import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
 import botmanager.frostbalance.command.GuildCommandContext;
@@ -36,31 +37,28 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
 
     public void runPublic(GuildCommandContext context, String message) {
 
-        String targetId;
         String result;
-        User targetUser;
+        UserWrapper targetUser;
 
         if (message.isEmpty()) {
-            result = info(bot.getAuthority(context.getJDAGuild(), context.getJDAUser()), true);
+            result = info(context.getAuthority(), true);
             context.sendResponse(result);
             return;
         }
 
-        targetId = Utilities.findUserId(context.getJDAGuild(), message);
+        targetUser = bot.getUserByName(message);
 
-        if (targetId == null) {
+        if (targetUser == null) {
             result = "Couldn't find user '" + message + "'.";
             context.sendResponse(result);
             return;
         }
 
-        targetUser = context.getJDA().getUserById(targetId);
-
         CheckMenu menu = new CheckMenu(bot, context.getJDAGuild(), context.getJDAUser());
         menu.send(context.getChannel(), targetUser);
         addToCheckCache((TextChannel) context.getChannel(), menu);
 
-        if (bot.getAuthority(context.getJDAGuild().getMemberById(targetId)).hasAuthority(AuthorityLevel.BOT)) {
+        if (targetUser.memberIn(context.getGuild()).hasAuthority(AuthorityLevel.BOT)) {
             result = "Uh, sure?";
             context.sendResponse(result);
             menu.PERFORM_CHECK.applyReaction();
@@ -78,7 +76,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
         Guild guild = context.getJDAGuild();
 
         if (message.isEmpty()) {
-            result = info(bot.getAuthority(guild, context.getJDAUser()), true);
+            result = info(context.getAuthority(), true);
             Utilities.sendPrivateMessage(context.getJDAUser(), result);
             return;
         }

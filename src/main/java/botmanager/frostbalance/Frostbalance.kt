@@ -15,12 +15,13 @@ import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
 import botmanager.frostbalance.grid.Container
+import botmanager.frostbalance.grid.TileObject
+import botmanager.frostbalance.grid.TileObjectAdapter
 import botmanager.frostbalance.grid.WorldMap
 import botmanager.frostbalance.menu.Menu
 import botmanager.generic.BotBase
 import botmanager.generic.ICommand
 import com.google.gson.GsonBuilder
-import com.google.gson.TypeAdapter
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
@@ -33,7 +34,6 @@ import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEv
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.api.exceptions.HierarchyException
 import net.dv8tion.jda.internal.managers.GuildManagerImpl
-import net.dv8tion.jda.internal.utils.tuple.Pair
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.io.ByteArrayOutputStream
@@ -96,34 +96,15 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
-        var targetMenu: Menu
-        for (menu in getActiveMenus()) {
-            if (event.user == menu.jdaActor) {
-                try {
-                    if (menu.message.id == event.messageId) {
-                        targetMenu = menu
-                        targetMenu.applyResponse(event.reactionEmote)
-                        break
-                    }
-                } catch (e: NullPointerException) {
-                    e.printStackTrace()
-                    //these happen often enough. let's not have them ruin other menus when they do
-                }
-            }
-        }
+        getActiveMenus().firstOrNull { menu ->
+            event.userId == menu.actor.id && menu.message.id == event.messageId
+        }?.applyResponse(event.reactionEmote)
     }
 
     override fun onPrivateMessageReactionAdd(event: PrivateMessageReactionAddEvent) {
-        var targetMenu: Menu? = null
-        for (menu in getActiveMenus()) {
-            if (event.user == menu.jdaActor) {
-                if (menu.message.id == event.messageId) {
-                    targetMenu = menu
-                    break
-                }
-            }
-        }
-        targetMenu?.applyResponse(event.reactionEmote)
+        getActiveMenus().firstOrNull { menu ->
+            event.userId == menu.actor.id && menu.message.id == event.messageId
+        }?.applyResponse(event.reactionEmote)
     }
 
     override fun onGuildUpdateIcon(event: GuildUpdateIconEvent) {
@@ -247,8 +228,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun getUserCSVAtIndex(guild: Guild?, userId: String, index: Int): String {
+    private fun getUserCSVAtIndex(guild: Guild?, userId: String, index: Int): String {
         val guildId: String
         guildId = guild?.id ?: "global"
         val file = File("data/$name/$guildId/$userId.csv")
@@ -257,8 +237,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         } else Utilities.getCSVValueAtIndex(Utilities.read(file), index)
     }
 
-    @Deprecated("")
-    fun setUserCSVAtIndex(guild: Guild?, user: User, index: Int, newValue: String?) {
+    private fun setUserCSVAtIndex(guild: Guild?, user: User, index: Int, newValue: String?) {
         val guildId: String
         guildId = guild?.id ?: "global"
         val file = File("data/" + name + "/" + guildId + "/" + user.id + ".csv")
@@ -281,8 +260,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val adminIds: List<String>
         get() = Utilities.readLines(File("data/$name/staff.csv"))
 
-    @Deprecated("")
-    fun loadRecords(guild: Guild?) {
+    private fun loadRecords(guild: Guild?) {
         val info = Utilities.readLines(File("data/" + name + "/" + guild!!.id + "/history.csv"))
         if (info != null && !info.isEmpty()) {
             for (line in info) {
@@ -317,93 +295,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun hasBeenForciblyRemoved(member: Member): Boolean {
-        val relevantRegimes: List<RegimeData>? = getRecords(member.guild)
-        return try {
-            val lastRegime = relevantRegimes!![relevantRegimes.size - 1]
-            if (lastRegime.terminationCondition === TerminationCondition.RESET && lastRegime.userId == member.user.id) {
-                false
-            } else true
-        } catch (e: IndexOutOfBoundsException) {
-            true
-        }
-    }
-
-    @Deprecated("")
-    fun banUser(guild: Guild, user: User) {
-        setUserCSVAtIndex(guild, user, 1, java.lang.Boolean.TRUE.toString())
-        try {
-            guild.ban(user, 0).queue()
-        } catch (e: HierarchyException) {
-            System.err.println("Unable to ban admin user " + user.name + ".")
-            e.printStackTrace()
-        }
-    }
-
-    /**
-     *
-     * @param guild
-     * @param user
-     * @return Whether the user had a ban from the server when pardoned.
-     */
-    @Deprecated("")
-    fun pardonUser(guild: Guild, user: User): Boolean {
-        setUserCSVAtIndex(guild, user, 1, java.lang.Boolean.FALSE.toString())
-        try {
-            guild.unban(user).queue()
-        } catch (e: ErrorResponseException) {
-            return false
-        }
-        return true
-    }
-
-    @Deprecated("")
-    fun globallyBanUser(user: User) {
-        Utilities.append(File("data/$name/global/bans.csv"), user.id)
-        for (guild in jda.guilds) {
-            if (guild.isMember(user)) {
-                try {
-                    guild.ban(user, 0).queue()
-                } catch (e: HierarchyException) {
-                    System.err.println("Unable to fully ban user " + user.name + " because they have admin privileges in some servers!")
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    @Deprecated("")
-    fun globallyPardonUser(user: User): Boolean {
-        val file = File("data/$name/global/bans.csv")
-        var found = false
-        val validBans: MutableList<String> = ArrayList()
-        for (line in Utilities.readLines(file)) {
-            if (line != user.id) {
-                validBans.add(line)
-            } else {
-                found = true
-                for (guild in jda.guilds) {
-                    try {
-                        guild.unban(user).queue()
-                    } catch (e: ErrorResponseException) {
-                        //nothing
-                    }
-                }
-            }
-        }
-        Utilities.write(file, java.lang.String.join("\n", validBans))
-        return found
-    }
-
     /**
      * Returns if the player is banned from this guild.
      * @param guild The guild to check
      * @param user The user to check
      * @return Whether this user is banned from this guild, or banned globally
      */
-    @Deprecated("")
-    fun isBanned(guild: Guild?, user: User?): Boolean {
+    private fun isBanned(guild: Guild?, user: User?): Boolean {
         return isGloballyBanned(user) || isLocallyBanned(guild, user)
     }
 
@@ -413,8 +311,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @param user The user to check
      * @return Whether this user is banned from this guild, or banned globally
      */
-    @Deprecated("")
-    fun isLocallyBanned(guild: Guild?, user: User?): Boolean {
+    private fun isLocallyBanned(guild: Guild?, user: User?): Boolean {
         return java.lang.Boolean.parseBoolean(getUserCSVAtIndex(guild, user!!.id, 1))
     }
 
@@ -424,8 +321,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @param user The user to check
      * @return Whether this user is banned globally
      */
-    @Deprecated("")
-    fun isGloballyBanned(user: User?): Boolean {
+    private fun isGloballyBanned(user: User?): Boolean {
         val bannedUserIds = Utilities.readLines(File("data/$name/global/bans.csv"))
         for (bannedUserId in bannedUserIds) {
             if (bannedUserId == user!!.id) {
@@ -435,7 +331,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return false
     }
 
-    @Deprecated("")
     private fun getRecords(guild: Guild?): MutableList<RegimeData>? {
         if (regimes[guild] == null) {
             loadRecords(guild)
@@ -443,31 +338,16 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return regimes.getOrDefault(guild, ArrayList())
     }
 
-    @Deprecated("")
-    fun readRecords(guild: Guild?): List<RegimeData> {
-        if (regimes[guild] == null) {
-            loadRecords(guild)
-        }
-        return if (regimes[guild] == null) {
-            ArrayList()
-        } else {
-            ArrayList(regimes[guild])
-        }
-    }
-
-    @Deprecated("")
-    fun updateLastRegime(guild: Guild, regime: RegimeData) {
+    private fun updateLastRegime(guild: Guild, regime: RegimeData) {
         Utilities.removeLine(File("data/" + name + "/" + guild.id + "/history.csv"))
         Utilities.append(File("data/" + name + "/" + guild.id + "/history.csv"), regime.toCSV())
     }
 
-    @Deprecated("")
-    fun logRegime(guild: Guild, regime: RegimeData) {
+    private fun logRegime(guild: Guild, regime: RegimeData) {
         Utilities.append(File("data/" + name + "/" + guild.id + "/history.csv"), regime.toCSV())
     }
 
-    @Deprecated("")
-    fun endRegime(guild: Guild, condition: TerminationCondition?) {
+    private fun endRegime(guild: Guild, condition: TerminationCondition?) {
         val regimeData = getRecords(guild)
         val currentOwnerId = getOwnerId(guild)
         val currentOwner = getOwner(guild)
@@ -497,8 +377,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @param user The user in question
      * @return True if a guild can be found where this player is the same as the owner of that server.
      */
-    @Deprecated("")
-    fun hasDiplomatStatus(user: User): Boolean {
+    private fun hasDiplomatStatus(user: User): Boolean {
         for (guild in jda.guilds) {
             if (getSettings(guild).contains(OldOptionFlag.MAIN) && getOwner(guild)!!.user == user) {
                 return true
@@ -507,17 +386,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return false
     }
 
-    @Deprecated("")
-    fun startRegime(guild: Guild, user: User) {
-        val regime = RegimeData(getGuildWrapper(guild.id), user.id, Utilities.todayAsLong())
-        getRecords(guild)!!.add(regime)
-        guild.addRoleToMember(guild.getMember(user)!!, getOwnerRole(guild)!!).queue()
-        updateOwner(guild, user)
-        logRegime(guild, regime)
-    }
-
-    @Deprecated("")
-    fun getSettings(guild: Guild): Collection<OldOptionFlag> {
+    private fun getSettings(guild: Guild): Collection<OldOptionFlag> {
         val debugFlagOlds: MutableCollection<OldOptionFlag> = HashSet()
         val flags = Utilities.readLines(File("data/" + name + "/" + guild.id + "/flags.csv"))
         for (flag in flags) {
@@ -526,36 +395,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return debugFlagOlds
     }
 
-    /**
-     * Flips a flag for a guild.
-     * @param guild
-     * @param toggledFlagOld
-     * @return Whether the debug flag got turned on (TRUE) or off (FALSE)
-     */
-    @Deprecated("")
-    fun flipFlag(guild: Guild, toggledFlagOld: OldOptionFlag): Boolean {
-        return if (getSettings(guild).contains(toggledFlagOld)) {
-            removeDebugFlag(guild, toggledFlagOld)
-            false
-        } else {
-            for (previousFlag in getSettings(guild)) {
-                if (previousFlag.isExclusiveWith(toggledFlagOld)) {
-                    removeDebugFlag(guild, previousFlag)
-                }
-            }
-            addDebugFlag(guild, toggledFlagOld)
-            true
-        }
-    }
-
-    @Deprecated("")
-    fun addDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
+    private fun addDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
         val file = File("data/" + name + "/" + guild.id + "/flags.csv")
         Utilities.append(file, debugFlagOld.toString())
     }
 
-    @Deprecated("")
-    fun removeDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
+    private fun removeDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
         val file = File("data/" + name + "/" + guild.id + "/flags.csv")
         val lines = Utilities.readLines(file)
         val i = lines.iterator()
@@ -572,14 +417,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun getOwnerId(guild: Guild?): String {
+    private fun getOwnerId(guild: Guild?): String {
         val info = Utilities.read(File("data/" + name + "/" + guild!!.id + "/owner.csv"))
         return Utilities.getCSVValueAtIndex(info, 0)
     }
 
-    @Deprecated("")
-    fun getOwner(guild: Guild): Member? {
+    private fun getOwner(guild: Guild): Member? {
         return try {
             val info = Utilities.read(File("data/" + name + "/" + guild.id + "/owner.csv"))
             guild.getMember(jda.getUserById(Utilities.getCSVValueAtIndex(info, 0))!!)
@@ -590,18 +433,15 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun updateOwner(guild: Guild, user: User) {
+    private fun updateOwner(guild: Guild, user: User) {
         Utilities.write(File("data/" + name + "/" + guild.id + "/owner.csv"), user.id)
     }
 
-    @Deprecated("")
-    fun removeOwner(guild: Guild) {
+    private fun removeOwner(guild: Guild) {
         Utilities.removeFile(File("data/" + name + "/" + guild.id + "/owner.csv"))
     }
 
-    @Deprecated("")
-    fun changeUserInfluence(guild: Guild?, user: User, influence: Influence) {
+    private fun changeUserInfluence(guild: Guild?, user: User, influence: Influence) {
         val startingInfluence = getUserInfluence(guild, user)
         var newInfluence = influence.add(startingInfluence)
         if (newInfluence.getThousandths() < 0) {
@@ -610,13 +450,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         setUserCSVAtIndex(guild, user, 0, newInfluence.toString())
     }
 
-    @Deprecated("")
-    fun changeUserInfluence(member: Member, influence: Influence) {
+    private fun changeUserInfluence(member: Member, influence: Influence) {
         changeUserInfluence(member.guild, member.user, influence)
     }
 
-    @Deprecated("")
-    fun gainDailyInfluence(member: Member, influenceGained: Influence): Influence {
+    private fun gainDailyInfluence(member: Member, influenceGained: Influence): Influence {
         var influenceGained = influenceGained
         return if (getUserLastDaily(member) != Utilities.todayAsLong()) { //new day
             setUserLastDaily(member, Utilities.todayAsLong())
@@ -635,13 +473,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("", ReplaceWith("member.gainDailyInfluence()"))
-    fun gainDailyInfluence(member: Member): Influence {
-        return gainDailyInfluence(member, DailyInfluenceSource.DAILY_INFLUENCE_CAP)
-    }
-
-    @Deprecated("")
-    fun getUserInfluence(guild: Guild?, user: User?): Influence {
+    private fun getUserInfluence(guild: Guild?, user: User?): Influence {
         return try {
             Influence(getUserCSVAtIndex(guild, user!!.id, 0).toDouble())
         } catch (e: NumberFormatException) {
@@ -649,13 +481,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun getUserInfluence(member: Member): Influence {
-        return getUserInfluence(member.guild, member.user)
-    }
-
-    @Deprecated("")
-    fun getUserDailyAmount(guild: Guild?, user: User?): Influence {
+    private fun getUserDailyAmount(guild: Guild?, user: User?): Influence {
         return try {
             Influence(getUserCSVAtIndex(guild, user!!.id, 3).toDouble())
         } catch (e: NumberFormatException) {
@@ -663,23 +489,19 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun getUserDailyAmount(member: Member): Influence {
+    private fun getUserDailyAmount(member: Member): Influence {
         return getUserDailyAmount(member.guild, member.user)
     }
 
-    @Deprecated("")
-    fun setUserDailyAmount(guild: Guild?, user: User, amount: Influence) {
+    private fun setUserDailyAmount(guild: Guild?, user: User, amount: Influence) {
         setUserCSVAtIndex(guild, user, 3, amount.toString())
     }
 
-    @Deprecated("")
-    fun setUserDailyAmount(member: Member, amount: Influence) {
+    private fun setUserDailyAmount(member: Member, amount: Influence) {
         setUserDailyAmount(member.guild, member.user, amount)
     }
 
-    @Deprecated("")
-    fun getUserLastDaily(guild: Guild?, user: User?): Long {
+    private fun getUserLastDaily(guild: Guild?, user: User?): Long {
         return try {
             getUserCSVAtIndex(guild, user!!.id, 2).toInt().toLong()
         } catch (e: NumberFormatException) {
@@ -687,44 +509,24 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun getUserLastDaily(member: Member): Long {
+    private fun getUserLastDaily(member: Member): Long {
         return getUserLastDaily(member.guild, member.user)
     }
 
-    @Deprecated("")
-    fun setUserLastDaily(guild: Guild?, user: User, date: Long) {
+    private fun setUserLastDaily(guild: Guild?, user: User, date: Long) {
         setUserCSVAtIndex(guild, user, 2, date.toString())
     }
 
-    @Deprecated("")
-    fun setUserLastDaily(member: Member, date: Long) {
+    private fun setUserLastDaily(member: Member, date: Long) {
         setUserLastDaily(member.guild, member.user, date)
     }
 
-    @Deprecated("")
-    fun resetUserDefaultGuild(user: User) {
-        setUserCSVAtIndex(null, user, 0, "")
-    }
-
-    @Deprecated("")
-    fun setUserDefaultGuild(user: User, guild: Guild) {
-        setUserCSVAtIndex(null, user, 0, guild.id)
-    }
-
-    @Deprecated("")
-    fun setMainAllegiance(user: User, nationColor: NationColor) {
-        setUserCSVAtIndex(null, user, 1, nationColor.toString())
-    }
-
-    @Deprecated("")
-    fun getMainAllegiance(user: User): NationColor {
+    private fun getMainAllegiance(user: User): Nation? {
         val allegiance = getUserCSVAtIndex(null, user.id, 1)
-        return if (Utils.isNullOrEmpty(allegiance)) NationColor.NONE else NationColor.valueOf(allegiance)
+        return if (Utils.isNullOrEmpty(allegiance)) null else Nation.valueOf(allegiance)
     }
 
-    @Deprecated("")
-    fun getUserDefaultGuild(user: User?): Guild? {
+    private fun getUserDefaultGuild(user: User?): Guild? {
         return try {
             jda.getGuildById(getUserCSVAtIndex(null, user!!.id, 0))
         } catch (e: IllegalArgumentException) {
@@ -738,6 +540,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         loadGamesFromCSV()
         loadGuildsFromCSV()
         loadMapsLegacy()
+        loadPlayersFromCSV()
     }
 
     override fun getCommands(): Array<FrostbalanceCommandBase> {
@@ -749,7 +552,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return newCommands.requireNoNulls()
     }
 
-    fun getOwnerRole(guild: Guild): Role? {
+    private fun getOwnerRole(guild: Guild): Role? {
         return try {
             guild.getRolesByName("LEADER", true)[0]
         } catch (e: IndexOutOfBoundsException) {
@@ -758,7 +561,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    fun getSystemRole(guild: Guild): Role? {
+    private fun getSystemRole(guild: Guild): Role? {
         return try {
             guild.getRolesByName("FROSTBALANCE", true)[0]
         } catch (e: IndexOutOfBoundsException) {
@@ -773,7 +576,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * It will *not* reset player data about influence, leader history, channels or their conversations.
      * @param guild The guild to reset.
      */
-    fun softReset(guild: Guild) {
+    private fun softReset(guild: Guild) {
         val roles = guild.roles
         for (role in roles) {
             if (getSystemRole(guild) != role && getOwnerRole(guild) != role) {
@@ -797,8 +600,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         softReset(guild)
     }
 
-    @Deprecated("")
-    fun getAuthority(user: User): AuthorityLevel {
+    private fun getAuthority(user: User): AuthorityLevel {
         return if (this.jda.selfUser.id == user.id) {
             AuthorityLevel.BOT
         } else if (adminIds.contains(user.id)) {
@@ -814,8 +616,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      * @param user The user that is operating
      * @return The authority level of the user
      */
-    @Deprecated("")
-    fun getAuthority(guild: Guild?, user: User): AuthorityLevel {
+    private fun getAuthority(guild: Guild?, user: User): AuthorityLevel {
         if (guild == null) return getAuthority(user)
         return if (this.jda.selfUser.id == user.id) {
             AuthorityLevel.BOT
@@ -834,30 +635,23 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    @Deprecated("")
-    fun getAuthority(member: Member): AuthorityLevel {
-        return getAuthority(member.guild, member.user)
-    }
-
-    @Deprecated("")
-    fun getAllegianceIn(guild: Guild): NationColor {
+    private fun getAllegianceIn(guild: Guild): Nation? {
         val flags = getSettings(guild)
         if (!flags.contains(OldOptionFlag.MAIN)) {
-            return NationColor.NONE
+            return null
         }
         return if (flags.contains(OldOptionFlag.RED)) {
-            NationColor.RED
+            Nation.RED
         } else if (flags.contains(OldOptionFlag.GREEN)) {
-            NationColor.GREEN
+            Nation.GREEN
         } else if (flags.contains(OldOptionFlag.BLUE)) {
-            NationColor.BLUE
+            Nation.BLUE
         } else {
-            NationColor.NONE
+            null
         }
     }
 
-    @Deprecated("")
-    fun getGuildColor(guild: Guild): Color {
+    private fun getGuildColor(guild: Guild): Color {
         val flags = getSettings(guild)
         return when {
             flags.contains(OldOptionFlag.RED) -> {
@@ -877,18 +671,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     /**
      *
-     * @param nationColor
+     * @param nation
      * @return Null if no guild exists for this nation
      */
-    fun getGuildFor(nationColor: NationColor): Guild? {
-        for (guild in jda.guilds) {
-            if (getSettings(guild).contains(OldOptionFlag.MAIN)) {
-                if (nationColor == getAllegianceIn(guild)) {
-                    return guild
-                }
-            }
-        }
-        return null
+    fun getGuildFor(nation: Nation): GuildWrapper? {
+        return mainNetwork.guildWithAllegiance(nation)
     }
 
     //FIXME add a flag for whether the maps have been loaded - there's a risk of losing all map data if someone is fast enough
@@ -916,7 +703,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun saveGames() {
         for (network in gameNetworks) {
-            writeObject("games/" + network.id, network)
+            writeObject("games/" + network.id, network, Pair(TileObject::class.java, TileObjectAdapter()))
         }
     }
 
@@ -935,21 +722,27 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val guild = jda.getGuildById(guildId) ?: continue
                 println("Guild:$guild")
                 try {
-                    val bGuild = getGuildWrapper(guildId)
+                    val settings = getSettings(guild)
+                    val gameNetwork = when {
+                        settings.contains(OldOptionFlag.MAIN) -> {
+                            getGameNetwork("global")
+                        }
+                        settings.contains(OldOptionFlag.TUTORIAL) -> {
+                            getGameNetwork("tutorial")
+                        }
+                        else -> {
+                            getGameNetwork(guild.id)
+                        }
+                    }
+                    val bGuild = getGuildIfPresent(guildId) ?: GuildWrapper(gameNetwork, guild)
                     bGuild.loadLegacy(
-                            getSettings(bGuild.guild!!) as MutableSet<OldOptionFlag>,
-                            getRecords(bGuild.guild)!!,
-                            getOwnerId(bGuild.guild),
-                            bGuild.guild!!.name
+                            getSettings(guild) as MutableSet<OldOptionFlag>,
+                            getRecords(guild)!!,
+                            getOwnerId(guild),
+                            guild.name
                     )
-                    if (bGuild.hasFlag(OldOptionFlag.MAIN)) {
-                        getGameNetwork("global").addGuild(bGuild)
-                        getGameNetwork("global").adopt()
-                    }
-                    if (bGuild.hasFlag(OldOptionFlag.TUTORIAL)) {
-                        getGameNetwork("tutorial").addGuild(bGuild)
-                        getGameNetwork("tutorial").adopt()
-                    }
+                    gameNetwork.addGuild(bGuild)
+                    gameNetwork.adopt()
                     println("Added guild:" + bGuild.name)
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -971,13 +764,34 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     println("User: " + bUser.jdaUser)
                     try {
                         bUser.loadLegacy(
-                                getMainAllegiance(Objects.requireNonNull(bUser.jdaUser)!!),
                                 getUserDefaultGuild(bUser.jdaUser)!!.id,
                                 isGloballyBanned(bUser.jdaUser),
                                 bUser.jdaUser!!.name,
                                 adminIds.contains(bUser.id)
                         )
                         userWrappers.add(bUser)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    println("Added: " + bUser.name)
+                }
+            } catch (e: NumberFormatException) {
+            }
+        }
+    }
+
+    private fun loadPlayersFromCSV() {
+        for (file in File("data/$name/global").listFiles()) {
+            val fileName = file.name
+            if (!fileName.contains(".csv")) continue
+            val userId = fileName.replace(".csv", "")
+            println("UserId: $userId")
+            try {
+                if (jda.getUserById(userId) != null) {
+                    val bUser = getUserWrapper(userId)
+                    println("User: " + bUser.jdaUser)
+                    try {
+                        gameNetworks.forEach { gameNetwork -> bUser.playerIn(gameNetwork).allegiance = getMainAllegiance(bUser.jdaUser!!) }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -1033,7 +847,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 userWrapper.adopt() //TODO auto-adopt, which is what containerAdapter should be doing
                 //but it's not doing its job
                 //so >:(
-                println(userWrapper.memberReference)
                 if (userWrapper.id != null) { //impossible condition test
                     userWrappers.add(userWrapper)
                 } else {
@@ -1047,10 +860,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         for (file in File("data/$name/games").listFiles()) {
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
+                gsonBuilder.registerTypeAdapter(TileObject::class.java, TileObjectAdapter())
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 val gson = gsonBuilder.create()
+                val worldMap = gson.fromJson(IOUtils.read(file), WorldMap::class.java)
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
                 gameNetwork.setParent(this)
+                gameNetwork.adopt()
                 if (gameNetwork.id != null) { //impossible condition test
                     gameNetworks.add(gameNetwork)
                 } else {
@@ -1060,11 +876,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<*>?, TypeAdapter<*>?>) {
+    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<TileObject>, TileObjectAdapter>) {
         val file = File("data/$name/$filename.json")
         val gsonBuilder = GsonBuilder()
         for (typeAdapterPair in typeAdapters) {
-            gsonBuilder.registerTypeAdapter(typeAdapterPair.left, typeAdapterPair.right)
+            gsonBuilder.registerTypeAdapter(typeAdapterPair.first, typeAdapterPair.second)
         }
         val gson = gsonBuilder.setPrettyPrinting().create()
         IOUtils.write(file, gson.toJson(`object`))
@@ -1121,6 +937,17 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         var guild = GuildWrapper(network, id)
         network.addGuild(guild)
         return guild
+    }
+
+
+    fun getGuildIfPresent(id: String): GuildWrapper? {
+        Objects.requireNonNull(id)
+        gameNetworks.forEach{ network ->
+            network.associatedGuilds.firstOrNull{ guild -> guild.id == id }?.let {
+                return it
+            }
+        }
+        return null
     }
 
 

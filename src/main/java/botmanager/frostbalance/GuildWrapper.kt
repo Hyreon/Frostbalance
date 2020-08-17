@@ -5,6 +5,7 @@ import botmanager.frostbalance.Frostbalance.Companion.bot
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
 import botmanager.frostbalance.grid.Containable
+import botmanager.frostbalance.grid.Container
 import lombok.Getter
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.Permission
@@ -15,7 +16,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
 
-class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Containable<GameNetwork> {
+class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Containable<GameNetwork>, Container {
 
 
     constructor(gameNetwork: GameNetwork, guild: Guild) : this(gameNetwork, guild.id)
@@ -28,8 +29,9 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     var lastKnownName: String? = null
 
     var leaderId: String? = null
+
     var oldOptionFlags: MutableSet<OldOptionFlag> = HashSet()
-        get() = Collections.unmodifiableSet(field)
+
     @JvmField
     var regimes: MutableList<RegimeData> = ArrayList()
     val name: String?
@@ -39,6 +41,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
             }
             return lastKnownName
         }
+
     val guild: Guild?
         get() = jda.getGuildById(id)
     val jda: JDA
@@ -55,6 +58,10 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         }
 
     override fun toString() : String = if (isOnline()) name!! else name?.let { "~~$it~~" }?:"*Inaccessible Guild*"
+
+    override fun adopt() {
+        regimes.forEach { regime -> regime.setParent(this) }
+    }
 
     fun isOnline(): Boolean {
         return guild != null
@@ -215,19 +222,19 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         return hasFlag(OldOptionFlag.MAIN) || hasFlag(OldOptionFlag.TUTORIAL)
     }
 
-    val nationColor: NationColor?
+    val nation: Nation?
         get() = when {
             !usesNations() -> {
                 null
             }
             hasFlag(OldOptionFlag.BLUE) -> {
-                NationColor.BLUE
+                Nation.BLUE
             }
             hasFlag(OldOptionFlag.RED) -> {
-                NationColor.RED
+                Nation.RED
             }
             hasFlag(OldOptionFlag.GREEN) -> {
-                NationColor.GREEN
+                Nation.GREEN
             }
             else -> {
                 null

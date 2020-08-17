@@ -18,7 +18,7 @@ public class MoveCommand extends FrostbalanceGuildCommandBase {
     @Override
     protected void executeWithGuild(GuildCommandContext context, String... params) {
 
-        PlayerCharacter player = PlayerCharacter.get(context.getJDAUser(), context.getJDAGuild());
+        PlayerCharacter character = context.getPlayer().getCharacter();
         Hex destination;
 
         if (params.length < 3) {
@@ -32,9 +32,9 @@ public class MoveCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        player.setDestination(destination);
+        character.setDestination(destination);
         context.sendResponse(context.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
-        + player.getTravelTime() + ".");
+        + character.getTravelTime() + ".");
 
     }
 

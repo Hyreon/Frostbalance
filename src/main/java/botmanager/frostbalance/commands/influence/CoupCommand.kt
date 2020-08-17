@@ -48,7 +48,7 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf
             } else {
                 bMember.adjustInfluence(influence.negate())
                 currentLeader.adjustInfluence(influence.negate())
-                result = "**${bMember.effectiveName}** has attempted a coup on **${currentLeader.member?.asMention}**," +
+                result = "**${bMember.effectiveName}** has attempted a coup on **${currentLeader.member?.asMention}**, " +
                         "which has backfired. Both players have lost influence" +
                         " and the leader has not changed."
                 privateResult = "*This maneuver has cost you **ALL** of your influence. " +

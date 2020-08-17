@@ -29,7 +29,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
     /**
      * A list of a member instances of this player.
      */
-    var memberReference: MutableList<MemberWrapper> = ArrayList()
+    var memberReference: MutableSet<MemberWrapper> = HashSet()
 
     /**
      * A list of independent players this user controls.
@@ -37,14 +37,12 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
      * may be no player in a GameInstance if that player
      * hasn't ever joined the server.
      */
-    var playerReference: MutableList<Player> = ArrayList()
+    private var playerReference: MutableSet<Player> = HashSet()
 
     @Transient
     var userIcon: BufferedImage? = null
 
     private var lastKnownName: String? = null
-
-    var allegiance = NationColor.NONE
 
     var defaultGuildId: String? = null
     var minimumAuthorityLevel: AuthorityLevel = AuthorityLevel.GENERIC
@@ -89,9 +87,8 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         defaultGuildId = null
     }
 
-    fun loadLegacy(mainAllegiance: NationColor, UserDefaultGuild: String, GloballyBanned: Boolean, Name: String, isBotAdmin: Boolean) {
+    fun loadLegacy(UserDefaultGuild: String, GloballyBanned: Boolean, Name: String, isBotAdmin: Boolean) {
 
-        allegiance = mainAllegiance
         defaultGuildId = UserDefaultGuild
         globallyBanned = GloballyBanned
         lastKnownName = Name
@@ -136,8 +133,17 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         get() = bot.getUserWrapper(id)
 
     override fun adopt() {
+        if (memberReference == null) {
+            memberReference = HashSet()
+        }
         for (member in memberReference) {
             member.setParent(this)
+        }
+        if (playerReference == null) {
+            playerReference = HashSet()
+        }
+        for (player in playerReference) {
+            player.setParent(this)
         }
     }
 
@@ -149,7 +155,11 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
      * Return this user as if it were a player in the given game instance.
      * If this player hasn't yet joined this game, then it returns null instead.
      */
-    fun playerIn(gameNetwork: GameNetwork): Player? {
-        return playerReference.firstOrNull { player -> player.gameNetwork == gameNetwork}
+    fun playerIn(gameNetwork: GameNetwork): Player {
+        return playerReference.firstOrNull { player -> player.gameNetwork == gameNetwork} ?: let {
+            val player = Player(gameNetwork, this)
+            playerReference.add(player)
+            return player
+        }
     }
 }

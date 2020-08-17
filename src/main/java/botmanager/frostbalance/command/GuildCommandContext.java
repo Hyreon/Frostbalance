@@ -1,8 +1,6 @@
 package botmanager.frostbalance.command;
 
-import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.GuildWrapper;
-import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.*;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
@@ -60,11 +58,19 @@ public class GuildCommandContext extends CommandContext {
     }
 
     public MemberWrapper getMember() {
-        return bot.getMemberWrapper(getJDAUser().getId(), getJDAGuild().getId());
+        return getAuthor().memberIn(getGuildId());
     }
 
     @Override
     public AuthorityLevel getAuthority() {
-        return bot.getAuthority(getJDAGuild(), getJDAUser());
+        return getMember().getAuthority();
+    }
+
+    public GameNetwork getGameNetwork() {
+        return getGuild().getGameNetwork();
+    }
+
+    public Player getPlayer() {
+        return getAuthor().playerIn(getGameNetwork());
     }
 }

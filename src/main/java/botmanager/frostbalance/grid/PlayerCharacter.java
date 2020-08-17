@@ -1,11 +1,12 @@
 package botmanager.frostbalance.grid;
 
-import botmanager.frostbalance.Player;
 import botmanager.Utils;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.NationColor;
+import botmanager.frostbalance.Player;
+import botmanager.frostbalance.Nation;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,9 +32,9 @@ public class PlayerCharacter extends TileObject {
     @Deprecated
     public static PlayerCharacter get(String userId, WorldMap map) {
         if (Utils.isNullOrEmpty(userId)) return null;
-        for (PlayerCharacter player : cache) {
-            if (player.getUserId().equals(userId) && player.getTile().getMap().equals(map)) {
-                return player;
+        for (PlayerCharacter character : cache) {
+            if (character.getUserId().equals(userId) && character.getTile().getMap().equals(map)) {
+                return character;
             }
         }
         PlayerCharacter newPlayer = new PlayerCharacter(userId, map);
@@ -43,7 +44,7 @@ public class PlayerCharacter extends TileObject {
     }
 
     @Deprecated
-    public static PlayerCharacter get(User user, Guild guild) {
+    public static PlayerCharacter get(User user, @NotNull Guild guild) {
         return get(user.getId(), WorldMap.get(guild));
     }
 
@@ -81,12 +82,8 @@ public class PlayerCharacter extends TileObject {
      * @return The nation this player is a part of, if relevant.
      * Note the user can change this at any time.
      */
-    public NationColor getNation() {
-        if (getMap().isMainMap() || getMap().isTutorialMap()) {
-            return Frostbalance.bot.getMainAllegiance(getUser());
-        } else {
-            return NationColor.NONE;
-        }
+    public Nation getNation() {
+        return getPlayer().getAllegiance();
     }
 
 

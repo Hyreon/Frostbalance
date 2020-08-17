@@ -103,9 +103,9 @@ public class CommandContext {
 
     public AuthorityLevel getAuthority() {
         if (hasGuild()) {
-            return bot.getAuthority(new GuildCommandContext(this).getJDAGuild(), getJDAUser());
+            return new GuildCommandContext(this).getAuthority();
         }
-        return bot.getAuthority(getJDAUser());
+        return getAuthor().getAuthority();
     }
 
     public Event getEvent() {

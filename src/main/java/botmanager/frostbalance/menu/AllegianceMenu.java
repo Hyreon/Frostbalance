@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.NationColor;
+import botmanager.frostbalance.Nation;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -16,49 +16,25 @@ public class AllegianceMenu extends Menu {
 
         this.cause = cause;
 
-        menuResponses.add(new MenuResponse("\uD83D\uDFE5", "Red") {
+        for (Nation nation : Nation.getNations()) {
 
-            @Override
-            public void reactEvent() {
-                bot.getUserWrapper(getActor().getId()).setAllegiance(NationColor.RED);
-                close(false);
-            }
+            menuResponses.add(new MenuResponse(nation.getEmoji(), nation.toString()) {
 
-            @Override
-            public boolean validConditions() {
-                return true;
-            }
-        });
+                @Override
+                public void reactEvent() {
+                    getActor().playerIn(bot.getMainNetwork()).setAllegiance(nation);
+                    close(false);
+                }
 
-        menuResponses.add(new MenuResponse("\uD83D\uDFE9", "Green") {
+                @Override
+                public boolean validConditions() {
+                    return true;
+                }
+            });
 
-            @Override
-            public void reactEvent() {
-                bot.getUserWrapper(getActor().getId()).setAllegiance(NationColor.GREEN);
-                close(false);
-            }
+        }
 
-            @Override
-            public boolean validConditions() {
-                return true;
-            }
-        });
-
-        menuResponses.add(new MenuResponse("\uD83D\uDFE6", "Blue") {
-
-            @Override
-            public void reactEvent() {
-                bot.getUserWrapper(getActor().getId()).setAllegiance(NationColor.BLUE);
-                close(false);
-            }
-
-            @Override
-            public boolean validConditions() {
-                return true;
-            }
-        });
-
-        menuResponses.add(new MenuResponse("✖️", "Don't set for now") {
+        menuResponses.add(new MenuResponse("✖️", "Don't change for now") {
 
             @Override
             public void reactEvent() {
@@ -82,26 +58,26 @@ public class AllegianceMenu extends Menu {
         if (isClosed()) {
             builder.setTitle("Allegiance set");
             if (cause == Cause.NOT_SET) {
-                builder.setDescription("You will now claim tiles in the name of " + bot.getMainAllegiance(getJdaActor()).getEffectiveName() + ". You may now make claims.");
+                builder.setDescription("You will now claim tiles in the name of " + getActor().playerIn(bot.getMainNetwork()).getAllegiance() + ". You may now make claims.");
             } else if (cause == Cause.CHANGE) {
-                builder.setDescription("Your allegiance has been moved to " + bot.getMainAllegiance(getJdaActor()).getEffectiveName());
+                builder.setDescription("Your allegiance has been moved to " + getActor().playerIn(bot.getMainNetwork()).getAllegiance());
             }
-            builder.setColor(bot.getMainAllegiance(getJdaActor()).getColor());
+            builder.setColor(getActor().playerIn(bot.getMainNetwork()).getAllegiance().getColor());
         } else {
             builder.setTitle("Set allegiance");
             if (cause == Cause.NOT_SET) {
                 builder.setDescription("This claim cannot be made. In order to claim tiles, you must first set your allegiance." + ADDENDUM);
                 builder.setColor(Color.GRAY);
             } else if (cause == Cause.CHANGE) {
-                builder.setDescription("Pick your new allegiance. Current allegiance: " + bot.getMainAllegiance(getJdaActor()).getEffectiveName() + ADDENDUM);
-                builder.setColor(bot.getUserWrapper(getJdaActor().getId()).getAllegiance().getColor());
+                builder.setDescription("Pick your new allegiance. Current allegiance: " + getActor().playerIn(bot.getMainNetwork()).getAllegiance() + ADDENDUM);
+                builder.setColor(getActor().playerIn(bot.getMainNetwork()).getAllegiance().getColor());
             }
         }
         return builder;
     }
 
     public enum Cause {
-        NOT_SET, CHANGE;
+        NOT_SET, CHANGE
     }
 
 }

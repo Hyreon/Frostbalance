@@ -1,6 +1,6 @@
 package botmanager.frostbalance.render;
 
-import botmanager.frostbalance.NationColor;
+import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.grid.*;
 
 import javax.imageio.ImageIO;
@@ -115,21 +115,21 @@ public class MapRenderer {
     }
 
     private static Color getPoliticalColor(Tile tile) {
-        NationColor owningNationColor = tile.getClaimData().getOwningNation();
+        Nation owningNation = tile.getClaimData().getOwningNation();
         Color color = Color.BLACK;
-        if (owningNationColor != NationColor.NONE && tile.getMap().getStrongestClaim().getValue() > 0) {
+        if (owningNation != null && tile.getMap().getStrongestClaim().getValue() > 0) {
             //darken according to fraction of strongest political color.
-            for (NationColor nationColor : NationColor.getNationColors()) {
-                double ratio = tile.getClaimData().getNationalStrength(nationColor).getValue()
+            for (Nation nation : Nation.getNations()) {
+                double ratio = tile.getClaimData().getNationalStrength(nation).getValue()
                         / tile.getMap().getStrongestClaim().getValue();
                 int drawValue;
-                if (nationColor != owningNationColor) {
+                if (nation != owningNation) {
                     drawValue = (BCOLOR + (int) ((255 - BCOLOR) * ratio)) / 2;
                 } else {
                     drawValue = BCOLOR + (int) ((255 - BCOLOR) * ratio);
                 }
                 System.out.println("DrawValue: " + drawValue);
-                color = nationColor.adjustDisplayColor(color, drawValue);
+                color = nation.adjustDisplayColor(color, drawValue);
             }
         } else {
             color = new Color(BCOLOR, BCOLOR, BCOLOR);

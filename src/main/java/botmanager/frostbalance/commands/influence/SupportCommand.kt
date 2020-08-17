@@ -35,7 +35,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
             return
         }
         if (targetMember == bMember) {
-            resultLines.add("You support yourself with " + transferAmount + " influence in " + context.jdaGuild.name + ". You should return the favor.")
+            resultLines.add("You support yourself with " + transferAmount + " influence in ${context.guild.name}. You should return the favor.")
             context.sendEmbedResponse(resultLines)
             return
         }

@@ -27,8 +27,8 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
     }.invoke()
 
     fun getCharacter(player: Player): PlayerCharacter {
-        return players.firstOrNull{ character -> character.userId == player.userId} ?: let {
-            return PlayerCharacter(player.userId, it)
+        return players.firstOrNull{ character -> character.userId == player.userWrapper.id} ?: let {
+            return PlayerCharacter(player.userWrapper.id, it) //automatically added to players.
         }
     }
 
@@ -74,8 +74,10 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
         strongestNationalClaim = Influence(0)
         for (tile in loadedTiles) {
             val nationalStrength = tile.getClaimData().nationalStrength
-            if (nationalStrength.compareTo(strongestNationalClaim) > 0) {
-                strongestNationalClaim = nationalStrength
+            if (nationalStrength != null) {
+                if (nationalStrength > strongestNationalClaim) {
+                    strongestNationalClaim = nationalStrength
+                }
             }
         }
     }
@@ -95,6 +97,7 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
     override fun adopt() {
         for (tile in loadedTiles) {
             tile.setParent(this)
+            tile.adopt()
         }
     }
 
@@ -104,8 +107,8 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
 
         @JvmStatic
         @Deprecated("")
-        operator fun get(guild: Guild?): WorldMap {
-            return Frostbalance.bot.getGuildWrapper(guild!!.id).gameNetwork.worldMap
+        operator fun get(guild: Guild): WorldMap {
+            return Frostbalance.bot.getGuildWrapper(guild.id).gameNetwork.worldMap
         }
 
         @get:Deprecated("")
@@ -113,20 +116,18 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
             get() = worldMaps
 
         @Deprecated("")
-        fun readWorld(guildId: String?) {
-            var guildId = guildId
-            if (guildId == null) {
-                guildId = "global"
-            }
-            val file = File("data/" + Frostbalance.bot.name + "/" + guildId + "/map.json")
+        fun readWorld(originalGuildId: String?) {
+            var effectiveGuildId: String = originalGuildId ?: "global"
+            println("New guild name: $effectiveGuildId")
+            val file = File("data/" + Frostbalance.bot.name + "/$effectiveGuildId/map.json")
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
                 gsonBuilder.registerTypeAdapter(TileObject::class.java, TileObjectAdapter())
                 val gson = gsonBuilder.create()
                 val worldMap = gson.fromJson(IOUtils.read(file), WorldMap::class.java)
-                worldMap.id = guildId
-                Frostbalance.bot.getGameNetwork(guildId).worldMap = worldMap
-                Frostbalance.bot.getGameNetwork(guildId).adopt()
+                worldMap.id = effectiveGuildId
+                Frostbalance.bot.getGameNetwork(effectiveGuildId).worldMap = worldMap
+                Frostbalance.bot.getGameNetwork(effectiveGuildId).adopt()
                 for (tile in worldMap.loadedTiles) {
                     tile.map = worldMap
                     for (tileData in tile.getObjects()) {
@@ -136,12 +137,13 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
                     for (claim in tile.claimData.claims) {
                         claim.claimData = tile.claimData
                     }
-                    println("Loaded data for tile at " + tile.getLocation() + " (" + guildId + ")")
+                    println("Loaded data for tile at " + tile.getLocation() + " (" + effectiveGuildId + ")")
                 }
                 println("Added " + worldMap.id + " world map to worldMaps list.")
                 worldMaps.add(worldMap)
+            } else {
+                throw IllegalStateException("Specified file does not exist")
             }
-            throw IllegalStateException("Specified file does not exist")
         }
 
         @Deprecated("")

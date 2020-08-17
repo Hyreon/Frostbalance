@@ -18,11 +18,11 @@ public class GetClaimsCommand extends FrostbalanceGuildCommandBase {
     @Override
     protected void executeWithGuild(GuildCommandContext context, String... params) {
 
-        PlayerCharacter player = PlayerCharacter.get(context.getJDAUser(), context.getJDAGuild());
+        PlayerCharacter character = context.getPlayer().getCharacter();
 
         context.sendResponse(String.format("Claims on %s:\n%s",
-                player.getLocation().toString(),
-                player.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, player)));
+                character.getLocation().toString(),
+                character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, character)));
 
     }
 
