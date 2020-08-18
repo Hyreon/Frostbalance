@@ -3,7 +3,7 @@ package botmanager.frostbalance
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.PlayerCharacter
 
-class Player(@Transient var gameNetwork: GameNetwork, @Transient var userWrapper: UserWrapper) : Containable<UserWrapper> {
+class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : Containable<UserWrapper> {
 
     val character: PlayerCharacter
         get() = gameNetwork.worldMap.getCharacter(this)
@@ -13,6 +13,9 @@ class Player(@Transient var gameNetwork: GameNetwork, @Transient var userWrapper
 
     val guild: GuildWrapper?
         get() = gameNetwork.guildWithAllegiance(allegiance)
+
+    val gameNetwork: GameNetwork
+        get() = userWrapper.bot.getGameNetwork(networkId)
 
     /**
      * Gets this player as though it were a member of the guild it has its allegiance to.

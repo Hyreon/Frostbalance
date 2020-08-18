@@ -42,7 +42,10 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
     override fun adopt() {
         worldMap.gameNetwork = this
         worldMap.adopt()
-        associatedGuilds.forEach { guild -> guild.gameNetwork = this }
+        associatedGuilds.forEach { guild ->
+            guild.gameNetwork = this
+            guild.adopt()
+        }
     }
 
     fun guildWithAllegiance(allegiance: Nation?): GuildWrapper? {

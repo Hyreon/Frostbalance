@@ -157,7 +157,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
      */
     fun playerIn(gameNetwork: GameNetwork): Player {
         return playerReference.firstOrNull { player -> player.gameNetwork == gameNetwork} ?: let {
-            val player = Player(gameNetwork, this)
+            val player = Player(gameNetwork.id, this)
             playerReference.add(player)
             return player
         }

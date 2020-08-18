@@ -664,7 +664,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 Color.BLUE
             }
             else -> {
-                Color.LIGHT_GRAY
+                Color.GRAY
             }
         }
     }

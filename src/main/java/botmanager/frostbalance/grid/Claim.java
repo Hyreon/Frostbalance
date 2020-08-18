@@ -73,7 +73,7 @@ public class Claim implements Containable<ClaimData> {
     }
 
     public Influence getStrength() {
-        return strength.subtract(evictionStrength);
+        return isActive() ? strength.subtract(evictionStrength) : Influence.none();
     }
 
     public Influence getInvestedStrength() {
@@ -114,7 +114,7 @@ public class Claim implements Containable<ClaimData> {
     @Override
     public String toString() {
         if (!isActive()) {
-            return "~~" + ownerName() + ": " + getStrength() + "~~";
+            return "~~" + ownerName() + ": " + getInvestedStrength() + "~~";
         }
         if (!getStrength().equals(getInvestedStrength())) {
             return ownerName() + ": ~~" + getInvestedStrength() + "~~ " + getStrength();

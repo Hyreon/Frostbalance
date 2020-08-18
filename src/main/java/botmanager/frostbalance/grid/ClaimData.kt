@@ -38,9 +38,9 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             var selectedUserId: String? = null
             var selectedStrength = Influence(0)
             for (claim in activeClaims) {
-                if (claim!!.getNation() !== lastOwningNation) continue
-                if (!claim!!.isActive) continue
-                if (claim.getStrength().compareTo(selectedStrength) > 0 ||
+                if (claim.getNation() !== lastOwningNation) continue
+                if (!claim.isActive) continue
+                if (claim.getStrength() > selectedStrength ||
                         lastOwningUserId == claim.getUserId() && claim.getStrength() == selectedStrength) {
                     selectedUserId = claim.getUserId()
                     selectedStrength = claim.getStrength()
@@ -280,8 +280,8 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                     owningNationName,
                     nationalStrength,
                     nationalCompetition)
-            var claims = activeClaims.toMutableList()
-            claims.sortWith(Comparator.comparingInt { x: Claim -> x.getStrength().thousandths })
+            var claims = this.claims.toMutableList()
+            claims.sortByDescending{ x: Claim -> x.getStrength().thousandths }
             if (claims.size > amount) {
                 claims = claims.subList(0, amount)
             }

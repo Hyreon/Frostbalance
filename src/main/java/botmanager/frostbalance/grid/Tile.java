@@ -8,7 +8,7 @@ public class Tile implements Containable<WorldMap>, Container {
 
     transient WorldMap map;
 
-    ClaimData claimData;
+    ClaimData claimData = new ClaimData(this);
 
     /**
      * A list of all objects currently on this tile.
@@ -65,7 +65,7 @@ public class Tile implements Containable<WorldMap>, Container {
         for (TileObject tileObject: objects) {
             tileObject.setParent(this);
         }
-        claimData.setParent(this);
+        getClaimData().setParent(this);
         claimData.adopt();
     }
 

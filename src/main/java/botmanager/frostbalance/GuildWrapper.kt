@@ -54,7 +54,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         } else if (oldOptionFlags.contains(OldOptionFlag.BLUE)) {
             Color.BLUE
         } else {
-            Color.LIGHT_GRAY
+            Color.GRAY
         }
 
     override fun toString() : String = if (isOnline()) name!! else name?.let { "~~$it~~" }?:"*Inaccessible Guild*"

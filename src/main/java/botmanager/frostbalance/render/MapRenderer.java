@@ -86,7 +86,10 @@ public class MapRenderer {
      */
     private static void renderMovementLine(Graphics2D g, Hex location, Hex destination, PlayerCharacter playerCharacter) {
         g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
-        Color color = playerCharacter.getNation().getColor();
+        Color color;
+        if (playerCharacter.getNation() != null) {
+            color = playerCharacter.getNation().getColor();
+        } else color = Color.GRAY;
         g.setColor(new Color(Math.max(128, color.getRed()), Math.max(128, color.getGreen()), Math.max(128, color.getBlue())));
         Hex offset = Hex.origin();
         System.out.println("Movement line: " + destination.subtract(location));
