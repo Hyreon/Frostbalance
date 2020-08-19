@@ -17,7 +17,7 @@ public class AllegianceCommand extends FrostbalanceGuildCommandBase {
     @Override
     protected void executeWithGuild(GuildCommandContext context, String... params) {
 
-        new AllegianceMenu(bot, AllegianceMenu.Cause.CHANGE)
+        new AllegianceMenu(bot, context, AllegianceMenu.Cause.CHANGE)
                 .send(context.getChannel(), context.getAuthor());
 
     }

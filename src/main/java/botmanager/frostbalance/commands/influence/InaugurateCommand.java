@@ -64,7 +64,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new ConfirmationMenu(bot, () -> {
+        new ConfirmationMenu(bot, context, () -> {
 
             context.getGuild().inaugurate(targetMember.getMember());
 

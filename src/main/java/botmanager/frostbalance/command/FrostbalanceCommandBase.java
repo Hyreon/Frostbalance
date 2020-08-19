@@ -90,7 +90,7 @@ public abstract class FrostbalanceCommandBase implements ICommand {
         }
     }
 
-    protected abstract void execute(CommandContext eventWrapper, String[] params);
+    protected abstract void execute(CommandContext context, String[] params);
 
     public boolean hasAlias(Event genericEvent) {
         String message;

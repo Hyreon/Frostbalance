@@ -54,7 +54,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        CheckMenu menu = new CheckMenu(bot, context.getJDAGuild(), context.getJDAUser());
+        CheckMenu menu = new CheckMenu(bot, context, context.getAuthor());
         menu.send(context.getChannel(), targetUser);
         addToCheckCache((TextChannel) context.getChannel(), menu);
 

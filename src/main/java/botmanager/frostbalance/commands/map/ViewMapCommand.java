@@ -25,11 +25,11 @@ public class ViewMapCommand extends FrostbalanceGuildCommandBase {
         Hex destination;
 
         if (params.length < 3) {
-            new MapMenu(bot, map, character).send(context.getChannel(), context.getAuthor());
+            new MapMenu(bot, context).send(context.getChannel(), context.getAuthor());
         } else {
             try {
                 destination = new Hex(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
-                new MapMenu(bot, map, character, destination).send(context.getChannel(), context.getAuthor());
+                new MapMenu(bot, context, destination).send(context.getChannel(), context.getAuthor());
             } catch (NumberFormatException e) {
                 context.sendResponse("One or more of these numbers aren't really numbers.");
                 return;

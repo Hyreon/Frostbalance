@@ -32,7 +32,7 @@ public class InterveneCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new ConfirmationMenu(bot, () -> {
+        new ConfirmationMenu(bot, context, () -> {
             bGuild.reset();
 
             String result1;

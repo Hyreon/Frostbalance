@@ -2,6 +2,7 @@ package botmanager.frostbalance.command;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.UserWrapper;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
@@ -119,6 +120,13 @@ public class CommandContext {
         } else {
             System.out.println(getAuthor().getDefaultGuildId());
             return getAuthor().getDefaultGuildId() != null;
+        }
+    }
+
+    public GuildWrapper getGuild() {
+        if (!hasGuild()) return null;
+        else {
+            return new GuildCommandContext(this).getGuild();
         }
     }
 }

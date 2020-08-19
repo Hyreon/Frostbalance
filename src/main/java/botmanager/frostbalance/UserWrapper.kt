@@ -73,9 +73,8 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         return botMember
 
     }
-
-    val jdaUser: User? //may be null if the user is now inaccessible
-        get() = bot.jda.getUserById(id)
+    val jdaUser: User?
+        get() = jda.getUserById(id)
     val defaultGuild: GuildWrapper?
         get() = defaultGuildId?.let { bot.getGuildWrapper(it) }
     val jda: JDA

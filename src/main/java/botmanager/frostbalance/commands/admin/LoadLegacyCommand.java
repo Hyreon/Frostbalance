@@ -16,7 +16,7 @@ public class LoadLegacyCommand extends FrostbalanceCommandBase {
 
     @Override
     protected void execute(CommandContext context, String... params) {
-        new ConfirmationMenu(bot, () -> {
+        new ConfirmationMenu(bot, context, () -> {
             bot.loadLegacy();
             context.sendResponse(".csv files have been loaded and will overwrite .json data when saved.");
         },

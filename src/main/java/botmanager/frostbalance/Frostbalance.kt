@@ -97,13 +97,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     override fun onGuildMessageReactionAdd(event: GuildMessageReactionAddEvent) {
         getActiveMenus().firstOrNull { menu ->
-            event.userId == menu.actor.id && menu.message.id == event.messageId
+            event.userId == menu.actor?.id && menu.message?.id == event.messageId
         }?.applyResponse(event.reactionEmote)
     }
 
     override fun onPrivateMessageReactionAdd(event: PrivateMessageReactionAddEvent) {
         getActiveMenus().firstOrNull { menu ->
-            event.userId == menu.actor.id && menu.message.id == event.messageId
+            event.userId == menu.actor?.id && menu.message?.id == event.messageId
         }?.applyResponse(event.reactionEmote)
     }
 
@@ -709,7 +709,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun loadGamesFromCSV() {
         gameNetworks.add(GameNetwork(this, "global"))
-        gameNetworks.add(GameNetwork(this, "tutorial"))
     }
 
     private fun loadGuildsFromCSV() {
@@ -726,9 +725,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val gameNetwork = when {
                         settings.contains(OldOptionFlag.MAIN) -> {
                             getGameNetwork("global")
-                        }
-                        settings.contains(OldOptionFlag.TUTORIAL) -> {
-                            getGameNetwork("tutorial")
                         }
                         else -> {
                             getGameNetwork(guild.id)
@@ -1006,7 +1002,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 AllegianceCommand(this),
                 MoveCommand(this),
                 GetClaimsCommand(this),
-                LoadLegacyCommand(this)
+                LoadLegacyCommand(this),
+                GarbageCommand(this)
         ))
         load()
         saverTimer.schedule(object : TimerTask() {

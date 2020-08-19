@@ -31,7 +31,7 @@ public class SystemBanCommand extends FrostbalanceGuildCommandBase {
         }
 
         try {
-            new BanManageMenu(bot, context.getGuild(), targetUser).send(context.getChannel(), context.getAuthor());
+            new BanManageMenu(bot, context, targetUser).send(context.getChannel(), context.getAuthor());
         } catch (HierarchyException e) {
             context.sendResponse("You can't ban system admins with this command. Demote them first.");
         }

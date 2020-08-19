@@ -11,11 +11,11 @@ public abstract class MenuResponse {
     }
 
     public void applyReaction() {
-        if (validConditions()) reactEvent();
+        if (isValid()) reactEvent();
     }
 
     public abstract void reactEvent();
 
-    public abstract boolean validConditions();
+    public abstract boolean isValid();
 
 }

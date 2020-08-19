@@ -1,23 +1,21 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.GuildCommandContext;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 public class PardonManageMenu extends Menu {
 
-    GuildWrapper guild;
     MemberWrapper target;
     Alternative outcome = Alternative.CONFIRM;
 
-    public PardonManageMenu(Frostbalance bot, GuildWrapper guild, UserWrapper targetUser) {
-        super(bot);
+    public PardonManageMenu(Frostbalance bot, GuildCommandContext context, UserWrapper targetUser) {
+        super(bot, context);
 
-        this.guild = guild;
-        this.target = targetUser.memberIn(guild);
+        this.target = targetUser.memberIn(context.getGuild());
 
         if (!target.getBanned()) {
             outcome = Alternative.FAILED;
@@ -39,8 +37,8 @@ public class PardonManageMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
-                return actor.memberIn(guild).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
+            public boolean isValid() {
+                return getActor().memberIn(context.getGuild()).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
                         target.getUserWrapper().getGloballyBanned();
             }
         });
@@ -53,7 +51,7 @@ public class PardonManageMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return true;
             }
         });
@@ -68,7 +66,7 @@ public class PardonManageMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return true;
             }
         });
@@ -107,9 +105,9 @@ public class PardonManageMenu extends Menu {
     }
 
     @Override
-    public EmbedBuilder getMEBuilder() {
+    public EmbedBuilder getEmbedBuilder() {
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setColor(guild.getColor());
+        builder.setColor(getContext().getGuild().getColor());
         if (outcome.equals(Alternative.GLOBAL)) {
             builder.setTitle("**" + target.getEffectiveName() + " globally pardoned**");
             builder.setDescription("This player is no longer banned in **all** Frostbalance guilds, and all bans have been lifted.");

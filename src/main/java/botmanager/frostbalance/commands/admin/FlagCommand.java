@@ -20,7 +20,7 @@ public class FlagCommand extends FrostbalanceGuildCommandBase {
     public void executeWithGuild(GuildCommandContext context, String... params) {
         String result = "";
 
-        new FlagMenu(bot, context.getGuild()).send(context.getChannel(), context.getAuthor());
+        new FlagMenu(bot, context).send(context.getChannel(), context.getAuthor());
 
     }
 

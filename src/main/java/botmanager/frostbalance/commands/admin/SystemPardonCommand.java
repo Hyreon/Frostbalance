@@ -29,7 +29,7 @@ public class SystemPardonCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new PardonManageMenu(bot, context.getGuild(), targetUser).send(context.getChannel(), context.getAuthor());
+        new PardonManageMenu(bot, context, targetUser).send(context.getChannel(), context.getAuthor());
 
     }
 

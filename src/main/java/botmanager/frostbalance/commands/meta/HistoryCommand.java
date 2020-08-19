@@ -61,7 +61,7 @@ public class HistoryCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new HistoryMenu(bot, records, page, context.getGuild()).send(context.getChannel(), context.getAuthor());
+        new HistoryMenu(bot, context, records, page).send(context.getChannel(), context.getAuthor());
 
     }
 

@@ -1,6 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.command.CommandContext;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -9,8 +10,8 @@ public class ConfirmationMenu extends Menu {
 
     private final String description;
 
-    public ConfirmationMenu(Frostbalance bot, Runnable runnable, String description) {
-        super(bot);
+    public ConfirmationMenu(Frostbalance bot, CommandContext context, Runnable runnable, String description) {
+        super(bot, context);
         this.description = description;
 
         menuResponses.add(new MenuResponse("✅", "Confirm") {
@@ -27,7 +28,7 @@ public class ConfirmationMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return true;
             }
         });
@@ -40,16 +41,16 @@ public class ConfirmationMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return true;
             }
         });
     }
 
     @Override
-    public EmbedBuilder getMEBuilder() {
+    public EmbedBuilder getEmbedBuilder() {
         EmbedBuilder builder = new EmbedBuilder();
-        if (closed) {
+        if (isClosed()) {
             builder.setColor(Color.BLACK);
             builder.setTitle("Error");
             builder.setDescription("An internal error occurred running this command. Please notify the developers.");
