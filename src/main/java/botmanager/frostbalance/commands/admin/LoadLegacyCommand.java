@@ -3,21 +3,22 @@ package botmanager.frostbalance.commands.admin;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.CommandContext;
-import botmanager.frostbalance.command.FrostbalanceCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceCommand;
 import botmanager.frostbalance.menu.ConfirmationMenu;
 
-public class LoadLegacyCommand extends FrostbalanceCommandBase {
+public class LoadLegacyCommand extends FrostbalanceCommand {
 
     public LoadLegacyCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "loadlegacydata"
-        }, AuthorityLevel.BOT_ADMIN);
+        }, AuthorityLevel.BOT_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
     protected void execute(CommandContext context, String... params) {
-        new ConfirmationMenu(bot, context, () -> {
-            bot.loadLegacy();
+        new ConfirmationMenu(getBot(), context, () -> {
+            getBot().loadLegacy();
             context.sendResponse(".csv files have been loaded and will overwrite .json data when saved.");
         },
                 ":warning: Loading legacy data will overwrite any data in the new format.\n" +

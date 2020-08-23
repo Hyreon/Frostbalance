@@ -2,7 +2,8 @@ package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
@@ -10,14 +11,14 @@ import botmanager.frostbalance.menu.HistoryMenu;
 import java.util.Collections;
 import java.util.List;
 
-public class HistoryCommand extends FrostbalanceGuildCommandBase {
+public class HistoryCommand extends FrostbalanceGuildCommand {
 
     private static final int HISTORY_PAGE_SIZE = 6;
 
     public HistoryCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "history"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
@@ -61,13 +62,13 @@ public class HistoryCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new HistoryMenu(bot, context, records, page).send(context.getChannel(), context.getAuthor());
+        new HistoryMenu(getBot(), context, records, page).send(context.getChannel(), context.getAuthor());
 
     }
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes on a server.";
+        return "**" + getBot().getPrefix() + "history PAGE** - find out about previous regimes on a server.";
     }
 
     private int maxPages(List<?> list) {

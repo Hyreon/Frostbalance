@@ -1,5 +1,7 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.frostbalance.grid.coordinate.Hex;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

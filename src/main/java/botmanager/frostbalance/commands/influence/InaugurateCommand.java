@@ -4,25 +4,26 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.menu.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
 
-public class InaugurateCommand extends FrostbalanceGuildCommandBase {
+public class InaugurateCommand extends FrostbalanceGuildCommand {
 
     public InaugurateCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "inaugurate",
                 "transfer"
-        }, AuthorityLevel.NATION_LEADER, Condition.PUBLIC);
+        }, AuthorityLevel.NATION_LEADER, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (isPublic) return null;
         return ""
-                + "**" + bot.getPrefix() + "inaugurate USER** - makes someone else server owner.";
+                + "**" + getBot().getPrefix() + "inaugurate USER** - makes someone else server owner.";
     }
 
     @Override
@@ -38,7 +39,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        UserWrapper targetUser = bot.getUserByName(targetName);
+        UserWrapper targetUser = getBot().getUserByName(targetName);
 
         if (targetUser == null) {
             result = "Couldn't find user '" + targetName + "'.";
@@ -64,7 +65,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new ConfirmationMenu(bot, context, () -> {
+        new ConfirmationMenu(getBot(), context, () -> {
 
             context.getGuild().inaugurate(targetMember.getMember());
 

@@ -19,7 +19,7 @@ public class GarbageMenu extends OptionMenu<Integer> {
     }
 
     @Override
-    void select(Integer option) {
+    protected void select(Integer option) {
         System.out.println(this + " is now creating a child.");
         List<Integer> range = IntStream.rangeClosed(1, 100).map(x -> x * option)
                 .boxed().collect(Collectors.toList());

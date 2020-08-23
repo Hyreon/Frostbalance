@@ -6,7 +6,8 @@ import botmanager.frostbalance.HotMap;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.menu.CheckMenu;
 import net.dv8tion.jda.api.entities.Guild;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class CheckCommand extends FrostbalanceGuildCommandBase {
+public class CheckCommand extends FrostbalanceGuildCommand {
 
     HotMap<TextChannel, Collection<Pair<User, User>>> privateCheckRequests = new HotMap<>();
     HotMap<TextChannel, Collection<CheckMenu>> checkMenuCache = new HotMap<>();
@@ -26,7 +27,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
     public CheckCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "check"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        targetUser = bot.getUserByName(message);
+        targetUser = getBot().getUserByName(message);
 
         if (targetUser == null) {
             result = "Couldn't find user '" + message + "'.";
@@ -54,7 +55,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        CheckMenu menu = new CheckMenu(bot, context, context.getAuthor());
+        CheckMenu menu = new CheckMenu(getBot(), context, context.getAuthor());
         menu.send(context.getChannel(), targetUser);
         addToCheckCache((TextChannel) context.getChannel(), menu);
 
@@ -92,7 +93,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
         targetUser = context.getJDA().getUserById(targetId);
         newRequest = addPrivateCheck(guild, context.getJDAUser(), context.getJDA().getUserById(targetId));
 
-        if (targetUser.equals(bot.getJDA().getSelfUser())) {
+        if (targetUser.equals(getBot().getJDA().getSelfUser())) {
             result = "Uh, sure?";
             Utilities.sendPrivateMessage(context.getJDAUser(), result);
             addPrivateCheck(guild, targetUser, context.getJDAUser());
@@ -131,7 +132,7 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
         Collection<CheckMenu> channelCheckRequests = checkMenuCache.getOrDefault(channel, new ArrayList<>());
         CheckMenu menuToRemove = null;
         for (CheckMenu menu : channelCheckRequests) {
-            if (menu.getJdaActor().equals(menuToAdd.getJdaActor()) && menu.getChallenger().equals(menuToAdd.getChallenger())) {
+            if (menu.getActor().equals(menuToAdd.getActor()) && menu.getChallenger().equals(menuToAdd.getChallenger())) {
                 menuToRemove = menu;
                 break;
             }
@@ -146,12 +147,12 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
     }
 
     private void runPrivateCheck(Guild guild, User firstUser, User targetUser) {
-        MemberWrapper firstMember = bot.getMemberWrapper(firstUser.getId(), guild.getId());
-        MemberWrapper targetMember = bot.getMemberWrapper(targetUser.getId(), guild.getId());
+        MemberWrapper firstMember = getBot().getMemberWrapper(firstUser.getId(), guild.getId());
+        MemberWrapper targetMember = getBot().getMemberWrapper(targetUser.getId(), guild.getId());
         if (firstMember.getInfluence().compareTo(targetMember.getInfluence()) > 0) {
             Utilities.sendPrivateMessage(firstUser, firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".");
 
-            if (!targetUser.equals(bot.getJDA().getSelfUser())) {
+            if (!targetUser.equals(getBot().getJDA().getSelfUser())) {
                 Utilities.sendPrivateMessage(targetUser, firstMember.getEffectiveName() + " has **more** influence than " + targetMember.getEffectiveName() + ".");
             }
             } else if (firstMember.getInfluence().equals(targetMember.getInfluence())) {
@@ -159,13 +160,13 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
                 Utilities.sendPrivateMessage(firstUser, "To everyone's surprise, " + targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
             } else {
                 Utilities.sendPrivateMessage(firstUser, targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
-                if (!targetUser.equals(bot.getJDA().getSelfUser())) {
+                if (!targetUser.equals(getBot().getJDA().getSelfUser())) {
                     Utilities.sendPrivateMessage(targetUser, targetMember.getEffectiveName() + " has *as much* influence as " + firstMember.getEffectiveName() + ".");
                 }
             }
         } else {
             Utilities.sendPrivateMessage(firstUser, targetMember.getEffectiveName() + " has **more** influence than " + firstMember.getEffectiveName() + ".");
-            if (!targetUser.equals(bot.getJDA().getSelfUser())) {
+            if (!targetUser.equals(getBot().getJDA().getSelfUser())) {
                 Utilities.sendPrivateMessage(targetUser, targetMember.getEffectiveName() + " has **more** influence than " + firstMember.getEffectiveName() + ".");
             }
         }
@@ -174,9 +175,9 @@ public class CheckCommand extends FrostbalanceGuildCommandBase {
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (isPublic) {
-            return "**" + bot.getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in this guild; result is posted in this channel";
+            return "**" + getBot().getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in this guild; result is posted in this channel";
         } else {
-            return "**" + bot.getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in a guild; result is posted privately to both players";
+            return "**" + getBot().getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in a guild; result is posted privately to both players";
         }
     }
 }

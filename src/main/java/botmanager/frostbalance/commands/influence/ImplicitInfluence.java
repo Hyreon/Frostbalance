@@ -4,30 +4,32 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.CommandContext;
-import botmanager.frostbalance.command.FrostbalanceCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ImplicitInfluence extends FrostbalanceCommandBase {
+public class ImplicitInfluence extends FrostbalanceCommand {
 
     SimpleDateFormat sdf = new SimpleDateFormat("M/dd/yyyy hh:mm");
     ArrayList<Member> minuteMembers;
     String cachedDate;
 
     public ImplicitInfluence(Frostbalance bot) {
-        super(bot, null, AuthorityLevel.GENERIC);
+        super(bot, new String[] {"implicit"}, AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE);
         minuteMembers = new ArrayList<>();
         cachedDate = sdf.format(new Date());
     }
 
     @Override
-    public void run(Event genericEvent) {
+    public void run(@NotNull Event genericEvent) {
         GuildMessageReceivedEvent event;
         Guild guild;
         Member member;
@@ -53,7 +55,7 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
             }
         }
 
-        bot.getMemberWrapper(event.getAuthor().getId(), event.getGuild().getId()).gainDailyInfluence(new Influence(0.05));
+        getBot().getMemberWrapper(event.getAuthor().getId(), event.getGuild().getId()).gainDailyInfluence(new Influence(0.05));
         minuteMembers.add(member);
     }
 

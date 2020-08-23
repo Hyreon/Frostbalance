@@ -2,16 +2,17 @@ package botmanager.frostbalance.commands.meta
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
+import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.GuildCommandContext
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
+import botmanager.frostbalance.command.FrostbalanceGuildCommand
 
 /**
  *
  * @author MC_2018 <mc2018.git></mc2018.git>@gmail.com>
  */
-class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
+class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "help"
-), AuthorityLevel.GENERIC) {
+), AuthorityLevel.GENERIC, ContextLevel.ANY) {
     override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
         var result = "__**Frostbalance**__\n\n"
         for (command in bot.commands) {
@@ -23,7 +24,7 @@ class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf
         context.sendResponse(result)
     }
 
-    public override fun info(authorityLevel: AuthorityLevel, isPublic: Boolean): String {
+    public override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
         return if (isPublic) {
             """
      **${bot.prefix}help** in public chat - rattles off a bunch of useless commands

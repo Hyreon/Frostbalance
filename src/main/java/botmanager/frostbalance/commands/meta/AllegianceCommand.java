@@ -2,28 +2,29 @@ package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.menu.AllegianceMenu;
 
-public class AllegianceCommand extends FrostbalanceGuildCommandBase {
+public class AllegianceCommand extends FrostbalanceGuildCommand {
 
     public AllegianceCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "allegiance"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
     protected void executeWithGuild(GuildCommandContext context, String... params) {
 
-        new AllegianceMenu(bot, context, AllegianceMenu.Cause.CHANGE)
+        new AllegianceMenu(getBot(), context, AllegianceMenu.Cause.CHANGE)
                 .send(context.getChannel(), context.getAuthor());
 
     }
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + aliases[0] + "** - shows the allegiance menu, allowing you to change your national loyalty.";
+        return "**" + getMainAlias() + "** - shows the allegiance menu, allowing you to change your national loyalty.";
     }
 }

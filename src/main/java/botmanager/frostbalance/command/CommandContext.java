@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
 import java.util.List;
+import java.util.Objects;
 
 public class CommandContext {
 
@@ -77,6 +78,10 @@ public class CommandContext {
             return publicEvent.getChannel();
         }
         return privateEvent.getChannel();
+    }
+
+    public MessageChannel getPrivateChannel() {
+        return Objects.requireNonNull(getAuthor().getJdaUser()).openPrivateChannel().complete();
     }
 
     public void sendResponse(String message) {

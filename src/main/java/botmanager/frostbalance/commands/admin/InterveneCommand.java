@@ -3,17 +3,18 @@ package botmanager.frostbalance.commands.admin;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.menu.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
 
-public class InterveneCommand extends FrostbalanceGuildCommandBase {
+public class InterveneCommand extends FrostbalanceGuildCommand {
 
     public InterveneCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "reset"
-        }, AuthorityLevel.GUILD_ADMIN);
+        }, AuthorityLevel.GUILD_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
@@ -32,7 +33,7 @@ public class InterveneCommand extends FrostbalanceGuildCommandBase {
             return;
         }
 
-        new ConfirmationMenu(bot, context, () -> {
+        new ConfirmationMenu(getBot(), context, () -> {
             bGuild.reset();
 
             String result1;
@@ -53,7 +54,7 @@ public class InterveneCommand extends FrostbalanceGuildCommandBase {
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (!isPublic) return null;
         return ""
-                + "**" + bot.getPrefix() + "reset** - Remove the current owner, unban all players, and reset all non-system roles. " +
+                + "**" + getBot().getPrefix() + "reset** - Remove the current owner, unban all players, and reset all non-system roles. " +
                 "The current owner can't become owner until a new owner is in place.";
     }
 

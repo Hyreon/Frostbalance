@@ -4,7 +4,7 @@ import botmanager.IOUtils
 import botmanager.Utilities
 import botmanager.Utils
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.FrostbalanceCommandBase
+import botmanager.frostbalance.command.FrostbalanceCommand
 import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
 import botmanager.frostbalance.commands.map.ClaimTileCommand
@@ -32,7 +32,6 @@ import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEve
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent
 import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEvent
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
-import net.dv8tion.jda.api.exceptions.HierarchyException
 import net.dv8tion.jda.internal.managers.GuildManagerImpl
 import java.awt.AlphaComposite
 import java.awt.Color
@@ -83,6 +82,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     val prefix: String
         get() = "."
 
+    //TODO run commands asynchronously so that it can wait for user input on some commands
     override fun onGuildMessageReceived(event: GuildMessageReceivedEvent) {
         for (command in commands) {
             command.run(event)
@@ -543,11 +543,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         loadPlayersFromCSV()
     }
 
-    override fun getCommands(): Array<FrostbalanceCommandBase> {
+    override fun getCommands(): Array<FrostbalanceCommand> {
         val commands = super.getCommands()
-        val newCommands = arrayOfNulls<FrostbalanceCommandBase>(commands.size)
+        val newCommands = arrayOfNulls<FrostbalanceCommand>(commands.size)
         for (i in commands.indices) {
-            newCommands[i] = commands[i] as FrostbalanceCommandBase
+            newCommands[i] = commands[i] as FrostbalanceCommand
         }
         return newCommands.requireNoNulls()
     }
@@ -980,7 +980,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     init {
         bot = this
         jda.presence.activity = Activity.of(Activity.ActivityType.DEFAULT, prefix + "help for help!")
-        setCommands(arrayOf<ICommand>(
+        setCommands(arrayOf(
                 HelpCommand(this),
                 ImplicitInfluence(this),
                 DailyRewardCommand(this),

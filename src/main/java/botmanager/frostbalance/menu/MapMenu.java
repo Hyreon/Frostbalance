@@ -3,7 +3,7 @@ package botmanager.frostbalance.menu;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.grid.ClaimData;
-import botmanager.frostbalance.grid.Hex;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.render.MapRenderer;
@@ -120,7 +120,7 @@ public class MapMenu extends Menu {
     public EmbedBuilder getEmbedBuilder() {
 
         EmbedBuilder builder = new EmbedBuilder();
-        if (map.isMainMap()) {
+        if (map.getGameNetwork().isMain()) {
             builder.setTitle("World Map");
         } else {
             builder.setTitle("Map of " + map.getGameNetwork().getId());

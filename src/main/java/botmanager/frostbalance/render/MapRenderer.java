@@ -2,6 +2,7 @@ package botmanager.frostbalance.render;
 
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.grid.*;
+import botmanager.frostbalance.grid.coordinate.Hex;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

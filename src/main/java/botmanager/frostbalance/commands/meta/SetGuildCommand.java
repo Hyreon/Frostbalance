@@ -4,18 +4,19 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.CommandContext;
-import botmanager.frostbalance.command.FrostbalanceCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SetGuildCommand extends FrostbalanceCommandBase {
+public class SetGuildCommand extends FrostbalanceCommand {
 
     public SetGuildCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "guild"
-        }, AuthorityLevel.GENERIC, Condition.PRIVATE);
+        }, AuthorityLevel.GENERIC, ContextLevel.PRIVATE_MESSAGE);
     }
 
     @Override
@@ -52,8 +53,8 @@ public class SetGuildCommand extends FrostbalanceCommandBase {
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (isPublic) return null;
         else {
-            return "**" + bot.getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
-                    "**" + bot.getPrefix() + "guild** - resets your default guild.";
+            return "**" + getBot().getPrefix() + "guild GUILDNAME** - sets your default guild when running commands through PM." + "\n" +
+                    "**" + getBot().getPrefix() + "guild** - resets your default guild.";
         }
     }
 }

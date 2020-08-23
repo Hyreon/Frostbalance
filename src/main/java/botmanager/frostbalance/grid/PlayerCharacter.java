@@ -4,6 +4,7 @@ import botmanager.Utils;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +62,7 @@ public class PlayerCharacter extends TileObject {
     Hex destination;
 
     public PlayerCharacter(String userId, WorldMap map) {
-        super(map.getTile(new Hex()));
+        super(map.getTile(Hex.origin()));
         this.userId = userId;
     }
 

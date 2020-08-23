@@ -58,6 +58,5 @@ public abstract class OptionMenu<T> extends ListMenu<T> {
         }
     }
 
-    abstract void select(T option);
-
+    protected abstract void select(T command);
 }

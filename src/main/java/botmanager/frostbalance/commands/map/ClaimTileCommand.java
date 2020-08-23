@@ -4,18 +4,19 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
 
-public class ClaimTileCommand extends FrostbalanceGuildCommandBase {
+public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
     public ClaimTileCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "claim"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.NATIONAL_MESSAGE);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommandBase {
 
         if ((context.getGuild().usesNations()) && allegiance == null) {
 
-            new AllegianceMenu(bot, context).send(context.getChannel(), context.getAuthor());
+            new AllegianceMenu(getBot(), context).send(context.getChannel(), context.getAuthor());
 
         } else if (context.getGuild().getNation() != null &&
                 allegiance != context.getGuild().getNation()) {
@@ -74,6 +75,6 @@ public class ClaimTileCommand extends FrostbalanceGuildCommandBase {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "claim AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
+        return "**" + getBot().getPrefix() + "claim AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
     }
 }

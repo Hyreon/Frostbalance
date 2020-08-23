@@ -3,17 +3,18 @@ package botmanager.frostbalance.commands.admin;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import botmanager.frostbalance.menu.BanManageMenu;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 
-public class SystemBanCommand extends FrostbalanceGuildCommandBase {
+public class SystemBanCommand extends FrostbalanceGuildCommand {
 
     public SystemBanCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "ban"
-        }, AuthorityLevel.GUILD_ADMIN);
+        }, AuthorityLevel.GUILD_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
@@ -22,7 +23,7 @@ public class SystemBanCommand extends FrostbalanceGuildCommandBase {
         String result = "";
         boolean found = false;
         String targetName = String.join(" ", params);
-        UserWrapper targetUser = bot.getUserByName(targetName);
+        UserWrapper targetUser = getBot().getUserByName(targetName);
 
         if (targetUser == null) {
             result += "Could not find user " + targetName + ".";
@@ -31,7 +32,7 @@ public class SystemBanCommand extends FrostbalanceGuildCommandBase {
         }
 
         try {
-            new BanManageMenu(bot, context, targetUser).send(context.getChannel(), context.getAuthor());
+            new BanManageMenu(getBot(), context, targetUser).send(context.getChannel(), context.getAuthor());
         } catch (HierarchyException e) {
             context.sendResponse("You can't ban system admins with this command. Demote them first.");
         }
@@ -40,6 +41,6 @@ public class SystemBanCommand extends FrostbalanceGuildCommandBase {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "ban PLAYER** - creates a system ban on this player, local or global.";
+        return "**" + getBot().getPrefix() + "ban PLAYER** - creates a system ban on this player, local or global.";
     }
 }

@@ -4,21 +4,22 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DailyRewardCommand extends FrostbalanceGuildCommandBase {
+public class DailyRewardCommand extends FrostbalanceGuildCommand {
 
     SimpleDateFormat hours = new SimpleDateFormat("HH");
     
     public DailyRewardCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "daily"
-        }, AuthorityLevel.GENERIC, Condition.PUBLIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
@@ -41,7 +42,7 @@ public class DailyRewardCommand extends FrostbalanceGuildCommandBase {
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (isPublic) {
-            return "**" + bot.getPrefix() + "daily** - gives you all the influence you can get today, instantly";
+            return "**" + getBot().getPrefix() + "daily** - gives you all the influence you can get today, instantly";
         } else {
             return null;
         }

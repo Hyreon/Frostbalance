@@ -3,6 +3,7 @@ package botmanager.frostbalance.grid
 import botmanager.IOUtils
 import botmanager.frostbalance.Player
 import botmanager.frostbalance.*
+import botmanager.frostbalance.grid.coordinate.Hex
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.Guild
 import java.io.File

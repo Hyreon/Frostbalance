@@ -2,10 +2,10 @@ package botmanager.frostbalance.command;
 
 import botmanager.frostbalance.Frostbalance;
 
-public abstract class FrostbalanceGuildCommandBase extends FrostbalanceCommandBase {
+public abstract class FrostbalanceGuildCommand extends FrostbalanceCommand {
 
-    public FrostbalanceGuildCommandBase(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, Condition... conditions) {
-        super(bot, keywords, authorityLevel, conditions);
+    public FrostbalanceGuildCommand(Frostbalance bot, String[] keywords, AuthorityLevel authorityLevel, ContextLevel contextLevel) {
+        super(bot, keywords, authorityLevel, contextLevel);
     }
 
     public void execute(CommandContext context, String[] params) {

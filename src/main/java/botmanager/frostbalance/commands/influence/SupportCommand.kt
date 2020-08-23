@@ -4,15 +4,16 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
+import botmanager.frostbalance.command.ContextLevel
+import botmanager.frostbalance.command.FrostbalanceGuildCommand
 import botmanager.frostbalance.command.GuildCommandContext
 import java.util.*
 
 //FIXME `.support Shade` returns an error with no error message.
-class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
+class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "support",
         "s"
-), AuthorityLevel.GENERIC) {
+), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
     override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
         val resultLines: MutableList<String> = ArrayList()
@@ -71,7 +72,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arra
         return
     }
 
-    override fun info(authorityLevel: AuthorityLevel, isPublic: Boolean): String {
+    override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
         return if (isPublic) {
             "**" + bot.prefix + "__s__upport PLAYER AMOUNT** - Support another player, giving them the set amount of influence"
         } else {

@@ -2,17 +2,18 @@ package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
-import botmanager.frostbalance.grid.Hex;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
-public class MoveCommand extends FrostbalanceGuildCommandBase {
+public class MoveCommand extends FrostbalanceGuildCommand {
 
     public MoveCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "move",
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
@@ -40,6 +41,6 @@ public class MoveCommand extends FrostbalanceGuildCommandBase {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "move X Y Z** - Queue your character to move to the destination";
+        return "**" + getBot().getPrefix() + "move X Y Z** - Queue your character to move to the destination";
     }
 }

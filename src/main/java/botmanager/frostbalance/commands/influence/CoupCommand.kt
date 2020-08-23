@@ -2,12 +2,13 @@ package botmanager.frostbalance.commands.influence
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase
+import botmanager.frostbalance.command.ContextLevel
+import botmanager.frostbalance.command.FrostbalanceGuildCommand
 import botmanager.frostbalance.command.GuildCommandContext
 
-class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf(
+class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "coup"
-), AuthorityLevel.GENERIC, Condition.PUBLIC) {
+), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
 
     override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
         val result: String
@@ -65,7 +66,7 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommandBase(bot, arrayOf
         }
     }
 
-    override fun info(authorityLevel: AuthorityLevel, isPublic: Boolean): String? {
+    override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
         return if (isPublic) {
             (""
                     + "**" + bot.prefix + "coup** - become server owner; this will drain both your influence and the influence " +

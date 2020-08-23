@@ -1,4 +1,4 @@
-package botmanager.frostbalance.grid;
+package botmanager.frostbalance.grid.coordinate;
 
 /**
  *   ____
@@ -103,7 +103,7 @@ public class Hex {
     }
 
     public Hex negate() {
-        return new Hex().subtract(this);
+        return Hex.origin().subtract(this);
     }
 
     /**
@@ -114,14 +114,6 @@ public class Hex {
     public long minimumDistance(Hex hex) {
         Hex normalDistanceVector = this.subtract(hex);
         return Math.abs(normalDistanceVector.x) + Math.abs(normalDistanceVector.y) + Math.abs(normalDistanceVector.z);
-    }
-
-    /**
-     * Gets the highest value coordinate. Note that this is not normalized.
-     * @return The highest value coordinate.
-     */
-    public long getMaximum() {
-        return Math.max(Math.max(x, y), z);
     }
 
     /**

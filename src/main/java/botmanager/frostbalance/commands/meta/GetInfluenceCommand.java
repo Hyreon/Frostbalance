@@ -5,25 +5,26 @@ import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommandBase;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
 
-public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
+public class GetInfluenceCommand extends FrostbalanceCommand {
 
     public GetInfluenceCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "influence"
-        }, AuthorityLevel.GENERIC);
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
-    protected void executeWithGuild(GuildCommandContext context, String... params) {
+    protected void execute(CommandContext context, String... params) {
         String result, publicPost;
 
         UserWrapper bUser = context.getAuthor();
 
-        if (context.getJDAGuild() == null || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
+        if (context.getGuild() == null || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
 
             result = "Influence in all guilds:" + "\n";
 
@@ -47,7 +48,7 @@ public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
 
             if (params.length > 0) {
                 if (context.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-                    bUser = bot.getUserByName(String.join(" ", params));
+                    bUser = getBot().getUserByName(String.join(" ", params));
 
                     if (bUser == null) {
                         result = "Could not find user '" + String.join(" ", params) + "'.";
@@ -68,7 +69,7 @@ public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
             Influence influence = bMember.getInfluence();
             Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
 
-            if (bMember.equals(context.getMember())) {
+            if (bUser.equals(context.getAuthor())) {
                 if (influence.getValue() <= 0) {
                     result = "You have *no* influence in **" + context.getGuild().getName() + "**.";
                 } else {
@@ -98,20 +99,20 @@ public class GetInfluenceCommand extends FrostbalanceGuildCommandBase {
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (isPublic && authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
             return ""
-                    + "**" + bot.getPrefix() + "influence USER** - sends the influence of another user\n"
-                    + "**" + bot.getPrefix() + "influence** - sends your influence on this server via PM";
+                    + "**" + getBot().getPrefix() + "influence USER** - sends the influence of another user\n"
+                    + "**" + getBot().getPrefix() + "influence** - sends your influence on this server via PM";
         } else if (!isPublic && authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
             return ""
-                    + "**" + bot.getPrefix() + "influence USER** - sends the influence of another user\n"
-                    + "**" + bot.getPrefix() + "influence** - sends your influence on your default server\n" +
-                    "**" + bot.getPrefix() + "influence ALL** - sends your influence on all servers";
+                    + "**" + getBot().getPrefix() + "influence USER** - sends the influence of another user\n"
+                    + "**" + getBot().getPrefix() + "influence** - sends your influence on your default server\n" +
+                    "**" + getBot().getPrefix() + "influence ALL** - sends your influence on all servers";
         } else if (isPublic) {
             return ""
-                    + "**" + bot.getPrefix() + "influence** - sends your influence on this server via PM";
+                    + "**" + getBot().getPrefix() + "influence** - sends your influence on this server via PM";
         } else {
             return ""
-                    + "**" + bot.getPrefix() + "influence** - sends your influence on your default server\n" +
-                    "**" + bot.getPrefix() + "influence ALL** - sends your influence on all servers";
+                    + "**" + getBot().getPrefix() + "influence** - sends your influence on your default server\n" +
+                    "**" + getBot().getPrefix() + "influence ALL** - sends your influence on all servers";
         }
     }
 }
