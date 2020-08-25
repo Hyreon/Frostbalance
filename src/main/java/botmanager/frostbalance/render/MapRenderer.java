@@ -1,8 +1,13 @@
 package botmanager.frostbalance.render;
 
 import botmanager.frostbalance.Nation;
-import botmanager.frostbalance.grid.*;
+import botmanager.frostbalance.grid.PlayerCharacter;
+import botmanager.frostbalance.grid.Tile;
+import botmanager.frostbalance.grid.TileObject;
+import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.grid.coordinate.Hex;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -32,7 +37,10 @@ public class MapRenderer {
 
         try {
             ImageIO.write(image, "png", new File("maprender.png"));
-            return "attachment://maprender.png";
+            String resultJson = net.dv8tion.imup.Uploader.upload(new File("maprender.png"));
+            System.out.println(resultJson);
+            JsonObject obj = JsonParser.parseString(resultJson).getAsJsonObject();
+            return obj.get("data").getAsJsonObject().get("link").getAsString();
         } catch (IOException e) {
             System.err.println("Unable to write map file!");
             return null;

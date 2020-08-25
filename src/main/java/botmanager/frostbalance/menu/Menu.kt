@@ -14,6 +14,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
 
     //TODO don't use message caches directly, they become dated. This goes for CommandContext as well!
     //TODO try for better polymorphism with CommandContext and GuildCommandContext, forcing GuildCommandContext where desired.
+
     /**
      * The message this menu is attached to. This can be null if the menu hasn't yet been sent.
      */
@@ -27,56 +28,101 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
         bot.addMenu(this)
         this.actor = actor
         val me = messageEmbed
-        message = if (me.image != null) {
+        message = if (me.image != null && me.image!!.url!!.contains("attachment://")) {
             val fileName = me.image!!.url!!.replace("attachment://", "")
             channel.sendFile(File(fileName)).embed(me).complete()
         } else {
             channel.sendMessage(me).complete()
         }
-        updateEmojis()
+        smartUpdateEmojis()
     }
 
     open fun updateMessage() {
         println("Updating as $this with activeMenu $activeMenu")
         val me = activeMenu.messageEmbed
         editAndSetMessage(me)
-        updateEmojis()
+        smartUpdateEmojis()
     }
 
-    protected fun editAndSetMessage(me: MessageEmbed) {
-        if (me.image != null) {
-            if (me.image!!.url != null &&
-                    me.image!!.url!!.contains("attachment://")) {
-                val fileName = me.image!!.url!!.replace("attachment://", "")
-                originalMenu.message!!.delete().queue()
-                originalMenu.message = originalMenu.message!!.channel.sendFile(File(fileName)).embed(me).complete()
-            }
+    private fun editAndSetMessage(me: MessageEmbed) {
+        if (me.image != null &&
+            me.image!!.url != null &&
+            me.image!!.url!!.contains("attachment://")) {
+            val fileName = me.image!!.url!!.replace("attachment://", "")
+            originalMenu.message!!.delete().queue()
+            originalMenu.message = originalMenu.message!!.channel.sendFile(File(fileName)).embed(me).complete()
         } else {
-            println(originalMenu)
-            println(originalMenu.message)
             originalMenu.message = originalMenu.message!!.editMessage(me).complete()
         }
     }
 
-    //TODO this function has a delay, which defeats its entire advantage over the simple wipe layout!
-    protected fun updateEmojis() {
-        if (!isClosed) {
-            clearIncorrectReactions()
-            for (menuResponse in activeMenu.menuResponses) {
-                if (menuResponse.isValid &&
-                        originalMenu.message!!.reactions.firstOrNull { reaction -> reaction.reactionEmote.emoji == menuResponse.emoji}?.isSelf != true) {
+    //TODO this function has a delay, which defeats its entire advantage over the simple 'wipe entire layout' procedure!
+    private fun smartUpdateEmojis() {
+        if (message == null) return
+        if (smartUpdateCost > 0) return rewriteEmojis()
+        if (activeMenu.context.isPublic) {
+            if (!isClosed) {
+                clearIncorrectReactions()
+                for (menuResponse in activeMenu.menuResponses) {
+                    if (menuResponse.isValid &&
+                            originalMenu.message!!.reactions.firstOrNull { reaction -> reaction.reactionEmote.emoji == menuResponse.emoji}?.isSelf != true) {
+                        //TODO don't try to add reactions if the message has been deleted.
+                        originalMenu.message!!.addReaction(menuResponse.emoji).queue()
+                    }
+                }
+            } else {
+                message?.clearReactions()?.queue()
+            }
+        } else {
+            if (isClosed) {
+                for (menuResponse in activeMenu.menuResponses) {
+                    originalMenu.message!!.removeReaction(menuResponse.emoji).queue()
+                }
+            } else if (!message!!.isEdited) {
+                for (menuResponse in activeMenu.menuResponses) {
                     //TODO don't try to add reactions if the message has been deleted.
                     originalMenu.message!!.addReaction(menuResponse.emoji).queue()
                 }
             }
+        }
+    }
+
+    private fun rewriteEmojis() {
+        if (message == null) return
+        if (activeMenu.context.isPublic) {
+            message!!.clearReactions().queue()
+            if (!isClosed) {
+                for (menuResponse in activeMenu.menuResponses) {
+                    if (menuResponse.isValid) {
+                        //TODO don't try to add reactions if the message has been deleted.
+                        originalMenu.message!!.addReaction(menuResponse.emoji).queue()
+                    }
+                }
+            }
         } else {
-            message?.clearReactions()?.queue()
+            if (isClosed) {
+                for (menuResponse in activeMenu.menuResponses) {
+                    originalMenu.message!!.removeReaction(menuResponse.emoji).queue()
+                }
+            } else if (!message!!.isEdited) {
+                for (menuResponse in activeMenu.menuResponses) {
+                    //TODO don't try to add reactions if the message has been deleted.
+                    originalMenu.message!!.addReaction(menuResponse.emoji).queue()
+                }
+            }
         }
     }
 
     @kotlin.Deprecated("")
     val jdaActor: User? //may be null if the user is now inaccessible
         get() = actor?.jdaUser
+
+
+    //TODO find the time taken to do a smart update, and compare it to the time taken for a dumb update
+    private val smartUpdateCost: Int
+        get() = {
+            0
+        }.invoke()
 
     private fun clearIncorrectReactions() {
         originalMenu.message?.reactions
@@ -209,7 +255,6 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
     val originalMenu: Menu
         get() {
             var mostGeezerishMenu: Menu = this
-            println(mostGeezerishMenu)
             while (mostGeezerishMenu.parent != null) {
                 mostGeezerishMenu = mostGeezerishMenu.parent!!
                 println("found original: $mostGeezerishMenu")
