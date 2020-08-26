@@ -9,7 +9,7 @@ import java.util.stream.Collectors
 import kotlin.math.ceil
 import kotlin.math.min
 
-abstract class ListMenu<T>(bot: Frostbalance, context: CommandContext, private val items: List<T>) : Menu(bot, context) {
+abstract class ListMenu<T>(bot: Frostbalance, context: CommandContext, protected val items: List<T>) : Menu(bot, context) {
 
     val PAGE_SIZE = 7
 

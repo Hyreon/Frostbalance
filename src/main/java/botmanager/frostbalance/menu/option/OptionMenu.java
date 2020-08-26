@@ -11,7 +11,7 @@ import java.util.List;
 
 public abstract class OptionMenu<T> extends ListMenu<T> {
 
-    List<MenuResponse> pickResponses = new ArrayList<>();
+    protected List<MenuResponse> pickResponses = new ArrayList<>();
 
     public OptionMenu(@NotNull Frostbalance bot, @NotNull CommandContext context, @NotNull List<? extends T> options) {
         super(bot, context, options);
@@ -59,5 +59,5 @@ public abstract class OptionMenu<T> extends ListMenu<T> {
         }
     }
 
-    protected abstract void select(T command);
+    protected abstract void select(@NotNull T command);
 }

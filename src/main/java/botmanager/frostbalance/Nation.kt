@@ -28,19 +28,13 @@ enum class Nation(var emoji: String, var color: Color) {
         }
     }
 
+    override fun toString(): String {
+        return name.toLowerCase().capitalize()
+    }
+
     val effectiveName: String
         get() {
             val guild = Frostbalance.bot.getGuildFor(this)
             return guild?.name ?: this.toString()
         }
-
-    companion object {
-        /**
-         * Returns all nations without NONE
-         * @return All nations without NONE
-         */
-        @JvmStatic
-        val baseNations: Array<Nation>
-            get() = arrayOf(RED, GREEN, BLUE)
-    }
 }

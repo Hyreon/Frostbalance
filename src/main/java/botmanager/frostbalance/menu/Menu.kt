@@ -59,7 +59,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
 
     //TODO this function has a delay, which defeats its entire advantage over the simple 'wipe entire layout' procedure!
     private fun smartUpdateEmojis() {
-        if (message == null) return
+        if (originalMenu.message == null) return
         if (smartUpdateCost > 0) return rewriteEmojis()
         if (activeMenu.context.isPublic) {
             if (!isClosed) {
@@ -181,6 +181,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
     val messageEmbed: MessageEmbed
         get() {
             val embedBuilder = embedBuilder
+            embedBuilder.updateColor()
             if (!isClosed) {
                 var description = ""
                 for (menuResponse in activeMenu.menuResponses) {
@@ -287,5 +288,13 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
 
     fun isChild(): Boolean {
         return child == null
+    }
+
+    private fun EmbedBuilder.updateColor() {
+        if (isClosed) {
+            setColor(null)
+        } else {
+            setColor(context.guild?.color)
+        }
     }
 }

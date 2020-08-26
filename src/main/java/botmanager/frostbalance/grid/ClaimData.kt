@@ -3,7 +3,6 @@ package botmanager.frostbalance.grid
 import botmanager.Utils
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.Nation
-import botmanager.frostbalance.Nation.Companion.baseNations
 import java.util.*
 import java.util.stream.Collectors
 
@@ -60,7 +59,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             if (claims.isEmpty()) return null
             var selectedNation = lastOwningNation
             var selectedStrength = getNationalStrength(lastOwningNation)
-            for (nation in baseNations) {
+            for (nation in tile.map.gameNetwork.nations) {
                 val nationalStrength = getNationalStrength(nation)
                 if (nationalStrength.compareTo(selectedStrength) > 0) {
                     selectedNation = nation
@@ -185,11 +184,11 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             val lines: MutableList<String> = ArrayList()
             val owningNation = owningNation
             if (owningNation != null) {
-                for (nation in baseNations) {
+                for (nation in tile.map.gameNetwork.nations) {
                     val strength = getNationalStrength(nation)
                     if (strength.thousandths == 0) continue
                     var effectiveString: String
-                    effectiveString = if (getTile().getMap().isTutorialMap) {
+                    effectiveString = if (tile.map.gameNetwork.isTutorial()) {
                         nation.toString() + ": " + String.format("%s", strength)
                     } else {
                         nation.effectiveName + ": " + String.format("%s", strength)
@@ -234,7 +233,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             }
             var nationalCompetitionByColor = ""
             val nationalCompetitors: MutableList<String> = ArrayList()
-            for (nation in baseNations) {
+            for (nation in tile.map.gameNetwork.nations) {
                 if (nation === owningNation) continue
                 if (getNationalStrength(nation).thousandths > 0) {
                     nationalCompetitors.add(String.format("%s: %s",
@@ -265,7 +264,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             }
             var nationalCompetition = ""
             val nationalCompetitors: MutableList<String> = ArrayList()
-            for (nation in baseNations) {
+            for (nation in tile.map.gameNetwork.nations) {
                 if (nation === owningNation) continue
                 if (getNationalStrength(nation).thousandths > 0.0) {
                     nationalCompetitors.add(String.format("%s: %s",

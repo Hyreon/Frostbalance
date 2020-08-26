@@ -131,7 +131,7 @@ public class MapRenderer {
         Color color = Color.BLACK;
         if (owningNation != null && tile.getMap().getStrongestClaim().getValue() > 0) {
             //darken according to fraction of strongest political color.
-            for (Nation nation : Nation.getBaseNations()) {
+            for (Nation nation : Nation.values()) {
                 double ratio = tile.getClaimData().getNationalStrength(nation).getValue()
                         / tile.getMap().getStrongestClaim().getValue();
                 int drawValue;

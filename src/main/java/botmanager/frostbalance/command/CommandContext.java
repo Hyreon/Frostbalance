@@ -2,6 +2,7 @@ package botmanager.frostbalance.command;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.GameNetwork;
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.menu.option.ListMenu;
@@ -12,6 +13,7 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
@@ -146,10 +148,26 @@ public class CommandContext {
         }
     }
 
+    private boolean hasNetwork() {
+        if (isPublic()) {
+            return true;
+        } else {
+            return getAuthor().getDefaultNetworkId() != null;
+        }
+    }
+
+    @Nullable
     public GuildWrapper getGuild() {
         if (!hasGuild()) return null;
         else {
             return new GuildCommandContext(this).getGuild();
+        }
+    }
+
+    public GameNetwork getGameNetwork() {
+        if (!hasNetwork()) return null;
+        else {
+            return new GuildCommandContext(this).getGameNetwork();
         }
     }
 }

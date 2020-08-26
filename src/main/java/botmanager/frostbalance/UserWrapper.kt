@@ -45,6 +45,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
     private var lastKnownName: String? = null
 
     var defaultGuildId: String? = null
+    var defaultNetworkId: String? = null
     var minimumAuthorityLevel: AuthorityLevel = AuthorityLevel.GENERIC
     var globallyBanned = false
 

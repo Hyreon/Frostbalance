@@ -42,7 +42,7 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Comma
     }
 
     init {
-        for (nation in Nation.baseNations) {
+        for (nation in context.gameNetwork.nations) {
             menuResponses.add(object : MenuResponse(nation.emoji, nation.toString()) {
                 override fun reactEvent() {
                     actor!!.playerIn(bot.mainNetwork).allegiance = nation
