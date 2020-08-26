@@ -137,6 +137,7 @@ open class MessageContext {
         get() = if (!hasGuild()) null else {
             GuildMessageContext(this).guild
         }
+
     open val gameNetwork: GameNetwork
-        get() = bot.getGameNetwork(author.defaultNetworkId)
+        get() = if (hasGuild()) guild!!.gameNetwork else bot.getGameNetwork(author.defaultNetworkId)
 }

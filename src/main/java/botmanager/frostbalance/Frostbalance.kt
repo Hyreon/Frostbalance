@@ -438,7 +438,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             for (guild in jda.guilds) {
                 if (!getSettings(guild).contains(OldOptionFlag.MAIN)) {
                     println("Loading map for " + guild.name)
-                    WorldMap.readWorldLegacy(guild.id)
+                    try {
+                        WorldMap.readWorldLegacy(guild.id)
+                    } catch (e: IllegalStateException) {
+                        e.printStackTrace()
+                        continue
+                    }
                 }
             }
             WorldMap.readWorldLegacy(null)

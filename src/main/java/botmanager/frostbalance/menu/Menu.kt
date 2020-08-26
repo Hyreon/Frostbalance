@@ -206,7 +206,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
                     }
                 }
                 if (hasHook) {
-                    description += "⌨️ ${hook!!.name}\n"
+                    description += "⌨️ *${hook!!.name}*\n"
                 }
                 embedBuilder.addField("Options", description, false)
             }
