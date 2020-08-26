@@ -10,24 +10,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class GuildCommandContext extends CommandContext {
+public class GuildMessageContext extends MessageContext {
 
-    public GuildCommandContext(Frostbalance bot, PrivateMessageReceivedEvent privateEvent) {
+    public GuildMessageContext(Frostbalance bot, PrivateMessageReceivedEvent privateEvent) {
         super(bot, privateEvent);
         if (!hasGuild()) throw new IllegalStateException("Tried to create a GuildCommandContext on a user without a default guild!");
     }
 
-    public GuildCommandContext(Frostbalance bot, GuildMessageReceivedEvent publicEvent) {
+    public GuildMessageContext(Frostbalance bot, GuildMessageReceivedEvent publicEvent) {
         super(bot, publicEvent);
     }
 
-    public GuildCommandContext(Frostbalance bot, Event genericEvent) {
+    public GuildMessageContext(Frostbalance bot, Event genericEvent) {
         super(bot, genericEvent);
         if (!hasGuild()) throw new IllegalStateException("Tried to create a GuildCommandContext on a user without a default guild!");
     }
 
-    public GuildCommandContext(CommandContext commandContext) {
-        super(commandContext.bot, commandContext.getEvent());
+    public GuildMessageContext(MessageContext messageContext) {
+        super(messageContext.bot, messageContext.getEvent());
         if (!hasGuild()) throw new IllegalStateException("Tried to create a GuildCommandContext on a user without a default guild!");
     }
 

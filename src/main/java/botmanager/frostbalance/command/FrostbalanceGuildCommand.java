@@ -8,15 +8,15 @@ public abstract class FrostbalanceGuildCommand extends FrostbalanceCommand {
         super(bot, keywords, authorityLevel, contextLevel);
     }
 
-    public void execute(CommandContext context, String[] params) {
+    public void execute(MessageContext context, String[] params) {
         if (context.hasGuild()) {
-            executeWithGuild(new GuildCommandContext(context), params);
+            executeWithGuild(new GuildMessageContext(context), params);
         } else {
             context.sendResponse("This command only works if you have a default guild set for DM. Set it with `.guild GUILD`.");
         }
     }
 
-    protected abstract void executeWithGuild(GuildCommandContext context, String... params);
+    protected abstract void executeWithGuild(GuildMessageContext context, String... params);
 
     /**
      * Gets the public info of a thing. This is predefined to actually use the internal info command
@@ -24,7 +24,7 @@ public abstract class FrostbalanceGuildCommand extends FrostbalanceCommand {
      * @param context the context of the info gotten
      * @return
      */
-    public String getInfo(CommandContext context) {
+    public String getInfo(MessageContext context) {
         String info = super.getInfo(context);
         if (!context.hasGuild()) return null;
         else return info;

@@ -8,7 +8,7 @@ import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 
 public class AdjustCommand extends FrostbalanceGuildCommand {
 
@@ -19,7 +19,7 @@ public class AdjustCommand extends FrostbalanceGuildCommand {
     }
 
     @Override
-    protected void executeWithGuild(GuildCommandContext context, String[] params) {
+    protected void executeWithGuild(GuildMessageContext context, String[] params) {
         String name;
         String result;
         Influence amount;

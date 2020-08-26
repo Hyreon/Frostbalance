@@ -6,7 +6,7 @@ import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
-import botmanager.frostbalance.command.GuildCommandContext
+import botmanager.frostbalance.command.GuildMessageContext
 import java.util.*
 
 //FIXME `.support Shade` returns an error with no error message.
@@ -15,7 +15,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "s"
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
-    override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
+    override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
         val resultLines: MutableList<String> = ArrayList()
         var transferAmount = Influence(params[params.size - 1])
         val bMember = context.member!!

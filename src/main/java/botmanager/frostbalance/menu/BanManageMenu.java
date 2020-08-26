@@ -4,7 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 
@@ -13,7 +13,7 @@ public class BanManageMenu extends Menu {
     MemberWrapper target;
     Alternative outcome = Alternative.LOCAL;
 
-    public BanManageMenu(Frostbalance bot, CommandContext context, UserWrapper targetUser) {
+    public BanManageMenu(Frostbalance bot, MessageContext context, UserWrapper targetUser) {
         super(bot, context);
 
         this.target = targetUser.memberIn(context.getGuild());

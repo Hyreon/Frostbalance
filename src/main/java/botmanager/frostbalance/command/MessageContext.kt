@@ -14,7 +14,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent
 import java.util.*
 
-open class CommandContext {
+open class MessageContext {
     @JvmField
     var bot: Frostbalance
     var privateEvent: PrivateMessageReceivedEvent? = null
@@ -119,7 +119,7 @@ open class CommandContext {
 
     open val authority: AuthorityLevel
         get() = if (hasGuild()) {
-            GuildCommandContext(this).authority
+            GuildMessageContext(this).authority
         } else author.authority
     val event: Event?
         get() = if (isPublic) publicEvent else privateEvent
@@ -135,7 +135,7 @@ open class CommandContext {
 
     open val guild: GuildWrapper?
         get() = if (!hasGuild()) null else {
-            GuildCommandContext(this).guild
+            GuildMessageContext(this).guild
         }
     open val gameNetwork: GameNetwork
         get() = bot.getGameNetwork(author.defaultNetworkId)

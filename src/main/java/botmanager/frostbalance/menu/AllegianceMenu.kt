@@ -2,12 +2,11 @@ package botmanager.frostbalance.menu
 
 import botmanager.frostbalance.Frostbalance
 import net.dv8tion.jda.api.EmbedBuilder
-import botmanager.frostbalance.Nation
-import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.menu.response.MenuResponse
 import java.awt.Color
 
-class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: CommandContext, var cause: Cause = Cause.NOT_SET) : Menu(bot, context) {
+class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: MessageContext, var cause: Cause = Cause.NOT_SET) : Menu(bot, context) {
     override val embedBuilder: EmbedBuilder
     get() = {
         assert(actor != null)

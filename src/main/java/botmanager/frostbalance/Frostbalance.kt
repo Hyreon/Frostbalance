@@ -5,6 +5,7 @@ import botmanager.Utilities
 import botmanager.Utils
 import botmanager.frostbalance.GuildWrapper.Companion.wrapper
 import botmanager.frostbalance.command.FrostbalanceCommand
+import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
 import botmanager.frostbalance.commands.map.ClaimTileCommand
@@ -88,11 +89,17 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         for (command in commands) {
             command.run(event)
         }
+        for (menu in activeMenus.filter { menu -> menu.hasHook }) {
+            menu.hook!!.hookEvent(MessageContext(this, event))
+        }
     }
 
     override fun onPrivateMessageReceived(event: PrivateMessageReceivedEvent) {
         for (command in commands) {
             command.run(event)
+        }
+        for (menu in activeMenus.filter { menu -> menu.hasHook }) {
+            menu.hook!!.hookEvent(MessageContext(this, event))
         }
     }
 
@@ -209,7 +216,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         try {
             event.guild.retrieveBan(event.user).complete() //verify this player was banned and didn't just leave
             if (event.user.wrapper.playerIn(event.guild.wrapper.gameNetwork).isLeader
-                    && !isBanned(event.guild, event.user)
+                    && !event.user.wrapper.memberIn(event.guild.wrapper).banned
                     && getSettings(event.guild).contains(OldOptionFlag.MAIN)) {
                 event.guild.unban(event.user).complete()
                 Utilities.sendGuildMessage(event.guild.defaultChannel,
@@ -223,7 +230,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     override fun onGuildMemberJoin(event: GuildMemberJoinEvent) {
         println("PLAYER JOINING: " + event.user.id)
-        if (isBanned(event.guild, event.user)) {
+        if (getUserWrapper(event.user.id).memberIn(event.guild.id).banned) {
             println("Found a banned player, banning them once again")
             event.guild.ban(event.user, 0, BAN_MESSAGE).queue()
         }
@@ -261,7 +268,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun loadRecords(guild: Guild?) {
         val info = Utilities.readLines(File("data/" + name + "/" + guild!!.id + "/history.csv"))
-        if (info != null && !info.isEmpty()) {
+        if (info != null && info.isNotEmpty()) {
             for (line in info) {
                 if (line.isEmpty()) {
                     regimes.getOrDefault(guild, ArrayList())
@@ -446,9 +453,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun saveGames() {
         for (network in gameNetworks) {
-            if (!network.isEmpty()) {
-                writeObject("games/" + network.id, network, Pair(TileObject::class.java, TileObjectAdapter()))
-            }
+            writeObject("games/" + network.id, network, Pair(TileObject::class.java, TileObjectAdapter()))
+            //TODO if network.isEmpty() remove file
         }
     }
 

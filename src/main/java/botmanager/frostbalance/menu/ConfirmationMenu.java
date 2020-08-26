@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 
@@ -11,7 +11,7 @@ public class ConfirmationMenu extends Menu {
 
     private final String description;
 
-    public ConfirmationMenu(Frostbalance bot, CommandContext context, Runnable runnable, String description) {
+    public ConfirmationMenu(Frostbalance bot, MessageContext context, Runnable runnable, String description) {
         super(bot, context);
         this.description = description;
 

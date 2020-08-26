@@ -2,7 +2,7 @@ package botmanager.frostbalance.commands.admin;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
 import botmanager.frostbalance.menu.ConfirmationMenu;
@@ -16,7 +16,7 @@ public class LoadLegacyCommand extends FrostbalanceCommand {
     }
 
     @Override
-    protected void execute(CommandContext context, String... params) {
+    protected void execute(MessageContext context, String... params) {
         new ConfirmationMenu(getBot(), context, () -> {
             getBot().loadLegacy();
             context.sendResponse(".csv files have been loaded and will overwrite .json data when saved.");

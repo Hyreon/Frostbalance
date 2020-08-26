@@ -6,7 +6,7 @@ import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
@@ -20,11 +20,11 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
     }
 
     @Override
-    protected void executeWithGuild(GuildCommandContext context, String... params) {
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
         if (context.isPublic()) runPublic(context, String.join(" ", params));
     }
 
-    public void runPublic(GuildCommandContext context, String message) {
+    public void runPublic(GuildMessageContext context, String message) {
 
         String[] words = message.split(" ");
         Influence amount;

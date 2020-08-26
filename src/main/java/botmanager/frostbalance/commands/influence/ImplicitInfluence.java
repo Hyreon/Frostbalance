@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.influence;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
@@ -60,7 +60,7 @@ public class ImplicitInfluence extends FrostbalanceCommand {
     }
 
     @Override
-    public void execute(CommandContext eventWrapper, String[] params) {}
+    public void execute(MessageContext eventWrapper, String[] params) {}
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {

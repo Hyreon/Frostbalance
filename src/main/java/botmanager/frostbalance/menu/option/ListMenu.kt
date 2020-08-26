@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu.option
 
 import botmanager.frostbalance.Frostbalance
-import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.menu.response.MenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
@@ -9,7 +9,7 @@ import java.util.stream.Collectors
 import kotlin.math.ceil
 import kotlin.math.min
 
-abstract class ListMenu<T>(bot: Frostbalance, context: CommandContext, protected val items: List<T>) : Menu(bot, context) {
+abstract class ListMenu<T>(bot: Frostbalance, context: MessageContext, protected val items: List<T>) : Menu(bot, context) {
 
     val PAGE_SIZE = 7
 
@@ -47,7 +47,7 @@ abstract class ListMenu<T>(bot: Frostbalance, context: CommandContext, protected
 
     }
 
-    constructor(bot: Frostbalance, context: CommandContext, options: List<T>, page: Int) : this(bot, context, options) {
+    constructor(bot: Frostbalance, context: MessageContext, options: List<T>, page: Int) : this(bot, context, options) {
         this.page = page
     }
 

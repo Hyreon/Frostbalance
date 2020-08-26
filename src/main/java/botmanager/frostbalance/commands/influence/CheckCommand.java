@@ -8,7 +8,7 @@ import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.menu.CheckMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -31,12 +31,12 @@ public class CheckCommand extends FrostbalanceGuildCommand {
     }
 
     @Override
-    protected void executeWithGuild(GuildCommandContext context, String... params) {
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
         if (context.isPublic()) runPublic(context, String.join(" ", params));
         else runPrivate(context, String.join(" ", params));
     }
 
-    public void runPublic(GuildCommandContext context, String message) {
+    public void runPublic(GuildMessageContext context, String message) {
 
         String result;
         UserWrapper targetUser;
@@ -67,7 +67,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
 
     }
 
-    public void runPrivate(GuildCommandContext context, String message) {
+    public void runPrivate(GuildMessageContext context, String message) {
 
         String targetId;
         String result;

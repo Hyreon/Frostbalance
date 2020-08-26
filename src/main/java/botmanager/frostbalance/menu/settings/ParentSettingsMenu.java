@@ -2,8 +2,8 @@ package botmanager.frostbalance.menu.settings;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.CommandContext;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.MessageContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.menu.Menu;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -16,7 +16,7 @@ public class ParentSettingsMenu extends Menu {
      */
     boolean enabling = true;
 
-    public ParentSettingsMenu(Frostbalance bot, CommandContext context) {
+    public ParentSettingsMenu(Frostbalance bot, MessageContext context) {
         //BOT-WIDE
         //NETWORK-WIDE (must be in a network AND have at least network-admin)
         //NATION-WIDE (must be in a nation AND have at least nation-admin)
@@ -40,7 +40,7 @@ public class ParentSettingsMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                redirectTo(new NetworkSettingsMenu(bot, new GuildCommandContext(context)), true);
+                redirectTo(new NetworkSettingsMenu(bot, new GuildMessageContext(context)), true);
             }
 
             @Override
@@ -53,7 +53,7 @@ public class ParentSettingsMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                redirectTo(new NationSettingsMenu(bot, new GuildCommandContext(context)), true);
+                redirectTo(new NationSettingsMenu(bot, new GuildMessageContext(context)), true);
             }
 
             @Override

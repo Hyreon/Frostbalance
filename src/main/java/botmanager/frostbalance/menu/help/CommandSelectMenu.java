@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu.help;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.FrostbalanceCommand;
 import botmanager.frostbalance.menu.option.OptionMenu;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class CommandSelectMenu extends OptionMenu<FrostbalanceCommand> {
 
-    public CommandSelectMenu(Frostbalance bot, CommandContext context, List<FrostbalanceCommand> commandsToShow) {
+    public CommandSelectMenu(Frostbalance bot, MessageContext context, List<FrostbalanceCommand> commandsToShow) {
         super(bot, context, commandsToShow);
     }
 

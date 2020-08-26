@@ -2,11 +2,11 @@ package botmanager.frostbalance.menu
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
-import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.command.MessageContext
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.MessageChannel
 
-class ArgumentObligatorMenu(bot: Frostbalance, context: CommandContext) : Menu(bot, context) {
+class ArgumentObligatorMenu(bot: Frostbalance, context: MessageContext) : Menu(bot, context) {
 
     var obligationTitle: String? = null
     var obligationDescription: String? = null

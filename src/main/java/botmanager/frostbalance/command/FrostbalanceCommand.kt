@@ -15,9 +15,9 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
      */
     override fun run(genericEvent: Event) {
         var parameters: Array<String>
-        val context: CommandContext
+        val context: MessageContext
         context = try {
-            CommandContext(bot, genericEvent)
+            MessageContext(bot, genericEvent)
         } catch (e: IllegalArgumentException) {
             e.printStackTrace()
             return
@@ -55,7 +55,7 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
         }
     }
 
-    protected abstract fun execute(context: CommandContext?, params: Array<String>?)
+    protected abstract fun execute(context: MessageContext?, params: Array<String>?)
     fun hasAlias(genericEvent: Event?): Boolean {
         val message: String = when (genericEvent) {
             is GuildMessageReceivedEvent -> {
@@ -105,7 +105,7 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
      * @param context the context of the info gotten
      * @return
      */
-    open fun getInfo(context: CommandContext): String? {
+    open fun getInfo(context: MessageContext): String? {
         return if (context.authority.hasAuthority(requiredAuthority)) {
             info(context.authority, context.isPublic)
         } else null

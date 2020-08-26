@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
@@ -23,7 +23,7 @@ public class MapMenu extends Menu {
 
     private CameraBehavior cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
 
-    public MapMenu(Frostbalance bot, GuildCommandContext context) {
+    public MapMenu(Frostbalance bot, GuildMessageContext context) {
         super(bot, context);
         this.map = context.getGameNetwork().getWorldMap();
         this.player = context.getPlayer().getCharacter();
@@ -91,7 +91,7 @@ public class MapMenu extends Menu {
 
     }
 
-    public MapMenu(Frostbalance bot, GuildCommandContext context, Hex destination) {
+    public MapMenu(Frostbalance bot, GuildMessageContext context, Hex destination) {
         this(bot, context);
         cameraLocation = destination;
         cameraBehavior = CameraBehavior.CUSTOM;

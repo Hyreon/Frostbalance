@@ -3,13 +3,13 @@ package botmanager.frostbalance.menu.settings
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Nation
 import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.GuildCommandContext
+import botmanager.frostbalance.command.GuildMessageContext
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.menu.option.NationOptionMenu
 import botmanager.frostbalance.menu.response.MenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
 
-class NationSettingsMenu(bot: Frostbalance, context: GuildCommandContext) : Menu(bot, context) {
+class NationSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Menu(bot, context) {
 
     init {
         menuResponses.add(object : MenuResponse(context.guild.nation.emoji, "Change nation") {

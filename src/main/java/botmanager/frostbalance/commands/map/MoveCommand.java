@@ -4,7 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 
@@ -17,7 +17,7 @@ public class MoveCommand extends FrostbalanceGuildCommand {
     }
 
     @Override
-    protected void executeWithGuild(GuildCommandContext context, String... params) {
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
 
         PlayerCharacter character = context.getPlayer().getCharacter();
         Hex destination;

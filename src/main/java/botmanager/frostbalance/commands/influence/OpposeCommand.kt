@@ -4,7 +4,6 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ArgumentObligatorMenu
 import java.util.*
 
 class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
@@ -12,7 +11,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "o"
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
-    override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
+    override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
         val arguments = ArgumentStream(params)
 
         val resultLines: MutableList<String> = ArrayList()

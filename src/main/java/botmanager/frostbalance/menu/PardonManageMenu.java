@@ -4,7 +4,7 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 
@@ -13,7 +13,7 @@ public class PardonManageMenu extends Menu {
     MemberWrapper target;
     Alternative outcome = Alternative.CONFIRM;
 
-    public PardonManageMenu(Frostbalance bot, GuildCommandContext context, UserWrapper targetUser) {
+    public PardonManageMenu(Frostbalance bot, GuildMessageContext context, UserWrapper targetUser) {
         super(bot, context);
 
         this.target = targetUser.memberIn(context.getGuild());

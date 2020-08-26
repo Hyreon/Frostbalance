@@ -5,7 +5,7 @@ import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,7 +19,7 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
     }
 
     @Override
-    protected void execute(CommandContext context, String... params) {
+    protected void execute(MessageContext context, String... params) {
         String result, publicPost;
 
         UserWrapper bUser = context.getAuthor();

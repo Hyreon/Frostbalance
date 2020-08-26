@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.meta;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
@@ -20,7 +20,7 @@ public class SetGuildCommand extends FrostbalanceCommand {
     }
 
     @Override
-    protected void execute(CommandContext context, String... params) {
+    protected void execute(MessageContext context, String... params) {
 
         String name;
         List<String> resultLines = new ArrayList<>();

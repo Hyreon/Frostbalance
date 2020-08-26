@@ -4,14 +4,14 @@ import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
-import botmanager.frostbalance.command.GuildCommandContext
+import botmanager.frostbalance.command.GuildMessageContext
 import botmanager.frostbalance.menu.ConfirmationMenu
 
 class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "coup"
 ), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
 
-    override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
+    override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
         var result: String
         var privateResult: String?
         val bMember = context.member

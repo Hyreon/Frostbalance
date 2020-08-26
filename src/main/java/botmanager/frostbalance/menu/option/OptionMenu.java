@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu.option;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -13,12 +13,12 @@ public abstract class OptionMenu<T> extends ListMenu<T> {
 
     protected List<MenuResponse> pickResponses = new ArrayList<>();
 
-    public OptionMenu(@NotNull Frostbalance bot, @NotNull CommandContext context, @NotNull List<? extends T> options) {
+    public OptionMenu(@NotNull Frostbalance bot, @NotNull MessageContext context, @NotNull List<? extends T> options) {
         super(bot, context, options);
         addOptions();
     }
 
-    public OptionMenu(@NotNull Frostbalance bot, @NotNull CommandContext context, @NotNull List<? extends T> options, int page) {
+    public OptionMenu(@NotNull Frostbalance bot, @NotNull MessageContext context, @NotNull List<? extends T> options, int page) {
         super(bot, context, options, page);
         addOptions();
     }
@@ -59,5 +59,5 @@ public abstract class OptionMenu<T> extends ListMenu<T> {
         }
     }
 
-    protected abstract void select(@NotNull T command);
+    protected abstract void select(@NotNull T option);
 }

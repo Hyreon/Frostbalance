@@ -1,7 +1,7 @@
 package botmanager.frostbalance.menu.option;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.command.MessageContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -10,11 +10,11 @@ import java.util.stream.IntStream;
 
 public class GarbageMenu extends OptionMenu<Integer> {
 
-    public GarbageMenu(@NotNull Frostbalance bot, @NotNull CommandContext context, @NotNull List<? extends Integer> options) {
+    public GarbageMenu(@NotNull Frostbalance bot, @NotNull MessageContext context, @NotNull List<? extends Integer> options) {
         super(bot, context, options);
     }
 
-    public GarbageMenu(@NotNull Frostbalance bot, @NotNull CommandContext context, @NotNull List<? extends Integer> options, int page) {
+    public GarbageMenu(@NotNull Frostbalance bot, @NotNull MessageContext context, @NotNull List<? extends Integer> options, int page) {
         super(bot, context, options, page);
     }
 

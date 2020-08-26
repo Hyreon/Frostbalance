@@ -2,8 +2,9 @@ package botmanager.frostbalance.menu
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.UserWrapper
-import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.menu.response.MenuResponse
+import botmanager.frostbalance.menu.response.MenuTextHook
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote
@@ -11,7 +12,7 @@ import java.io.File
 import java.util.*
 
 //TODO split into parent and child; don't force childs to store message data, and use a val instead for them
-abstract class Menu(protected var bot: Frostbalance, val context : CommandContext) {
+abstract class Menu(protected var bot: Frostbalance, val context : MessageContext) {
 
     //TODO don't use message caches directly, they become dated. This goes for CommandContext as well!
     //TODO try for better polymorphism with CommandContext and GuildCommandContext, forcing GuildCommandContext where desired.
@@ -21,9 +22,20 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
      */
     var message: Message? = null
     var actor: UserWrapper? = null
+
     var isClosed = false
     @JvmField
     var menuResponses: MutableList<MenuResponse> = ArrayList()
+
+    var hook: MenuTextHook? = null
+        get() = if (this != activeMenu) activeMenu.hook else field
+
+    val hasHook: Boolean
+        get() = hook != null
+
+    protected fun hook(hook: MenuTextHook) {
+        this.hook = hook
+    }
 
     open fun send(channel: MessageChannel, actor: UserWrapper) {
         bot.addMenu(this)
@@ -130,6 +142,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
                 ?.filter { reaction -> !reaction.reactionEmote.isEmoji }
                 ?.forEach { reaction -> reaction.clearPossible() }
         var index = 0
+        //FIXME complete this without blocking the thread!
         activeMenu.menuResponses.filter { response -> response.isValid }.forEachIndexed { responseIndex, response ->
             var reaction = originalMenu.message?.reactions?.elementAtOrNull(responseIndex)
             while (reaction != null &&
@@ -189,9 +202,11 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
                 var description = ""
                 for (menuResponse in activeMenu.menuResponses) {
                     if (menuResponse.isValid) {
-                        description += """${menuResponse.emoji} ${menuResponse.name}
-"""
+                        description += "${menuResponse.emoji} ${menuResponse.name}\n"
                     }
+                }
+                if (hasHook) {
+                    description += "⌨️ ${hook!!.name}\n"
                 }
                 embedBuilder.addField("Options", description, false)
             }
