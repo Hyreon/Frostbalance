@@ -4,6 +4,7 @@ import botmanager.frostbalance.Frostbalance
 import net.dv8tion.jda.api.EmbedBuilder
 import botmanager.frostbalance.Nation
 import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.menu.response.MenuResponse
 import java.awt.Color
 
 class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: CommandContext, var cause: Cause = Cause.NOT_SET) : Menu(bot, context) {
@@ -41,16 +42,15 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Comma
     }
 
     init {
-        for (nation in Nation.nations) {
+        for (nation in Nation.baseNations) {
             menuResponses.add(object : MenuResponse(nation.emoji, nation.toString()) {
                 override fun reactEvent() {
                     actor!!.playerIn(bot.mainNetwork).allegiance = nation
                     close(false)
                 }
 
-                override fun isValid(): Boolean {
-                    return true
-                }
+                override val isValid: Boolean
+                    get() = true
             })
         }
         menuResponses.add(object : MenuResponse("✖️", "Don't change for now") {
@@ -58,9 +58,8 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Comma
                 close(true)
             }
 
-            override fun isValid(): Boolean {
-                return true
-            }
+            override val isValid: Boolean
+                get() = true
         })
     }
 }

@@ -1,19 +1,19 @@
-package botmanager.frostbalance.commands.admin;
+package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
-import botmanager.frostbalance.menu.FlagMenu;
+import botmanager.frostbalance.menu.settings.ParentSettingsMenu;
 
-public class FlagCommand extends FrostbalanceGuildCommand {
+public class SettingsCommand extends FrostbalanceGuildCommand {
 
 
-    public FlagCommand(Frostbalance bot) {
+    public SettingsCommand(Frostbalance bot) {
         super(bot, new String[] {
-                "flags",
-                "settings"
+                "settings",
+                "options"
         }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
@@ -21,7 +21,7 @@ public class FlagCommand extends FrostbalanceGuildCommand {
     public void executeWithGuild(GuildCommandContext context, String... params) {
         String result = "";
 
-        new FlagMenu(getBot(), context).send(context.getChannel(), context.getAuthor());
+        new ParentSettingsMenu(getBot(), context).send(context.getChannel(), context.getAuthor());
 
     }
 

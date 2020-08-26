@@ -3,7 +3,7 @@ package botmanager.frostbalance.menu.help;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.command.FrostbalanceCommand;
-import botmanager.frostbalance.menu.OptionMenu;
+import botmanager.frostbalance.menu.option.OptionMenu;
 
 import java.util.List;
 

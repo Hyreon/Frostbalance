@@ -4,6 +4,8 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.menu.response.MenuAction;
+import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 import java.awt.*;
@@ -44,7 +46,7 @@ public class CheckMenu extends Menu {
         }
     };
 
-    public final MenuResponse EXPIRE_CHECK = new MenuResponse(null, "Expire check") {
+    public final MenuAction EXPIRE_CHECK = new MenuAction("Expire check") {
 
         @Override
         public void reactEvent() {

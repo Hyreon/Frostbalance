@@ -5,6 +5,7 @@ import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 public class PardonManageMenu extends Menu {

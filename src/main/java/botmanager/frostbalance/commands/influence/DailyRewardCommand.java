@@ -1,13 +1,11 @@
 package botmanager.frostbalance.commands.influence;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildCommandContext;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,7 +26,7 @@ public class DailyRewardCommand extends FrostbalanceGuildCommand {
         Influence gain = context.getMember().gainDailyInfluence();
 
         if (gain.getValue() > 0) {
-            Utilities.sendGuildMessage((TextChannel) context.getChannel(), context.getMember().getEffectiveName() + ", your influence increases in " + context.getGuild().getName() + ".");
+            context.sendResponse(context.getMember().getEffectiveName() + ", your influence increases in " + context.getGuild().getName() + ".");
 
             Influence influence = context.getMember().getInfluence();
             context.sendPrivateResponse("You now have **" + String.format("%s", influence) + "** influence in **" + context.getGuild().getName() + "**.");

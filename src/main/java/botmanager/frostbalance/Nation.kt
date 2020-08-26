@@ -17,7 +17,7 @@ enum class Nation(var emoji: String, var color: Color) {
     YELLOW("\uD83D\uDFE8", Color(0xff, 0xff, 0)),
     ORANGE("\uD83D\uDFE7", Color(0xff, 0x80, 0)),
     DARK("⬛", Color(0x33, 0x33, 0x33)),
-    LIGHT("⬛", Color(0xcc, 0xcc, 0xcc));
+    LIGHT("⬜", Color(0xcc, 0xcc, 0xcc));
 
     fun adjustDisplayColor(color: Color, drawValue: Int): Color {
         return when (this) {
@@ -40,7 +40,7 @@ enum class Nation(var emoji: String, var color: Color) {
          * @return All nations without NONE
          */
         @JvmStatic
-        val nations: Array<Nation>
+        val baseNations: Array<Nation>
             get() = arrayOf(RED, GREEN, BLUE)
     }
 }

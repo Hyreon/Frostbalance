@@ -1,5 +1,6 @@
 package botmanager.frostbalance
 
+import botmanager.frostbalance.flags.NetworkFlag
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container
 import botmanager.frostbalance.grid.WorldMap
@@ -8,6 +9,9 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
 
     var worldMap: WorldMap = WorldMap(this, id)
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
+
+    val nations: Set<Nation>
+        get() = associatedGuilds.map { guild -> guild.nation }.toHashSet()
 
     private var flags: MutableSet<NetworkFlag> = HashSet()
 
@@ -50,6 +54,10 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
 
     fun guildWithAllegiance(allegiance: Nation?): GuildWrapper? {
         return associatedGuilds.firstOrNull { guild -> guild.nation == allegiance}
+    }
+
+    fun hasMultipleNations(): Boolean {
+        return associatedGuilds.size > 1 || flags.contains(NetworkFlag.TUTORIAL)
     }
 
 }

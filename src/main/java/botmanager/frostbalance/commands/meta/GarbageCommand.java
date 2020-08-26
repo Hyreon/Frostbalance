@@ -5,7 +5,7 @@ import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
-import botmanager.frostbalance.menu.GarbageMenu;
+import botmanager.frostbalance.menu.option.GarbageMenu;
 
 import java.util.List;
 import java.util.stream.Collectors;

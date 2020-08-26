@@ -4,6 +4,7 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.command.GuildCommandContext;
+import botmanager.frostbalance.menu.response.MenuResponse;
 
 //FIXME right now this gives away information about the players' influence level; how could this be fixed?
 public class CostConfirmationMenu extends ConfirmationMenu {

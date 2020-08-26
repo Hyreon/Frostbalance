@@ -6,6 +6,7 @@ import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.menu.response.MenuResponse;
 import botmanager.frostbalance.render.MapRenderer;
 import net.dv8tion.jda.api.EmbedBuilder;
 

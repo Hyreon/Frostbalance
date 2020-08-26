@@ -1,7 +1,8 @@
-package botmanager.frostbalance.menu;
+package botmanager.frostbalance.menu.option;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.CommandContext;
+import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +45,7 @@ public abstract class OptionMenu<T> extends ListMenu<T> {
 
     public void updatePickResponseText() {
         for (int i = 0; i < getSublist().size(); i++) {
-            pickResponses.get(i).name = getSublist().get(i).toString();
+            pickResponses.get(i).setName(getSublist().get(i).toString());
         }
     }
 

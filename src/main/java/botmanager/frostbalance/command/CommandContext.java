@@ -4,6 +4,7 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.menu.option.ListMenu;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
@@ -85,16 +86,7 @@ public class CommandContext {
     }
 
     public void sendResponse(String message) {
-        if (isPublic()) {
-            Utilities.sendGuildMessage((TextChannel) getChannel(), message);
-        } else {
-            Utilities.sendPrivateMessage(getJDAUser(), message);
-        }
-    }
-
-    public void sendEmbedResponse(List<String> resultLines) {
-        String message = String.join("\n", resultLines);
-        MessageEmbed messageEmbed = new EmbedBuilder().setDescription(message).build();
+        MessageEmbed messageEmbed = buildEmbed(message);
         if (isPublic()) {
             Utilities.sendGuildMessage((TextChannel) getChannel(), messageEmbed);
         } else {
@@ -102,8 +94,34 @@ public class CommandContext {
         }
     }
 
+    public void sendEmbedResponse(List<String> resultLines) {
+        if (resultLines.size() > 10) {
+            new ListMenu<String>(bot, this, resultLines) {
+
+            }.send(getChannel(), getAuthor());
+        } else {
+            String message = String.join("\n", resultLines);
+            MessageEmbed messageEmbed = buildEmbed(message);
+            if (isPublic()) {
+                Utilities.sendGuildMessage((TextChannel) getChannel(), messageEmbed);
+            } else {
+                Utilities.sendPrivateMessage(getJDAUser(), messageEmbed);
+            }
+        }
+    }
+
+    public MessageEmbed buildEmbed(String message) {
+        return new EmbedBuilder()
+                .setDescription(message)
+                .setColor(getGuild() != null ?
+                        getGuild().getColor()
+                        : null)
+                .build();
+    }
+
     public void sendPrivateResponse(String message) {
-        Utilities.sendPrivateMessage(getJDAUser(), message);
+        MessageEmbed messageEmbed = buildEmbed(message);
+        Utilities.sendPrivateMessage(getJDAUser(), messageEmbed);
     }
 
 

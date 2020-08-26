@@ -52,7 +52,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
             return;
         }
 
-        if ((context.getGuild().usesNations()) && allegiance == null) {
+        if ((context.getGameNetwork().hasMultipleNations()) && allegiance == null) {
 
             new AllegianceMenu(getBot(), context).send(context.getChannel(), context.getAuthor());
 

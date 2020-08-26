@@ -50,10 +50,10 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             when {
                 reduceAmount > 0 -> {
                     resultLines.add(bMember.effectiveName + " has *opposed* " + targetMember.effectiveName + ", reducing their influence here.")
-                    Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("%s has *opposed* you, reducing your influence in %s by %s.",
+                    Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("%s has *opposed* you, reducing your influence in %s by %s.",
                             bMember.effectiveName,
                             context.guild.name,
-                            reduceAmount))
+                            reduceAmount)))
                 }
                 transferAmount.isNonZero -> {
                     context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
@@ -70,9 +70,9 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                 when {
                     reduceAmount > 0 -> {
                         resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
-                        Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("You have been smeared! Your influence in %s has been reduced by %s.",
+                        Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("You have been smeared! Your influence in %s has been reduced by %s.",
                                 context.guild.name,
-                                reduceAmount))
+                                reduceAmount)))
                     }
                     transferAmount.isNonZero -> {
                         context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")

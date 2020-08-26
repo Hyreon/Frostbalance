@@ -5,6 +5,8 @@ import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.GuildCommandContext
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
+import botmanager.frostbalance.menu.option.ListMenu
+import botmanager.frostbalance.menu.option.OptionMenu
 
 /**
  *
@@ -14,14 +16,14 @@ class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "help"
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
     override fun executeWithGuild(context: GuildCommandContext, vararg params: String) {
-        var result = "__**Frostbalance**__\n\n"
+        var result: MutableList<String> = mutableListOf()
         for (command in bot.commands) {
             val info = command.getInfo(context)
             if (info != null) {
-                result += info + "\n"
+                result.add(info)
             }
         }
-        context.sendResponse(result)
+        context.sendEmbedResponse(result)
     }
 
     public override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {

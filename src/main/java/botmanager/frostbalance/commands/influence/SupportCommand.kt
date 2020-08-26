@@ -44,18 +44,18 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         if (context.isPublic) {
             context.message.delete().queue()
             resultLines.add(bMember.effectiveName + " has *supported* " + targetMember.effectiveName + ", increasing their influence here.")
-            Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("%s has *supported* you, increasing your influence in %s by %s.",
+            Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("%s has *supported* you, increasing your influence in %s by %s.",
                     bMember.effectiveName,
                     context.guild!!.name,
-                    transferAmount))
+                    transferAmount)))
             targetMember.adjustInfluence(transferAmount)
         } else {
 
             if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
                 resultLines.add("You have *supported* " + targetMember.effectiveName + " secretly, increasing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
-                Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
+                Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
                         context.guild!!.name,
-                        transferAmount.applyModifier(PRIVATE_MODIFIER)))
+                        transferAmount.applyModifier(PRIVATE_MODIFIER))))
                 targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER))
 
                 val refundAmount = transferAmount.remainderOfModifier(PRIVATE_MODIFIER)

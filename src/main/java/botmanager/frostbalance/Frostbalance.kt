@@ -14,13 +14,13 @@ import botmanager.frostbalance.commands.map.ViewMapCommand
 import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
+import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.Container
 import botmanager.frostbalance.grid.TileObject
 import botmanager.frostbalance.grid.TileObjectAdapter
 import botmanager.frostbalance.grid.WorldMap
 import botmanager.frostbalance.menu.Menu
 import botmanager.generic.BotBase
-import botmanager.generic.ICommand
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.*
@@ -996,7 +996,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 AdjustCommand(this),
                 SystemBanCommand(this),
                 SystemPardonCommand(this),
-                FlagCommand(this),
+                SettingsCommand(this),
                 ViewMapCommand(this),
                 ClaimTileCommand(this),
                 AllegianceCommand(this),

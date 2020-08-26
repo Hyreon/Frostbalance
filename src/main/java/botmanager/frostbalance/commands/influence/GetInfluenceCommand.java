@@ -1,4 +1,4 @@
-package botmanager.frostbalance.commands.meta;
+package botmanager.frostbalance.commands.influence;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;

@@ -1,7 +1,9 @@
-package botmanager.frostbalance.menu
+package botmanager.frostbalance.menu.option
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.menu.response.MenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
 import java.util.stream.Collectors
 import kotlin.math.ceil
@@ -24,27 +26,23 @@ abstract class ListMenu<T>(bot: Frostbalance, context: CommandContext, private v
                 previousPage()
             }
 
-            override fun isValid(): Boolean {
-                return page > 1
-            }
+            override val isValid: Boolean
+                get() = page > 1
         })
         menuResponses.add(object : MenuResponse("➡", "Next") {
             override fun reactEvent() {
                 nextPage()
             }
 
-            override fun isValid(): Boolean {
-                return page < maxPages()
-            }
+            override val isValid: Boolean
+                get() = page < maxPages()
         })
         menuResponses.add(object : MenuResponse("✅", "Exit") {
             override fun reactEvent() {
                 closeAll(false)
             }
 
-            override fun isValid(): Boolean {
-                return true
-            }
+            override val isValid = true
         })
 
     }

@@ -3,7 +3,7 @@ package botmanager.frostbalance.grid
 import botmanager.Utils
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.Nation
-import botmanager.frostbalance.Nation.Companion.nations
+import botmanager.frostbalance.Nation.Companion.baseNations
 import java.util.*
 import java.util.stream.Collectors
 
@@ -60,7 +60,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             if (claims.isEmpty()) return null
             var selectedNation = lastOwningNation
             var selectedStrength = getNationalStrength(lastOwningNation)
-            for (nation in nations) {
+            for (nation in baseNations) {
                 val nationalStrength = getNationalStrength(nation)
                 if (nationalStrength.compareTo(selectedStrength) > 0) {
                     selectedNation = nation
@@ -185,7 +185,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             val lines: MutableList<String> = ArrayList()
             val owningNation = owningNation
             if (owningNation != null) {
-                for (nation in nations) {
+                for (nation in baseNations) {
                     val strength = getNationalStrength(nation)
                     if (strength.thousandths == 0) continue
                     var effectiveString: String
@@ -234,7 +234,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             }
             var nationalCompetitionByColor = ""
             val nationalCompetitors: MutableList<String> = ArrayList()
-            for (nation in nations) {
+            for (nation in baseNations) {
                 if (nation === owningNation) continue
                 if (getNationalStrength(nation).thousandths > 0) {
                     nationalCompetitors.add(String.format("%s: %s",
@@ -265,7 +265,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             }
             var nationalCompetition = ""
             val nationalCompetitors: MutableList<String> = ArrayList()
-            for (nation in nations) {
+            for (nation in baseNations) {
                 if (nation === owningNation) continue
                 if (getNationalStrength(nation).thousandths > 0.0) {
                     nationalCompetitors.add(String.format("%s: %s",

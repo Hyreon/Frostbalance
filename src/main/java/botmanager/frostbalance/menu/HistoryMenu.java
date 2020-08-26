@@ -3,6 +3,7 @@ package botmanager.frostbalance.menu;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.CommandContext;
 import botmanager.frostbalance.data.RegimeData;
+import botmanager.frostbalance.menu.option.ListMenu;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.jetbrains.annotations.NotNull;
 

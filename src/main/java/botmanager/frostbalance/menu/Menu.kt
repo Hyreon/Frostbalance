@@ -3,6 +3,7 @@ package botmanager.frostbalance.menu
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.UserWrapper
 import botmanager.frostbalance.command.CommandContext
+import botmanager.frostbalance.menu.response.MenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote
@@ -183,7 +184,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
             if (!isClosed) {
                 var description = ""
                 for (menuResponse in activeMenu.menuResponses) {
-                    if (menuResponse.isValid()) {
+                    if (menuResponse.isValid) {
                         description += """${menuResponse.emoji} ${menuResponse.name}
 """
                     }
@@ -234,9 +235,8 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
                     child!!.close(false)
                 }
 
-                override fun isValid(): Boolean {
-                    return true
-                }
+                override val isValid: Boolean
+                    get() = true
             })
         }
         updateMessage()

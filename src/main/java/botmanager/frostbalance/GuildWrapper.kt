@@ -4,6 +4,7 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance.Companion.bot
 import botmanager.frostbalance.data.RegimeData
 import botmanager.frostbalance.data.TerminationCondition
+import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container
 import lombok.Getter
@@ -30,7 +31,9 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     var leaderId: String? = null
 
-    var oldOptionFlags: MutableSet<OldOptionFlag> = HashSet()
+    var nation: Nation =
+            Nation.values().toMutableSet().subtract(gameNetwork.nations).randomOrNull() ?:
+            throw IllegalStateException("This network is at capacity and cannot support another guild!")
 
     @JvmField
     var regimes: MutableList<RegimeData> = ArrayList()
@@ -47,15 +50,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     val jda: JDA
         get() = bot.jda
     val color: Color
-        get() = if (oldOptionFlags.contains(OldOptionFlag.RED)) {
-            Color.RED
-        } else if (oldOptionFlags.contains(OldOptionFlag.GREEN)) {
-            Color.GREEN
-        } else if (oldOptionFlags.contains(OldOptionFlag.BLUE)) {
-            Color.BLUE
-        } else {
-            Color.GRAY
-        }
+        get() = nation.color
 
     override fun toString() : String = if (isOnline()) name!! else name?.let { "~~$it~~" }?:"*Inaccessible Guild*"
 
@@ -119,7 +114,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     }
 
     fun loadLegacy(settings: MutableSet<OldOptionFlag>, Records: MutableList<RegimeData>, OwnerId: String, Name: String) {
-        oldOptionFlags = settings
+        nation = settings.legacyNation ?: Nation.LIGHT
         regimes = Records
         leaderId = OwnerId
         lastKnownName = Name
@@ -142,18 +137,6 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
             if (!bot.getUserWrapper(ban.user.id).memberIn(id).banned)
             guild!!.unban(ban.user)
         }
-    }
-
-    fun flipFlag(flagOld: OldOptionFlag) {
-        if (oldOptionFlags.contains(flagOld)) {
-            oldOptionFlags.remove(flagOld)
-        } else {
-            oldOptionFlags.add(flagOld)
-        }
-    }
-
-    fun hasFlag(flagOld: OldOptionFlag): Boolean {
-        return oldOptionFlags.contains(flagOld)
     }
 
     val leaderRole: Role
@@ -218,22 +201,16 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         gameNetwork = parent
     }
 
-    fun usesNations(): Boolean {
-        return hasFlag(OldOptionFlag.MAIN) || hasFlag(OldOptionFlag.TUTORIAL)
-    }
 
-    val nation: Nation?
+    val MutableSet<OldOptionFlag>.legacyNation: Nation?
         get() = when {
-            !usesNations() -> {
-                null
-            }
-            hasFlag(OldOptionFlag.BLUE) -> {
+            contains(OldOptionFlag.BLUE) -> {
                 Nation.BLUE
             }
-            hasFlag(OldOptionFlag.RED) -> {
+            contains(OldOptionFlag.RED) -> {
                 Nation.RED
             }
-            hasFlag(OldOptionFlag.GREEN) -> {
+            contains(OldOptionFlag.GREEN) -> {
                 Nation.GREEN
             }
             else -> {
