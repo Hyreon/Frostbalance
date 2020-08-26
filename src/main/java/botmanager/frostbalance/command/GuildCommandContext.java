@@ -55,7 +55,7 @@ public class GuildCommandContext extends CommandContext {
         if (isPublic()) {
             return publicEvent.getMember();
         }
-        return getJDAGuild().getMember(getJDAUser());
+        return getJDAGuild().getMember(getJdaUser());
     }
 
     public MemberWrapper getMember() {

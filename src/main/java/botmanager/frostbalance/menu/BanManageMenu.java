@@ -21,7 +21,7 @@ public class BanManageMenu extends Menu {
         if (target.getBanned()) {
             outcome = Alternative.FAILED;
         } else {
-            target.setLocallyBanned(true);
+            target.ban();
         }
 
         if (target.getUserWrapper().getGloballyBanned() && !target.getLocallyBanned()) {
@@ -41,7 +41,7 @@ public class BanManageMenu extends Menu {
             @Override
             public boolean isValid() {
                 return getActor().memberIn(getContext().getGuild()).getAuthority().hasAuthority(AuthorityLevel.BOT_ADMIN) &&
-                        target.getUserWrapper().getGloballyBanned();
+                        !target.getUserWrapper().getGloballyBanned();
             }
         });
 
@@ -116,8 +116,13 @@ public class BanManageMenu extends Menu {
             builder.setTitle(target.getEffectiveName() + " banned");
             builder.setDescription("This player has been removed from this Frostbalance guild and can no longer re-join it.");
         } else if (outcome.equals(Alternative.UNDONE)) {
-            builder.setTitle(target.getEffectiveName() + " kicked");
-            builder.setDescription("This player has been removed from this Frostbalance guild, but is free to re-join when desired.");
+            if (target.getUserWrapper().getGloballyBanned()) {
+                builder.setTitle("*" + target.getEffectiveName() + " has global ban*");
+                builder.setDescription("This player will not be able to re-join this guild unless the global ban is lifted.");
+            } else {
+                builder.setTitle(target.getEffectiveName() + " kicked");
+                builder.setDescription("This player has been removed from this Frostbalance guild, but is free to re-join when desired.");
+            }
         } else if (outcome.equals(Alternative.FAILED)) {
             builder.setTitle("*" + target.getEffectiveName() + " already banned*");
             if (target.getUserWrapper().getGloballyBanned()) {

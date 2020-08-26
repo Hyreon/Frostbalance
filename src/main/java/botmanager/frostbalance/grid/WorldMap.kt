@@ -14,7 +14,7 @@ import java.util.stream.Collectors
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */
-class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Container {
+class WorldMap(@Transient var gameNetwork: GameNetwork) : Container {
 
     @Transient
     var strongestNationalClaim = Influence(0)
@@ -102,6 +102,11 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
         }
     }
 
+    fun isEmpty(): Boolean {
+        clearEmptyTiles()
+        return loadedTiles.isEmpty()
+    }
+
     companion object {
         @Deprecated("")
         var worldMaps: MutableList<WorldMap> = ArrayList()
@@ -112,13 +117,10 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
             return Frostbalance.bot.getGuildWrapper(guild.id).gameNetwork.worldMap
         }
 
-        @get:Deprecated("")
-        val maps: Collection<WorldMap>
-            get() = worldMaps
-
         @Deprecated("")
-        fun readWorld(originalGuildId: String?) {
+        fun readWorldLegacy(originalGuildId: String?) {
             var effectiveGuildId: String = originalGuildId ?: "global"
+            var networkName: String = originalGuildId ?: "main"
             println("New guild name: $effectiveGuildId")
             val file = File("data/" + Frostbalance.bot.name + "/$effectiveGuildId/map.json")
             if (file.exists()) {
@@ -126,9 +128,8 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
                 gsonBuilder.registerTypeAdapter(TileObject::class.java, TileObjectAdapter())
                 val gson = gsonBuilder.create()
                 val worldMap = gson.fromJson(IOUtils.read(file), WorldMap::class.java)
-                worldMap.id = effectiveGuildId
-                Frostbalance.bot.getGameNetwork(effectiveGuildId).worldMap = worldMap
-                Frostbalance.bot.getGameNetwork(effectiveGuildId).adopt()
+                Frostbalance.bot.getGameNetwork(networkName).worldMap = worldMap
+                Frostbalance.bot.getGameNetwork(networkName).adopt()
                 for (tile in worldMap.loadedTiles) {
                     tile.map = worldMap
                     for (tileData in tile.getObjects()) {
@@ -140,7 +141,7 @@ class WorldMap(@Transient var gameNetwork: GameNetwork, var id: String) : Contai
                     }
                     println("Loaded data for tile at " + tile.getLocation() + " (" + effectiveGuildId + ")")
                 }
-                println("Added " + worldMap.id + " world map to worldMaps list.")
+                println("Added $networkName world map to worldMaps list.")
                 worldMaps.add(worldMap)
             } else {
                 throw IllegalStateException("Specified file does not exist")

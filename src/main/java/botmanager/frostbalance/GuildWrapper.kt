@@ -87,6 +87,10 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         startRegime(member)
     }
 
+    fun markLeaderAsDeserter() {
+        endRegime(TerminationCondition.LEFT)
+    }
+
     private fun endRegime(condition: TerminationCondition) {
         check(guild != null) { "Tried to end the regime of a server the bot isn't in!" }
         leaderAsMember?.let { guild?.removeRoleFromMember(it, leaderRole)?.queue() }
@@ -199,6 +203,14 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     override fun setParent(parent: GameNetwork) {
         gameNetwork = parent
+    }
+
+    fun moveToNetwork(selectedNetwork: GameNetwork) {
+        gameNetwork.moveGuild(this, selectedNetwork)
+    }
+
+    fun contextFooter(): String {
+        return "Command executed in $name"
     }
 
 

@@ -45,9 +45,16 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
     private var lastKnownName: String? = null
 
     var defaultGuildId: String? = null
-    var defaultNetworkId: String? = null
+    var defaultNetworkId: String = "main"
     var minimumAuthorityLevel: AuthorityLevel = AuthorityLevel.GENERIC
     var globallyBanned = false
+
+    init {
+        if (jdaUser?.mutualGuilds?.size == 1) { //set default guild as the first one they join
+            defaultGuildId = jdaUser!!.mutualGuilds[0].id
+            defaultNetworkId = defaultGuild!!.gameNetwork.id
+        }
+    }
 
     /**
      * Gets this user as a member of the guild with the specified id.
@@ -129,9 +136,6 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         lastKnownName = user.name
     }
 
-    val User.wrapper: UserWrapper
-        get() = bot.getUserWrapper(id)
-
     override fun adopt() {
         if (memberReference == null) {
             memberReference = HashSet()
@@ -163,3 +167,6 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         }
     }
 }
+
+val User.wrapper: UserWrapper
+    get() = Frostbalance.bot.getUserWrapper(id)

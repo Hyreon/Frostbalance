@@ -23,7 +23,7 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Comma
         } else {
             builder.setTitle("Set allegiance")
             if (cause == Cause.NOT_SET) {
-                builder.setDescription("This claim cannot be made. In order to claim tiles, you must first set your allegiance." + ADDENDUM)
+                builder.setDescription("In order to do this, you must first set your allegiance.$ADDENDUM")
                 builder.setColor(Color.GRAY)
             } else if (cause == Cause.CHANGE) {
                 builder.setDescription("Pick your new allegiance. Current allegiance: " + actor!!.playerIn(bot.mainNetwork).allegiance + ADDENDUM)
@@ -38,7 +38,7 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Comma
     }
 
     companion object {
-        private const val ADDENDUM = "\n*Note: If you change your allegiance, your claims will cease to be valid until you return to your original nation. You **cannot** move claims from one nation to another!*"
+        private const val ADDENDUM = "\n*Note: You can change your allegiance at any time. However, if you change your allegiance, your claims will cease to be valid until you return to your original nation. You **cannot** move claims from one nation to another!*"
     }
 
     init {
@@ -53,7 +53,7 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Comma
                     get() = true
             })
         }
-        menuResponses.add(object : MenuResponse("✖️", "Don't change for now") {
+        menuResponses.add(object : MenuResponse("✖️", "Don't set for now") {
             override fun reactEvent() {
                 close(true)
             }

@@ -78,7 +78,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
 
         if (message.isEmpty()) {
             result = info(context.getAuthority(), true);
-            Utilities.sendPrivateMessage(context.getJDAUser(), result);
+            Utilities.sendPrivateMessage(context.getJdaUser(), result);
             return;
         }
 
@@ -86,22 +86,22 @@ public class CheckCommand extends FrostbalanceGuildCommand {
 
         if (targetId == null) {
             result = "Couldn't find user '" + message + "'.";
-            Utilities.sendPrivateMessage(context.getJDAUser(), result);
+            Utilities.sendPrivateMessage(context.getJdaUser(), result);
             return;
         }
 
         targetUser = context.getJDA().getUserById(targetId);
-        newRequest = addPrivateCheck(guild, context.getJDAUser(), context.getJDA().getUserById(targetId));
+        newRequest = addPrivateCheck(guild, context.getJdaUser(), context.getJDA().getUserById(targetId));
 
         if (targetUser.equals(getBot().getJDA().getSelfUser())) {
             result = "Uh, sure?";
-            Utilities.sendPrivateMessage(context.getJDAUser(), result);
-            addPrivateCheck(guild, targetUser, context.getJDAUser());
+            Utilities.sendPrivateMessage(context.getJdaUser(), result);
+            addPrivateCheck(guild, targetUser, context.getJdaUser());
             newRequest = false;
         }
 
         if (newRequest) {
-            Utilities.sendPrivateMessage(targetUser, targetUser.getAsMention() + ", " + guild.getMember(context.getJDAUser()).getEffectiveName() + " would like to" +
+            Utilities.sendPrivateMessage(targetUser, targetUser.getAsMention() + ", " + guild.getMember(context.getJdaUser()).getEffectiveName() + " would like to" +
                     " check if you have more influence than them. Send a check request to them to accept; ignore this to decline.");
         }
 

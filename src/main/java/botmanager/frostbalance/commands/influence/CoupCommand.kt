@@ -59,7 +59,10 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                 }
                 context.sendEmbedResponse(listOf(result))
                 context.sendPrivateResponse(privateResult)
-            }, "Are you sure you want to do this? You will lose as much influence as the other user has, and permanently change the course of history!")
+            }, "Are you sure you want to run a coup against **${currentLeader.effectiveName}** for control of **${context.guild.name}**?" +
+                    "\n**If you succeed**, you will lose as much influence as the other user has, reset the leaders' influence, and **become the new leader**, permanently changing the course of history!" +
+                    "\n**If you fail...** you will lose **all** of your influence, and force the leader to spend as much influence as you have. Also, a friendly reminder: leaders can ban you.")
+                    .send(context.channel, context.author)
         }
     }
 

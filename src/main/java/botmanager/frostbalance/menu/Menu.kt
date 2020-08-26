@@ -159,6 +159,9 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
         isClosed = true
         bot.removeMenu(this)
         println("Current parent of $this, which is closing: $parent")
+        if (child != null) {
+            child!!.close(delete)
+        }
         if (parent != null) {
             parent!!.disown()
         } else {
@@ -181,7 +184,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
     val messageEmbed: MessageEmbed
         get() {
             val embedBuilder = embedBuilder
-            embedBuilder.updateColor()
+            embedBuilder.updateContextDisplay()
             if (!isClosed) {
                 var description = ""
                 for (menuResponse in activeMenu.menuResponses) {
@@ -216,14 +219,17 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
      embedBuilder.addField("", "Value1", false);
      return embedBuilder.build();
      */
-    /**
-     * The following functions are borrowed from the MatryoshkaMenu,
-     * which used to be its own class. Now every menu has the ability
-     * to add menus as children or parents.
-     */
+
     var parent: Menu? = null
     var child: Menu? = null
-    fun adopt(menu: Menu, cancelable : Boolean) {
+
+    /**
+     * Forces a menu to render a menu other than itself.
+     * This can be done ad infinitum, and either menu can
+     * still be closed; closing any menu will also close the
+     * menus it is told to render.
+     */
+    fun redirectTo(menu: Menu, cancelable : Boolean) {
         if (child != null) {
             disown()
             println("Replacing old child without deleting it!")
@@ -290,11 +296,17 @@ abstract class Menu(protected var bot: Frostbalance, val context : CommandContex
         return child == null
     }
 
-    private fun EmbedBuilder.updateColor() {
+    /**
+     * This updates the color and footer of an embed.
+     */
+    private fun EmbedBuilder.updateContextDisplay() {
         if (isClosed) {
             setColor(null)
         } else {
             setColor(context.guild?.color)
+        }
+        if (!context.isPublic) {
+            setFooter(context.guild?.contextFooter())
         }
     }
 }

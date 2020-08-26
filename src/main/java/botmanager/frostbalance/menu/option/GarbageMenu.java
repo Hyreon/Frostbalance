@@ -23,7 +23,7 @@ public class GarbageMenu extends OptionMenu<Integer> {
         System.out.println(this + " is now creating a child.");
         List<Integer> range = IntStream.rangeClosed(1, 100).map(x -> x * option)
                 .boxed().collect(Collectors.toList());
-        adopt(new GarbageMenu(getBot(), getContext(), range), true);
+        redirectTo(new GarbageMenu(getBot(), getContext(), range), true);
         if (getOriginalMenu().getMessage() != null) {
             getOriginalMenu().getMessage().getChannel().sendMessage(option.toString() + " HAS NOW BEEN SAID!!").queue();
         }

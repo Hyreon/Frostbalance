@@ -20,6 +20,6 @@ public class CommandSelectMenu extends OptionMenu<FrostbalanceCommand> {
 
     @Override
     protected void select(@NotNull FrostbalanceCommand command) {
-        adopt(new CommandViewMenu(getBot(), getContext(), command), true);
+        redirectTo(new CommandViewMenu(getBot(), getContext(), command), true);
     }
 }

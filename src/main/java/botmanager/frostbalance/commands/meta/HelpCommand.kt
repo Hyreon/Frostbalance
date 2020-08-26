@@ -5,8 +5,6 @@ import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.GuildCommandContext
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
-import botmanager.frostbalance.menu.option.ListMenu
-import botmanager.frostbalance.menu.option.OptionMenu
 
 /**
  *

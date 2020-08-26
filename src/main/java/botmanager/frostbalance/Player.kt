@@ -28,6 +28,9 @@ class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : C
     val name: String
         get() = member?.effectiveName ?: userWrapper.name
 
+    val isLeader: Boolean
+        get() = gameNetwork.associatedGuilds.any { guild -> guild.leaderId == userWrapper.id }
+
     override fun setParent(parent: UserWrapper) {
         this.userWrapper = parent
     }

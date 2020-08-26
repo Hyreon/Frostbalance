@@ -27,7 +27,7 @@ public class ParentSettingsMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                adopt(new BotSettingsMenu(bot, context), true);
+                redirectTo(new BotSettingsMenu(bot, context), true);
             }
 
             @Override
@@ -40,7 +40,7 @@ public class ParentSettingsMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                adopt(new NetworkSettingsMenu(bot, context), true);
+                redirectTo(new NetworkSettingsMenu(bot, new GuildCommandContext(context)), true);
             }
 
             @Override
@@ -53,7 +53,7 @@ public class ParentSettingsMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                adopt(new NationSettingsMenu(bot, new GuildCommandContext(context)), true);
+                redirectTo(new NationSettingsMenu(bot, new GuildCommandContext(context)), true);
             }
 
             @Override
@@ -66,7 +66,7 @@ public class ParentSettingsMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                adopt(new UserSettingsMenu(bot, context), true);
+                redirectTo(new UserSettingsMenu(bot, context), true);
             }
 
             @Override

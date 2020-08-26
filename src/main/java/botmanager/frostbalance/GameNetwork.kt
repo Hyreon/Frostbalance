@@ -7,7 +7,7 @@ import botmanager.frostbalance.grid.WorldMap
 
 class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance>, Container {
 
-    var worldMap: WorldMap = WorldMap(this, id)
+    var worldMap: WorldMap = WorldMap(this)
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
 
     val nations: Set<Nation>
@@ -17,6 +17,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
 
     fun addGuild(guild: GuildWrapper) {
         associatedGuilds.add(guild)
+        guild.gameNetwork = this
     }
 
     override fun setParent(parent: Frostbalance) {
@@ -58,6 +59,22 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
 
     fun hasMultipleNations(): Boolean {
         return associatedGuilds.size > 1 || flags.contains(NetworkFlag.TUTORIAL)
+    }
+
+    /**
+     * This function should only be called by a GuildWrapper.
+     */
+    fun moveGuild(guild: GuildWrapper, selectedNetwork: GameNetwork) {
+        associatedGuilds.remove(guild)
+        selectedNetwork.addGuild(guild)
+    }
+
+    override fun toString(): String {
+        return id
+    }
+
+    fun isEmpty(): Boolean {
+        return worldMap.isEmpty() && associatedGuilds.isEmpty()
     }
 
 }

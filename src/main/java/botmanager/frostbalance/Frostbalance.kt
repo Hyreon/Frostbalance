@@ -3,7 +3,7 @@ package botmanager.frostbalance
 import botmanager.IOUtils
 import botmanager.Utilities
 import botmanager.Utils
-import botmanager.frostbalance.command.AuthorityLevel
+import botmanager.frostbalance.GuildWrapper.Companion.wrapper
 import botmanager.frostbalance.command.FrostbalanceCommand
 import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
@@ -22,7 +22,6 @@ import botmanager.frostbalance.grid.WorldMap
 import botmanager.frostbalance.menu.Menu
 import botmanager.generic.BotBase
 import com.google.gson.GsonBuilder
-import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent
@@ -34,7 +33,6 @@ import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEv
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.internal.managers.GuildManagerImpl
 import java.awt.AlphaComposite
-import java.awt.Color
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -49,6 +47,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     private val userWrappers: MutableList<UserWrapper> = ArrayList()
+
+    public val networkList: List<GameNetwork>
+        get() = gameNetworks.toList()
 
     var mainNetwork: GameNetwork
         get() = gameNetworks[0]
@@ -156,7 +157,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val effectChanges = effect.createGraphics()
                     effectChanges.scale(baseImage.width.toFloat() / effect.width.toDouble(), baseImage.height.toFloat() / effect.height.toDouble())
                     effectChanges.composite = AlphaComposite.SrcAtop
-                    effectChanges.color = getGuildColor(event.guild)
+                    effectChanges.color = event.guild.wrapper.color
                     effectChanges.fillRect(0, 0, effect.width, effect.height)
                     effectChanges.dispose()
                 }
@@ -201,13 +202,13 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
         println("PLAYER LEAVING: " + event.user.id)
-        if (getOwnerId(event.guild) == event.user.id) {
+        if (event.guild.wrapper.leaderId == event.user.id) {
             println("Leader left, making a note here")
-            endRegime(event.guild, TerminationCondition.LEFT)
+            event.guild.wrapper.markLeaderAsDeserter()
         }
         try {
             event.guild.retrieveBan(event.user).complete() //verify this player was banned and didn't just leave
-            if (hasDiplomatStatus(event.user)
+            if (event.user.wrapper.playerIn(event.guild.wrapper.gameNetwork).isLeader
                     && !isBanned(event.guild, event.user)
                     && getSettings(event.guild).contains(OldOptionFlag.MAIN)) {
                 event.guild.unban(event.user).complete()
@@ -229,8 +230,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     private fun getUserCSVAtIndex(guild: Guild?, userId: String, index: Int): String {
-        val guildId: String
-        guildId = guild?.id ?: "global"
+        val guildId: String = guild?.id ?: "global"
         val file = File("data/$name/$guildId/$userId.csv")
         return if (!file.exists()) {
             ""
@@ -238,8 +238,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     private fun setUserCSVAtIndex(guild: Guild?, user: User, index: Int, newValue: String?) {
-        val guildId: String
-        guildId = guild?.id ?: "global"
+        val guildId: String = guild?.id ?: "global"
         val file = File("data/" + name + "/" + guildId + "/" + user.id + ".csv")
         val data = Utilities.read(file)
         val originalValues = data.split(",".toRegex()).toTypedArray()
@@ -269,21 +268,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     continue
                 }
                 val rulerId = Utilities.getCSVValueAtIndex(line, 0)
-                val lastKnownUserName = Utilities.getCSVValueAtIndex(line, 1)
                 var startDay: Long
                 startDay = try {
                     Utilities.getCSVValueAtIndex(line, 2).toLong()
                 } catch (e: NumberFormatException) {
                     0
                 }
-                var endDay: Long
-                endDay = try {
+                var endDay: Long = try {
                     Utilities.getCSVValueAtIndex(line, 3).toLong()
                 } catch (e: NumberFormatException) {
                     0
                 }
-                var terminationCondition: TerminationCondition
-                terminationCondition = try {
+                var terminationCondition: TerminationCondition = try {
                     TerminationCondition.valueOf(Utilities.getCSVValueAtIndex(line, 4))
                 } catch (e: IllegalArgumentException) {
                     TerminationCondition.UNKNOWN
@@ -347,45 +343,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         Utilities.append(File("data/" + name + "/" + guild.id + "/history.csv"), regime.toCSV())
     }
 
-    private fun endRegime(guild: Guild, condition: TerminationCondition?) {
-        val regimeData = getRecords(guild)
-        val currentOwnerId = getOwnerId(guild)
-        val currentOwner = getOwner(guild)
-        if (currentOwner != null) {
-            guild.removeRoleFromMember(currentOwner, getOwnerRole(guild)!!).queue()
-        }
-        if (currentOwnerId != null && !currentOwnerId.isEmpty()) {
-            println("Ending active regime of $currentOwnerId")
-            try {
-                val lastRegimeIndex = regimeData!!.size - 1
-                regimeData[lastRegimeIndex].end(condition)
-                updateLastRegime(guild, regimeData[lastRegimeIndex])
-            } catch (e: IndexOutOfBoundsException) {
-                System.err.println("Index out of bounds when trying to adjust the last regime! The history data may be lost.")
-                System.err.println("Creating a fragmented history.")
-                val regime = RegimeData(getGuildWrapper(guild.id), currentOwnerId)
-                regime.end(condition)
-                regimeData!!.add(regime)
-                logRegime(guild, regime)
-            }
-            removeOwner(guild)
-        }
-    }
-
-    /**
-     * Returns true if the player is a leader in a main server.
-     * @param user The user in question
-     * @return True if a guild can be found where this player is the same as the owner of that server.
-     */
-    private fun hasDiplomatStatus(user: User): Boolean {
-        for (guild in jda.guilds) {
-            if (getSettings(guild).contains(OldOptionFlag.MAIN) && getOwner(guild)!!.user == user) {
-                return true
-            }
-        }
-        return false
-    }
-
     private fun getSettings(guild: Guild): Collection<OldOptionFlag> {
         val debugFlagOlds: MutableCollection<OldOptionFlag> = HashSet()
         val flags = Utilities.readLines(File("data/" + name + "/" + guild.id + "/flags.csv"))
@@ -395,82 +352,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return debugFlagOlds
     }
 
-    private fun addDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
-        val file = File("data/" + name + "/" + guild.id + "/flags.csv")
-        Utilities.append(file, debugFlagOld.toString())
-    }
-
-    private fun removeDebugFlag(guild: Guild, debugFlagOld: OldOptionFlag) {
-        val file = File("data/" + name + "/" + guild.id + "/flags.csv")
-        val lines = Utilities.readLines(file)
-        val i = lines.iterator()
-        while (i.hasNext()) {
-            val line = i.next()
-            if (debugFlagOld == OldOptionFlag.valueOf(line)) {
-                i.remove()
-                break
-            }
-        }
-        Utilities.write(file, "")
-        for (line in lines) {
-            Utilities.append(file, line)
-        }
-    }
-
     private fun getOwnerId(guild: Guild?): String {
         val info = Utilities.read(File("data/" + name + "/" + guild!!.id + "/owner.csv"))
         return Utilities.getCSVValueAtIndex(info, 0)
-    }
-
-    private fun getOwner(guild: Guild): Member? {
-        return try {
-            val info = Utilities.read(File("data/" + name + "/" + guild.id + "/owner.csv"))
-            guild.getMember(jda.getUserById(Utilities.getCSVValueAtIndex(info, 0))!!)
-        } catch (e: NullPointerException) {
-            null
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-    }
-
-    private fun updateOwner(guild: Guild, user: User) {
-        Utilities.write(File("data/" + name + "/" + guild.id + "/owner.csv"), user.id)
-    }
-
-    private fun removeOwner(guild: Guild) {
-        Utilities.removeFile(File("data/" + name + "/" + guild.id + "/owner.csv"))
-    }
-
-    private fun changeUserInfluence(guild: Guild?, user: User, influence: Influence) {
-        val startingInfluence = getUserInfluence(guild, user)
-        var newInfluence = influence.add(startingInfluence)
-        if (newInfluence.getThousandths() < 0) {
-            newInfluence = Influence(0)
-        }
-        setUserCSVAtIndex(guild, user, 0, newInfluence.toString())
-    }
-
-    private fun changeUserInfluence(member: Member, influence: Influence) {
-        changeUserInfluence(member.guild, member.user, influence)
-    }
-
-    private fun gainDailyInfluence(member: Member, influenceGained: Influence): Influence {
-        var influenceGained = influenceGained
-        return if (getUserLastDaily(member) != Utilities.todayAsLong()) { //new day
-            setUserLastDaily(member, Utilities.todayAsLong())
-            setUserDailyAmount(member, influenceGained)
-            changeUserInfluence(member, influenceGained)
-            influenceGained
-        } else if (getUserDailyAmount(member).add(influenceGained).compareTo(DailyInfluenceSource.DAILY_INFLUENCE_CAP) <= 0) { //cap doesn't affect anything
-            setUserDailyAmount(member, getUserDailyAmount(member).add(influenceGained))
-            changeUserInfluence(member, influenceGained)
-            influenceGained
-        } else { //influence gained is over the cap
-            influenceGained = DailyInfluenceSource.DAILY_INFLUENCE_CAP.subtract(getUserDailyAmount(member)) //set it to the cap before doing anything
-            setUserDailyAmount(member, getUserDailyAmount(member).add(influenceGained))
-            changeUserInfluence(member, influenceGained)
-            influenceGained
-        }
     }
 
     private fun getUserInfluence(guild: Guild?, user: User?): Influence {
@@ -489,36 +373,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    private fun getUserDailyAmount(member: Member): Influence {
-        return getUserDailyAmount(member.guild, member.user)
-    }
-
-    private fun setUserDailyAmount(guild: Guild?, user: User, amount: Influence) {
-        setUserCSVAtIndex(guild, user, 3, amount.toString())
-    }
-
-    private fun setUserDailyAmount(member: Member, amount: Influence) {
-        setUserDailyAmount(member.guild, member.user, amount)
-    }
-
     private fun getUserLastDaily(guild: Guild?, user: User?): Long {
         return try {
             getUserCSVAtIndex(guild, user!!.id, 2).toInt().toLong()
         } catch (e: NumberFormatException) {
             0
         }
-    }
-
-    private fun getUserLastDaily(member: Member): Long {
-        return getUserLastDaily(member.guild, member.user)
-    }
-
-    private fun setUserLastDaily(guild: Guild?, user: User, date: Long) {
-        setUserCSVAtIndex(guild, user, 2, date.toString())
-    }
-
-    private fun setUserLastDaily(member: Member, date: Long) {
-        setUserLastDaily(member.guild, member.user, date)
     }
 
     private fun getMainAllegiance(user: User): Nation? {
@@ -552,123 +412,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return newCommands.requireNoNulls()
     }
 
-    private fun getOwnerRole(guild: Guild): Role? {
-        return try {
-            guild.getRolesByName("LEADER", true)[0]
-        } catch (e: IndexOutOfBoundsException) {
-            System.err.println(guild.name + " doesn't have a valid owner role!")
-            null
-        }
-    }
-
-    private fun getSystemRole(guild: Guild): Role? {
-        return try {
-            guild.getRolesByName("FROSTBALANCE", true)[0]
-        } catch (e: IndexOutOfBoundsException) {
-            System.err.println(guild.name + " doesn't have a valid frostbalance role!")
-            null
-        }
-    }
-
-    /**
-     * Performs a soft reset on a guild. This will set reset all player roles and lift all bans.
-     * In the future, it will also reset the server icon and name.
-     * It will *not* reset player data about influence, leader history, channels or their conversations.
-     * @param guild The guild to reset.
-     */
-    private fun softReset(guild: Guild) {
-        val roles = guild.roles
-        for (role in roles) {
-            if (getSystemRole(guild) != role && getOwnerRole(guild) != role) {
-                role.delete()
-            }
-        }
-        //TODO don't unban players who are under a global ban.
-        for (ban in guild.retrieveBanList().complete()) {
-            guild.unban(ban.user).queue()
-        }
-    }
-    //FIXME perform functions different than the soft reset.
-    /**
-     * Performs a hard reset on a guild. This will set reset all player roles and lift all bans,
-     * reset the server name and icon, delete all stored data about a server and its members, and delete
-     * all channels and their conversations, leaving only a general channel.
-     * It will *not* reset player data about influence, leader history, channels or their conversations.
-     * @param guild The guild to reset.
-     */
-    fun hardReset(guild: Guild) {
-        softReset(guild)
-    }
-
-    private fun getAuthority(user: User): AuthorityLevel {
-        return if (this.jda.selfUser.id == user.id) {
-            AuthorityLevel.BOT
-        } else if (adminIds.contains(user.id)) {
-            AuthorityLevel.BOT_ADMIN
-        } else {
-            AuthorityLevel.GENERIC
-        }
-    }
-
-    /**
-     * Returns how much authority a user has in a given context.
-     * @param guild The server they are operating in
-     * @param user The user that is operating
-     * @return The authority level of the user
-     */
-    private fun getAuthority(guild: Guild?, user: User): AuthorityLevel {
-        if (guild == null) return getAuthority(user)
-        return if (this.jda.selfUser.id == user.id) {
-            AuthorityLevel.BOT
-        } else if (adminIds.contains(user.id)) {
-            AuthorityLevel.BOT_ADMIN
-        } else if (guild.owner!!.user.id == user.id) {
-            AuthorityLevel.GUILD_OWNER
-        } else if (guild.getMember(user)!!.roles.contains(getSystemRole(guild))) {
-            AuthorityLevel.GUILD_ADMIN
-        } else if (guild.getMember(user)!!.roles.contains(getOwnerRole(guild))) {
-            AuthorityLevel.NATION_LEADER
-        } else if (guild.getMember(user)!!.hasPermission(Permission.ADMINISTRATOR)) {
-            AuthorityLevel.NATION_ADMIN
-        } else {
-            AuthorityLevel.GENERIC
-        }
-    }
-
-    private fun getAllegianceIn(guild: Guild): Nation? {
-        val flags = getSettings(guild)
-        if (!flags.contains(OldOptionFlag.MAIN)) {
-            return null
-        }
-        return if (flags.contains(OldOptionFlag.RED)) {
-            Nation.RED
-        } else if (flags.contains(OldOptionFlag.GREEN)) {
-            Nation.GREEN
-        } else if (flags.contains(OldOptionFlag.BLUE)) {
-            Nation.BLUE
-        } else {
-            null
-        }
-    }
-
-    private fun getGuildColor(guild: Guild): Color {
-        val flags = getSettings(guild)
-        return when {
-            flags.contains(OldOptionFlag.RED) -> {
-                Color.RED
-            }
-            flags.contains(OldOptionFlag.GREEN) -> {
-                Color.GREEN
-            }
-            flags.contains(OldOptionFlag.BLUE) -> {
-                Color.BLUE
-            }
-            else -> {
-                Color.GRAY
-            }
-        }
-    }
-
     /**
      *
      * @param nation
@@ -688,10 +431,10 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             for (guild in jda.guilds) {
                 if (!getSettings(guild).contains(OldOptionFlag.MAIN)) {
                     println("Loading map for " + guild.name)
-                    WorldMap.readWorld(guild.id)
+                    WorldMap.readWorldLegacy(guild.id)
                 }
             }
-            WorldMap.readWorld(null)
+            WorldMap.readWorldLegacy(null)
         }
     }
 
@@ -703,12 +446,15 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun saveGames() {
         for (network in gameNetworks) {
-            writeObject("games/" + network.id, network, Pair(TileObject::class.java, TileObjectAdapter()))
+            if (!network.isEmpty()) {
+                writeObject("games/" + network.id, network, Pair(TileObject::class.java, TileObjectAdapter()))
+            }
         }
     }
 
     private fun loadGamesFromCSV() {
-        gameNetworks.add(GameNetwork(this, "global"))
+        gameNetworks.clear()
+        gameNetworks.add(GameNetwork(this, "main")) //establishes "main" as the first (main) network
     }
 
     private fun loadGuildsFromCSV() {
@@ -724,21 +470,21 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val settings = getSettings(guild)
                     val gameNetwork = when {
                         settings.contains(OldOptionFlag.MAIN) -> {
-                            getGameNetwork("global")
+                            getGameNetwork("main")
                         }
                         else -> {
                             getGameNetwork(guild.id)
                         }
                     }
                     val bGuild = getGuildIfPresent(guildId) ?: GuildWrapper(gameNetwork, guild)
+                    gameNetwork.addGuild(bGuild)
+                    gameNetwork.adopt()
                     bGuild.loadLegacy(
                             getSettings(guild) as MutableSet<OldOptionFlag>,
                             getRecords(guild)!!,
                             getOwnerId(guild),
                             guild.name
                     )
-                    gameNetwork.addGuild(bGuild)
-                    gameNetwork.adopt()
                     println("Added guild:" + bGuild.name)
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -749,6 +495,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     private fun loadUsersFromCSV() {
+        userWrappers.clear()
         for (file in File("data/$name/global").listFiles()) {
             val fileName = file.name
             if (!fileName.contains(".csv")) continue
@@ -859,12 +606,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 gsonBuilder.registerTypeAdapter(TileObject::class.java, TileObjectAdapter())
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 val gson = gsonBuilder.create()
-                val worldMap = gson.fromJson(IOUtils.read(file), WorldMap::class.java)
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
                 gameNetwork.setParent(this)
                 gameNetwork.adopt()
                 if (gameNetwork.id != null) { //impossible condition test
                     gameNetworks.add(gameNetwork)
+                    if (gameNetwork.id == "main") {
+                        gameNetwork.setAsMain()
+                    }
                 } else {
                     Thread.dumpStack()
                 }
@@ -957,6 +706,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             gameNetwork = GameNetwork(this, id)
             gameNetworks.add(gameNetwork)
         }
+        if (gameNetwork.id == "728433077814165565") println(Thread.dumpStack())
         return gameNetwork
     }
 
