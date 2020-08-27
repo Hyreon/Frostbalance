@@ -4,6 +4,7 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
+import botmanager.frostbalance.menu.ConfirmationMenu
 import java.util.*
 
 class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
@@ -20,7 +21,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
         if (targetMember == null) {
             resultLines.add("Could not find member '$targetName'.")
-            return context.sendEmbedResponse(resultLines)
+            return context.sendMultiLineResponse(resultLines)
         }
         var transferAmount = try {
             arguments.nextInfluence() ?: return context.sendResponse("No influence found!")
@@ -32,17 +33,17 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             resultLines.add("You don't have that much influence to use. You will instead use all of your influence.")
         } else if (transferAmount.isNegative || !transferAmount.isNonZero) { //'else' allows you to bluff when you have 0 influence.
             resultLines.add("You have to spend *some* influence to oppose someone.")
-            return context.sendEmbedResponse(resultLines)
+            return context.sendMultiLineResponse(resultLines)
         }
 
         bMember.adjustInfluence(transferAmount.negate())
         if (targetMember == bMember) {
             resultLines.add("You lose " + transferAmount + " influence in ${context.guild.name} as a result of hitting yourself.")
-            return context.sendEmbedResponse(resultLines)
+            return context.sendMultiLineResponse(resultLines)
         }
 
-        val refundAmount: Influence
-        refundAmount = if (context.isPublic) {
+        var refundAmount: Influence
+        if (context.isPublic) {
             context.message.delete().queue()
             val reduceAmount = transferAmount.subtract(targetMember.adjustInfluence(transferAmount.negate()))
             when {
@@ -51,7 +52,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("%s has *opposed* you, reducing your influence in %s by %s.",
                             bMember.effectiveName,
                             context.guild.name,
-                            reduceAmount)))
+                            reduceAmount), false))
                 }
                 transferAmount.isNonZero -> {
                     context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
@@ -60,37 +61,46 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
                 }
             }
-            transferAmount.subtract(reduceAmount)
+            refundAmount = transferAmount.subtract(reduceAmount)
+            if (refundAmount.isNonZero) {
+                resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                bMember.adjustInfluence(refundAmount)
+            }
+            return context.sendMultiLineResponse(resultLines)
         } else {
-            if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
-                val remainAmount = targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
-                val reduceAmount = transferAmount.applyModifier(PRIVATE_MODIFIER).subtract(remainAmount)
-                when {
-                    reduceAmount > 0 -> {
-                        resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
-                        Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("You have been smeared! Your influence in %s has been reduced by %s.",
-                                context.guild.name,
-                                reduceAmount)))
+            ConfirmationMenu(bot, context, {
+                if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
+                    val remainAmount = targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER).negate())
+                    val reduceAmount = transferAmount.applyModifier(PRIVATE_MODIFIER).subtract(remainAmount)
+                    when {
+                        reduceAmount > 0 -> {
+                            resultLines.add("You have *opposed* " + targetMember.effectiveName + " silently, reducing their influence in " + context.guild.name + " by $reduceAmount.")
+                            Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("You have been smeared! Your influence in %s has been reduced by %s.",
+                                    context.guild.name,
+                                    reduceAmount), false))
+                        }
+                        transferAmount.isNonZero -> {
+                            context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
+                        }
+                        else -> {
+                            context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
+                        }
                     }
-                    transferAmount.isNonZero -> {
-                        context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
-                    }
-                    else -> {
-                        context.sendPrivateResponse("Your bluff has had no effect. No other player has been notified.")
-                    }
+
+                    refundAmount = remainAmount.reverseModifier(PRIVATE_MODIFIER)
+                            .add(transferAmount.remainderOfModifier(PRIVATE_MODIFIER))
+                } else {
+                    refundAmount = transferAmount
                 }
 
-                remainAmount.reverseModifier(PRIVATE_MODIFIER)
-                        .add(transferAmount.remainderOfModifier(PRIVATE_MODIFIER))
-            } else {
-                transferAmount
-            }
+                if (refundAmount.isNonZero) {
+                    resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                    bMember.adjustInfluence(refundAmount)
+                }
+                context.sendMultiLineResponse(resultLines)
+            }, "Are you sure you want to oppose ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER *100}% of your influence will be used.")
+                    .send(context.channel, context.author)
         }
-        if (refundAmount.isNonZero) {
-            resultLines.add("You have been refunded $refundAmount that would have gone unused.")
-            bMember.adjustInfluence(refundAmount)
-        }
-        return context.sendEmbedResponse(resultLines)
     }
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {

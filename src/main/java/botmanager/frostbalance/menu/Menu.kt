@@ -321,7 +321,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             setColor(context.guild?.color)
         }
         if (!context.isPublic) {
-            setFooter(context.guild?.contextFooter())
+            setFooter(context.guild?.commandContextFooter())
         }
     }
 }

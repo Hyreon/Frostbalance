@@ -83,7 +83,7 @@ open class MessageContext {
         }
     }
 
-    fun sendEmbedResponse(resultLines: List<String?>) {
+    fun sendMultiLineResponse(resultLines: List<String?>) {
         if (resultLines.size > 10) {
             object : ListMenu<String?>(bot, this, resultLines) {}.send(channel, author)
         } else {
@@ -104,11 +104,11 @@ open class MessageContext {
      * @param message
      * @return
      */
-    fun buildEmbed(message: String?): MessageEmbed {
+    fun buildEmbed(message: String?, internal: Boolean = true): MessageEmbed {
         return EmbedBuilder()
                 .setDescription(message)
                 .setColor(guild?.color)
-                .setFooter(if (isPublic) null else guild?.contextFooter())
+                .setFooter(if (isPublic) null else if (internal) guild?.commandContextFooter() else guild?.grantedContextFooter())
                 .build()
     }
 

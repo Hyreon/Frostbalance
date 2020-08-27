@@ -212,8 +212,12 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         gameNetwork.moveGuild(this, selectedNetwork)
     }
 
-    fun contextFooter(): String {
+    fun commandContextFooter(): String {
         return "Command executed in $name"
+    }
+
+    fun grantedContextFooter(): String {
+        return "From $name"
     }
 
 

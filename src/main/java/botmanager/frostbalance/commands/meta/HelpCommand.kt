@@ -21,7 +21,7 @@ class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                 result.add(info)
             }
         }
-        context.sendEmbedResponse(result)
+        context.sendMultiLineResponse(result)
     }
 
     public override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {

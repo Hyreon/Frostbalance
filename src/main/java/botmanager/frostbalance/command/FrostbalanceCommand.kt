@@ -45,7 +45,7 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
                 execute(context, parameters)
             } catch (e: Exception) {
                 e.printStackTrace()
-                context.sendEmbedResponse(ArrayList(setOf("An internal error occurred when performing this command.")))
+                context.sendMultiLineResponse(ArrayList(setOf("An internal error occurred when performing this command.")))
             }
             val stopTime = System.nanoTime()
             val elapsedTime = stopTime - startTime

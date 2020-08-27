@@ -78,7 +78,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
 
         if (message.isEmpty()) {
             result = info(context.getAuthority(), true);
-            Utilities.sendPrivateMessage(context.getJdaUser(), result);
+            context.sendResponse(result);
             return;
         }
 
@@ -86,7 +86,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
 
         if (targetId == null) {
             result = "Couldn't find user '" + message + "'.";
-            Utilities.sendPrivateMessage(context.getJdaUser(), result);
+            context.sendResponse(result);
             return;
         }
 
@@ -101,8 +101,8 @@ public class CheckCommand extends FrostbalanceGuildCommand {
         }
 
         if (newRequest) {
-            Utilities.sendPrivateMessage(targetUser, targetUser.getAsMention() + ", " + guild.getMember(context.getJdaUser()).getEffectiveName() + " would like to" +
-                    " check if you have more influence than them. Send a check request to them to accept; ignore this to decline.");
+            Utilities.sendPrivateMessage(targetUser, context.buildEmbed(targetUser.getAsMention() + ", " + context.getMember().getEffectiveName() + " would like to" +
+                    " check if you have more influence than them. Send a check request to them to accept; ignore this to decline.", false));
         }
 
     }

@@ -7,6 +7,7 @@ import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
 import botmanager.frostbalance.command.GuildMessageContext
+import botmanager.frostbalance.menu.ConfirmationMenu
 import java.util.*
 
 //FIXME `.support Shade` returns an error with no error message.
@@ -23,7 +24,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val targetUser = bot.getUserByName(targetName)
         if (targetUser == null) {
             resultLines.add("Could not find user '$targetName'.")
-            context.sendEmbedResponse(resultLines)
+            context.sendMultiLineResponse(resultLines)
             return
         }
         val targetMember = targetUser.memberIn(context.guild.id)
@@ -32,12 +33,12 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             resultLines.add("You don't have that much influence to give. You will instead use all of your influence.")
         } else if (transferAmount.isNegative || !transferAmount.isNonZero) { //'else' allows you to bluff when you have 0 influence.
             resultLines.add("You have to spend *some* influence to support someone.")
-            context.sendEmbedResponse(resultLines)
+            context.sendMultiLineResponse(resultLines)
             return
         }
         if (targetMember == bMember) {
             resultLines.add("You support yourself with " + transferAmount + " influence in ${context.guild.name}. You should return the favor.")
-            context.sendEmbedResponse(resultLines)
+            context.sendMultiLineResponse(resultLines)
             return
         }
         bMember.adjustInfluence(transferAmount.negate())
@@ -47,28 +48,31 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("%s has *supported* you, increasing your influence in %s by %s.",
                     bMember.effectiveName,
                     context.guild!!.name,
-                    transferAmount)))
+                    transferAmount), false))
             targetMember.adjustInfluence(transferAmount)
+            context.sendMultiLineResponse(resultLines)
         } else {
+            ConfirmationMenu(bot, context, {
+                if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
+                    resultLines.add("You have *supported* " + targetMember.effectiveName + " secretly, increasing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
+                    Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
+                            context.guild.name,
+                            transferAmount.applyModifier(PRIVATE_MODIFIER)), false))
+                    targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER))
 
-            if (transferAmount.applyModifier(PRIVATE_MODIFIER) > 0) {
-                resultLines.add("You have *supported* " + targetMember.effectiveName + " secretly, increasing their influence in " + context.guild.name + " by ${transferAmount.applyModifier(PRIVATE_MODIFIER)}.")
-                Utilities.sendPrivateMessage(targetMember.userWrapper.jdaUser, context.buildEmbed(String.format("You have been supported secretly by " + bMember.effectiveName + ". Your influence in %s has been increased by %s.",
-                        context.guild!!.name,
-                        transferAmount.applyModifier(PRIVATE_MODIFIER))))
-                targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER))
-
-                val refundAmount = transferAmount.remainderOfModifier(PRIVATE_MODIFIER)
-                if (refundAmount.isNonZero) {
-                    resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                    val refundAmount = transferAmount.remainderOfModifier(PRIVATE_MODIFIER)
+                    if (refundAmount.isNonZero) {
+                        resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                        bMember.adjustInfluence(transferAmount)
+                    }
+                } else {
+                    resultLines.add("After rounding, your support would have no effect. Your influence has been refunded.")
                     bMember.adjustInfluence(transferAmount)
                 }
-            } else {
-                resultLines.add("After rounding, your support would have no effect. Your influence has been refunded.")
-                bMember.adjustInfluence(transferAmount)
-            }
+                context.sendMultiLineResponse(resultLines)
+            }, "Are you sure you want to support ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER*100}% of your influence will be used.")
+                    .send(context.channel, context.author)
         }
-        context.sendEmbedResponse(resultLines)
         return
     }
 

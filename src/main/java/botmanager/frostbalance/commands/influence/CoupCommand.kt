@@ -19,21 +19,21 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val currentOwnerId: String? = context.guild.leaderId
         if (bMember.hasBeenForciblyRemoved()) {
             result = "You have been recently removed by administrative action. Wait until someone else is leader."
-            context.sendEmbedResponse(listOf(result))
+            context.sendMultiLineResponse(listOf(result))
             return
         }
         if (currentOwnerId == null ||
                 bot.getMemberWrapper(currentOwnerId, guildId).member == null) { //second state shouldn't happen
             result = "**" + bMember.effectiveName + "** is the first player to declare themselves leader, " +
                     "and is now leader!"
-            context.sendEmbedResponse(listOf(result))
+            context.sendMultiLineResponse(listOf(result))
             bot.getGuildWrapper(guildId).doCoup(context.jdaMember)
             return
         } else {
             val currentLeader = bot.getMemberWrapper(currentOwnerId, guildId)
             if (currentLeader == bMember) {
                 result = "You realize that you're no match for yourself, and call it off."
-                context.sendEmbedResponse(listOf(result))
+                context.sendMultiLineResponse(listOf(result))
                 return
             }
             val influence = bMember.influence
@@ -57,7 +57,7 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     privateResult = "*This maneuver has cost you **ALL** of your influence. " +
                             "${currentLeader.effectiveName} has lost $influence of their influence.*"
                 }
-                context.sendEmbedResponse(listOf(result))
+                context.sendMultiLineResponse(listOf(result))
                 context.sendPrivateResponse(privateResult)
             }, "Are you sure you want to run a coup against **${currentLeader.effectiveName}** for control of **${context.guild.name}**?" +
                     "\n**If you succeed**, you will lose as much influence as the other user has, reset the leaders' influence, and **become the new leader**, permanently changing the course of history!" +
