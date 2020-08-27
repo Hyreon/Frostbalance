@@ -36,7 +36,7 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
             return
         }
         if (requiredContext == ContextLevel.PUBLIC_MESSAGE && !context.isPublic) {
-            context.sendResponse("This command can only be run publicly in servers.")
+            context.sendResponse("This command can only be run from within a channel on the guild.")
             return
         }
         if (SPEED_TESTS) {
