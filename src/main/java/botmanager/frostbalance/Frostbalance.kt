@@ -47,7 +47,7 @@ import javax.imageio.ImageIO
 class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
-    private val userWrappers: MutableList<UserWrapper> = ArrayList()
+    internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
     public val networkList: List<GameNetwork>
         get() = gameNetworks.toList()

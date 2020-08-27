@@ -17,9 +17,9 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val resultLines: MutableList<String> = ArrayList()
         val bMember = context.member
         val targetName = arguments.exhaustArguments(1)
-        val targetUser = bot.getUserByName(targetName)
-        if (targetUser == null) {
-            resultLines.add("Could not find user '$targetName'.")
+        val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
+        if (targetMember == null) {
+            resultLines.add("Could not find member '$targetName'.")
             return context.sendEmbedResponse(resultLines)
         }
         var transferAmount = try {
@@ -27,7 +27,6 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         } catch (e: NumberFormatException) {
             return context.sendResponse("That last bit wasn't a number. Try again.")
         }
-        val targetMember = targetUser.memberIn(context.guild.id)
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to use. You will instead use all of your influence.")

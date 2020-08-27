@@ -1,5 +1,6 @@
 package botmanager.frostbalance
 
+import botmanager.frostbalance.Frostbalance.Companion.bot
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.grid.Containable
 import net.dv8tion.jda.api.JDA
@@ -120,7 +121,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     fun pardon(): Boolean {
         locallyBanned = false
         try {
-            userWrapper.jdaUser?.let {guildWrapper.guild?.unban(it)?.queue() ?: return false} ?: return false
+            userWrapper.jdaUser?.let {guildWrapper.jdaGuild?.unban(it)?.queue() ?: return false} ?: return false
         } catch (e: ErrorResponseException) {
             return false
         }
@@ -130,7 +131,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     fun ban() {
         locallyBanned = true
         try {
-            userWrapper.jdaUser?.let { guildWrapper.guild?.ban(it, 0)?.queue() }
+            userWrapper.jdaUser?.let { guildWrapper.jdaGuild?.ban(it, 0)?.queue() }
         } catch (e: HierarchyException) {
             System.err.println("Unable to ban admin user $effectiveName.")
             e.printStackTrace()
@@ -141,10 +142,10 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
         lastKnownNickname = guild?.getMemberById(userId)?.nickname
     }
 
-    val Member.wrapper: MemberWrapper
-        get() = bot.getMemberWrapper(id, guild.id)
-
     override fun setParent(parent: UserWrapper) {
         userWrapper = parent
     }
 }
+
+val Member.wrapper: MemberWrapper
+    get() = bot.getMemberWrapper(id, guild.id)

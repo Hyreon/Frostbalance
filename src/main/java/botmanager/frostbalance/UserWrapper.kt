@@ -81,6 +81,16 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         return botMember
 
     }
+
+    /**
+     * Gets an instance of a MemberWrapper *only if* this user is present in this guild,
+     * and if the bot has access to this guild. Otherwise it will return null.
+     * This will also return null if the member WAS in the guild, but no longer is.
+     */
+    fun memberIfIn(guild: GuildWrapper): MemberWrapper? {
+        return guild.jdaGuild?.getMemberById(id)?.wrapper
+    }
+
     val jdaUser: User?
         get() = jda.getUserById(id)
     val defaultGuild: GuildWrapper?
@@ -119,7 +129,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
             globallyBanned = false
             for (member in memberReference) {
                 try {
-                    jdaUser?.let {member.guildWrapper.guild?.unban(it)?.queue()}
+                    jdaUser?.let {member.guildWrapper.jdaGuild?.unban(it)?.queue()}
                 } catch (e: ErrorResponseException) {
                     //nothing
                 }

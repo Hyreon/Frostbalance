@@ -22,6 +22,9 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     constructor(gameNetwork: GameNetwork, guild: Guild) : this(gameNetwork, guild.id)
 
+    val members: Collection<MemberWrapper>
+        get() = bot.userWrappers.mapNotNull { user -> user.memberIfIn(this) }
+
     @Transient
     var guildIcon: BufferedImage? = null
 
@@ -45,7 +48,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
             return lastKnownName
         }
 
-    val guild: Guild?
+    val jdaGuild: Guild?
         get() = jda.getGuildById(id)
     val jda: JDA
         get() = bot.jda
@@ -59,7 +62,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     }
 
     fun isOnline(): Boolean {
-        return guild != null
+        return jdaGuild != null
     }
 
     fun getMember(user: UserWrapper): MemberWrapper {
@@ -92,8 +95,8 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     }
 
     private fun endRegime(condition: TerminationCondition) {
-        check(guild != null) { "Tried to end the regime of a server the bot isn't in!" }
-        leaderAsMember?.let { guild?.removeRoleFromMember(it, leaderRole)?.queue() }
+        check(jdaGuild != null) { "Tried to end the regime of a server the bot isn't in!" }
+        leaderAsMember?.let { jdaGuild?.removeRoleFromMember(it, leaderRole)?.queue() }
         if (leaderId != null) {
             println("Ending active regime of $leaderId")
             try {
@@ -113,7 +116,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     private fun startRegime(member: Member) {
         val regime = RegimeData(this, member.id, Utilities.todayAsLong())
         regimes.add(regime)
-        guild?.addRoleToMember(member.id, leaderRole)?.queue()
+        jdaGuild?.addRoleToMember(member.id, leaderRole)?.queue()
         leaderId = member.id
     }
 
@@ -130,34 +133,34 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     }
 
     private fun softReset() {
-        val roles = guild!!.roles
+        val roles = jdaGuild!!.roles
         for (role in roles) {
             if (systemRole != role && leaderRole != role) {
                 role.delete()
             }
         }
         //TODO don't unban players who are under a global ban.
-        for (ban in guild!!.retrieveBanList().complete()) {
+        for (ban in jdaGuild!!.retrieveBanList().complete()) {
             if (!bot.getUserWrapper(ban.user.id).memberIn(id).banned)
-            guild!!.unban(ban.user)
+            jdaGuild!!.unban(ban.user)
         }
     }
 
     val leaderRole: Role
         get() = {
-            if (guild == null) {
+            if (jdaGuild == null) {
                 throw IllegalStateException("Tried to get the leader role in a non-existent guild!")
             }
-            var roles = guild!!.getRolesByName("LEADER", true)
+            var roles = jdaGuild!!.getRolesByName("LEADER", true)
             if (roles.isEmpty()) {
                 System.err.println("$name doesn't have a valid leader role! Attempting to create...")
-                val role = guild!!.createRole()
+                val role = jdaGuild!!.createRole()
                         .setColor(color)
                         .setName("Leader")
                         .setPermissions(Permission.ADMINISTRATOR)
                         .setHoisted(true)
                         .complete()
-                guild!!.modifyRolePositions()
+                jdaGuild!!.modifyRolePositions()
                         .selectPosition(role)
                         .moveTo(systemRole.position - 1)
                         .queue()
@@ -169,23 +172,23 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     val systemRole: Role
         get() = {
-            if (guild == null) {
+            if (jdaGuild == null) {
                 throw IllegalStateException("Tried to get the leader role in a non-existent guild!")
             }
-            var roles = guild!!.getRolesByName("FROSTBALANCE", true)
+            var roles = jdaGuild!!.getRolesByName("FROSTBALANCE", true)
             if (roles.isEmpty()) {
                 System.err.println("$name doesn't have a valid system role! Attempting to create...")
-                val role = guild!!.createRole()
+                val role = jdaGuild!!.createRole()
                         .setColor(color)
                         .setName("Leader")
                         .setPermissions(Permission.ADMINISTRATOR)
                         .setHoisted(true)
                         .complete()
-                guild!!.addRoleToMember(jda.selfUser.id, role).queue()
-                guild!!
+                jdaGuild!!.addRoleToMember(jda.selfUser.id, role).queue()
+                jdaGuild!!
                         .modifyRolePositions()
                         .selectPosition(role)
-                        .moveTo(guild!!.roles.size - 1)
+                        .moveTo(jdaGuild!!.roles.size - 1)
                         .queue()
                 role
             } else {
