@@ -51,7 +51,6 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     }
 
     open fun updateMessage() {
-        println("Updating as $this with activeMenu $activeMenu")
         val me = activeMenu.messageEmbed
         editAndSetMessage(me)
         smartUpdateEmojis()
@@ -75,11 +74,11 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         if (smartUpdateCost > 0) return rewriteEmojis()
         if (activeMenu.context.isPublic) {
             if (!isClosed) {
-                clearIncorrectReactions()
-                for (menuResponse in activeMenu.menuResponses) {
-                    if (menuResponse.isValid &&
-                            originalMenu.message!!.reactions.firstOrNull { reaction -> reaction.reactionEmote.emoji == menuResponse.emoji}?.isSelf != true) {
+                val startIndex = clearIncorrectReactions()
+                activeMenu.menuResponses.subList(startIndex, activeMenu.menuResponses.size).forEach { menuResponse ->
+                    if (menuResponse.isValid) {
                         //TODO don't try to add reactions if the message has been deleted.
+                        //TODO don't add reactions until clearIncorrect is actually complete (they use different queues, apparently.)
                         originalMenu.message!!.addReaction(menuResponse.emoji).queue()
                     }
                 }
@@ -137,41 +136,31 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             0
         }.invoke()
 
-    private fun clearIncorrectReactions() {
+    /**
+     * Returns the number of correct reactions left.
+     */
+    private fun clearIncorrectReactions(): Int {
         originalMenu.message?.reactions
                 ?.filter { reaction -> !reaction.reactionEmote.isEmoji }
-                ?.forEach { reaction -> reaction.clearPossible() }
+                ?.forEach { reaction -> reaction.clearInstances() }
         var index = 0
-        //FIXME complete this without blocking the thread!
-        activeMenu.menuResponses.filter { response -> response.isValid }.forEachIndexed { responseIndex, response ->
-            var reaction = originalMenu.message?.reactions?.elementAtOrNull(responseIndex)
-            while (reaction != null &&
-                    reaction.reactionEmote.emoji != response.emoji) {
-                reaction.clearPossible()
-                originalMenu.message = originalMenu.message!!.channel.retrieveMessageById(originalMenu.message!!.id).complete()
-                reaction = originalMenu.message?.reactions?.elementAtOrNull(responseIndex)
-                println(originalMenu.message!!.reactions)
-                println("Looping for " + reaction?.reactionEmote?.emoji)
+        originalMenu.message?.reactions?.forEach { existingReaction ->
+            if (activeMenu.menuResponses
+                            .filter { response -> response.isValid }
+                            .getOrNull(index)
+                            ?.let { it.emoji != existingReaction.reactionEmote.emoji } != false) { //skip if it's what it should be
+                existingReaction.clearInstances()
+            } else {
+                existingReaction.clearInstances(false)
+                index += 1 //save the first reaction and do nothing to it
             }
-            reaction?.clearOthers()
-            index = responseIndex
         }
-
-        index++
-        var reaction2 = originalMenu.message?.reactions?.elementAtOrNull(index)
-        while (reaction2 != null) {
-            reaction2.clearPossible()
-            originalMenu.message = originalMenu.message!!.channel.retrieveMessageById(originalMenu.message!!.id).complete()
-            reaction2 = originalMenu.message?.reactions?.elementAtOrNull(index)
-            println(originalMenu.message!!.reactions)
-            println("Looping for " + reaction2?.reactionEmote?.emoji)
-        }
+        return index
     }
 
     fun close(delete: Boolean) {
         isClosed = true
         bot.removeMenu(this)
-        println("Current parent of $this, which is closing: $parent")
         if (child != null) {
             child!!.close(delete)
         }
@@ -247,7 +236,6 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     fun redirectTo(menu: Menu, cancelable : Boolean) {
         if (child != null) {
             disown()
-            println("Replacing old child without deleting it!")
         }
         child = menu
         child!!.parent = this
@@ -269,7 +257,6 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             child?.disown()
             child?.parent = null
             child = null
-            println("Updating as $this with activeMenu $activeMenu thanks to disowning")
             updateMessage()
         }
     }
@@ -279,7 +266,6 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             var mostGeezerishMenu: Menu = this
             while (mostGeezerishMenu.parent != null) {
                 mostGeezerishMenu = mostGeezerishMenu.parent!!
-                println("found original: $mostGeezerishMenu")
             }
             return mostGeezerishMenu
         }
@@ -289,22 +275,16 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             var mostBabyishMenu: Menu = this
             while (mostBabyishMenu.child != null) {
                 mostBabyishMenu = mostBabyishMenu.child!!
-                println("found new baby: $mostBabyishMenu")
             }
             return mostBabyishMenu
         }
 
-    private fun MessageReaction.clearPossible() {
-        clearOthers()
-        removeReaction().complete()
-    }
-
-    private fun MessageReaction.clearOthers() {
-        retrieveUsers().complete().forEach { user ->
-            if (originalMenu.message!!.isFromGuild && bot.jda.selfUser != user) {
-                removeReaction(user).complete()
+    private fun MessageReaction.clearInstances(self: Boolean = true) {
+        retrieveUsers().queue { users -> users.forEach { user ->
+            if (originalMenu.message!!.isFromGuild && (self || bot.jda.selfUser != user)) {
+                removeReaction(user).queue()
             }
-        }
+        } }
     }
 
     fun isChild(): Boolean {

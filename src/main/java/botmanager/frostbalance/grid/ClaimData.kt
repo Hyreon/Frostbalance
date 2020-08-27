@@ -6,7 +6,6 @@ import botmanager.frostbalance.Nation
 import java.util.*
 import java.util.stream.Collectors
 
-//TODO manually rewrite this in kotlin, as the compiler did a very poor job and there will probably be errors
 class ClaimData(tile: Tile?) : TileData(tile), Container {
 
     private val owningNationName: String
@@ -128,10 +127,9 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         return claim.reduce(amount)
     }
 
-    //TODO this assumes a single claim per player.
     private fun getUserStrength(userId: String?): Influence {
         for (claim in activeClaims) {
-            if (claim!!.getUserId() == userId) {
+            if (claim.getUserId() == userId) {
                 return claim.getStrength()
             }
         }

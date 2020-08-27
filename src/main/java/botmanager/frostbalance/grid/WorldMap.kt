@@ -10,7 +10,6 @@ import java.io.File
 import java.util.*
 import java.util.stream.Collectors
 
-//TODO change worldMap to split into different types based on whether it's a main map, tutorial map, or private guild map.
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */

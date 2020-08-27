@@ -8,7 +8,6 @@ import botmanager.frostbalance.menu.ConfirmationMenu
 import java.lang.NumberFormatException
 import java.util.*
 
-//FIXME `.support Shade` returns an error with no error message.
 class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "support",
         "s"

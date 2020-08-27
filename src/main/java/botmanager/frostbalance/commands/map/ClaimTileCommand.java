@@ -62,7 +62,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
         } else if (allegiance != context.getGuild().getNation()) {
 
-            context.sendResponse("You're in the wrong server for this!" + allegiance + context.getGuild().getNation());
+            context.sendResponse("You're in the wrong server for this!");
 
         } else {
 
