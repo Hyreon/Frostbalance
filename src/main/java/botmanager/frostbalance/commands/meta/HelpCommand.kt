@@ -1,10 +1,7 @@
 package botmanager.frostbalance.commands.meta
 
 import botmanager.frostbalance.Frostbalance
-import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.ContextLevel
-import botmanager.frostbalance.command.GuildMessageContext
-import botmanager.frostbalance.command.FrostbalanceGuildCommand
+import botmanager.frostbalance.command.*
 
 /**
  *
@@ -14,6 +11,17 @@ class HelpCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "help"
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
+        var arguments = ArgumentStream(params)
+
+        arguments.next()?.let {
+            bot.commands.firstOrNull { command -> command.allAliases.contains(it) }
+                    ?.let {
+                        context.sendResponse(it.getInfo(context))
+                        return
+                    }
+            return context.sendResponse("Could not find command $it.")
+        }
+
         var result: MutableList<String> = mutableListOf()
         for (command in bot.commands) {
             val info = command.getInfo(context)

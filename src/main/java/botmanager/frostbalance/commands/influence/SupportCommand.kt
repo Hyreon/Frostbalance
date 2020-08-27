@@ -3,11 +3,9 @@ package botmanager.frostbalance.commands.influence
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
-import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.command.ContextLevel
-import botmanager.frostbalance.command.FrostbalanceGuildCommand
-import botmanager.frostbalance.command.GuildMessageContext
+import botmanager.frostbalance.command.*
 import botmanager.frostbalance.menu.ConfirmationMenu
+import java.lang.NumberFormatException
 import java.util.*
 
 //FIXME `.support Shade` returns an error with no error message.
@@ -17,17 +15,22 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
+        val arguments = ArgumentStream(params)
+
         val resultLines: MutableList<String> = ArrayList()
-        var transferAmount = Influence(params[params.size - 1])
         val bMember = context.member!!
-        val targetName = java.lang.String.join(" ", *params.copyOfRange(0, params.size - 1))
-        val targetUser = bot.getUserByName(targetName)
-        if (targetUser == null) {
+        val targetName = arguments.exhaustArguments(1)
+        val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
+        if (targetMember == null) {
             resultLines.add("Could not find user '$targetName'.")
             context.sendMultiLineResponse(resultLines)
             return
         }
-        val targetMember = targetUser.memberIn(context.guild.id)
+        var transferAmount = try {
+            arguments.nextInfluence() ?: return context.sendResponse("No influence found!")
+        } catch (e: NumberFormatException) {
+            return context.sendResponse("That last bit wasn't a number. Try again.")
+        }
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to give. You will instead use all of your influence.")

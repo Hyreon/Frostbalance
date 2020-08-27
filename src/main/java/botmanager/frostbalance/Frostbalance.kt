@@ -428,8 +428,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return mainNetwork.guildWithAllegiance(nation)
     }
 
-    //FIXME add a flag for whether the maps have been loaded - there's a risk of losing all map data if someone is fast enough
-    //TODO test if this ever loads a subset of the guilds the bot is a part of, as that would leave a subset of the maps actually loaded.
     private fun loadMapsLegacy() {
         if (jda.guilds.isEmpty()) {
             val exec = ScheduledThreadPoolExecutor(1)

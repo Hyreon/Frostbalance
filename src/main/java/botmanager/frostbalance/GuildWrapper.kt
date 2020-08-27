@@ -139,7 +139,6 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
                 role.delete()
             }
         }
-        //TODO don't unban players who are under a global ban.
         for (ban in jdaGuild!!.retrieveBanList().complete()) {
             if (!bot.getUserWrapper(ban.user.id).memberIn(id).banned)
             jdaGuild!!.unban(ban.user)

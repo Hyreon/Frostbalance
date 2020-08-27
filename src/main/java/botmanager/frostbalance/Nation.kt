@@ -16,22 +16,8 @@ enum class Nation(var emoji: String, var color: Color) {
     PURPLE("\uD83D\uDFEA", Color(0x80, 0, 0xff)),
     YELLOW("\uD83D\uDFE8", Color(0xff, 0xff, 0)),
     ORANGE("\uD83D\uDFE7", Color(0xff, 0x80, 0)),
-    DARK("⬛", Color(0x33, 0x33, 0x33)),
+    DARK("⬛", Color(0x12, 0x12, 0x12)),
     LIGHT("⬜", Color(0xcc, 0xcc, 0xcc));
-
-    //TODO don't include this method in Nation, and instead directly overlay transparent colors where applicable
-    @Deprecated("")
-    fun adjustDisplayColor(color: Color, drawValue: Int): Color {
-        return when (this) {
-            RED -> Color(drawValue, color.green, color.blue)
-            GREEN -> Color(color.red, drawValue, color.blue)
-            BLUE -> Color(color.red, color.green, drawValue)
-            PURPLE -> Color ((drawValue + color.red) / 2, color.green, drawValue)
-            YELLOW -> Color (drawValue, drawValue, color.blue)
-            ORANGE -> Color (drawValue, (drawValue + color.green) / 2, color.blue)
-            else -> color
-        }
-    }
 
     override fun toString(): String {
         return name.toLowerCase().capitalize()

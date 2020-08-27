@@ -58,10 +58,10 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         get() {
             if (claims.isEmpty()) return null
             var selectedNation = lastOwningNation
-            var selectedStrength = getNationalStrength(lastOwningNation)
+            var selectedStrength = lastOwningNation?.let { getNationalStrength(it) } ?: Influence.none()
             for (nation in tile.map.gameNetwork.nations) {
                 val nationalStrength = getNationalStrength(nation)
-                if (nationalStrength.compareTo(selectedStrength) > 0) {
+                if (nationalStrength > selectedStrength) {
                     selectedNation = nation
                     selectedStrength = nationalStrength
                 }
@@ -138,11 +138,10 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         return Influence(0)
     }
 
-    fun getNationalStrength(nation: Nation?): Influence {
-        if (nation == null) return Influence(0)
-        var nationalStrength = Influence(0)
+    fun getNationalStrength(nation: Nation): Influence {
+        var nationalStrength = Influence.none()
         for (claim in activeClaims) {
-            if (claim!!.getNation() === nation) {
+            if (claim.getNation() === nation) {
                 nationalStrength = nationalStrength.add(claim!!.getStrength())
             }
         }
@@ -153,7 +152,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         get() {
             val nationalClaimStrengths = HashMap<Nation, Influence>()
             for (claim in activeClaims) {
-                nationalClaimStrengths[claim!!.getNation()] = nationalClaimStrengths.getOrDefault(claim.getNation(), Influence(0)).add(claim.getStrength())
+                nationalClaimStrengths[claim.getNation()] = nationalClaimStrengths.getOrDefault(claim.getNation(), Influence(0)).add(claim.getStrength())
             }
             var selectedStrength = Influence(0)
             for (nation in nationalClaimStrengths.keys) {
@@ -162,6 +161,17 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                 }
             }
             return selectedStrength
+        }
+
+    val nationalDominance: Influence
+        get() {
+            return nationalStrength.subtract(
+                    tile.map.gameNetwork.nations
+                            .filter { nation -> nation != owningNation }
+                            .minByOrNull { nation -> getNationalStrength(nation).value }
+                            ?.let {getNationalStrength(it)}
+                            ?: Influence.none()
+            )
         }
 
     val activeClaims: MutableList<Claim>
@@ -211,10 +221,10 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         } else {
             null
         }
-        val tinyFormat = String.format("%s/%s/%s",
-                getNationalStrength(owningNation),
+        val tinyFormat = owningNation?.let {String.format("%s/%s/%s",
+                getNationalStrength(it),
                 getUserStrength(owningUserId),
-                totalStrength.toString())
+                totalStrength.toString())} ?: "Wildnerness"
         return if (format == Format.TINY) {
             tinyFormat
         } else if (format == Format.ONE_LINE) {

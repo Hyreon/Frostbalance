@@ -126,6 +126,9 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
     val alternativeAliases: List<String>
         get() = aliases.asList().subList(1, aliases.size)
 
+    val allAliases: List<String>
+        get() = aliases.toList()
+
     companion object {
         const val SPEED_TESTS = true
     }
