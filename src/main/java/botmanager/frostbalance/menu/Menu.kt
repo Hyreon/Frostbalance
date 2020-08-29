@@ -8,6 +8,7 @@ import botmanager.frostbalance.menu.response.MenuTextHook
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote
+import net.dv8tion.jda.api.requests.RestAction
 import java.io.File
 import java.util.*
 
@@ -68,20 +69,23 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         }
     }
 
-    //TODO this function has a delay, which defeats its entire advantage over the simple 'wipe entire layout' procedure!
     private fun smartUpdateEmojis() {
         if (originalMenu.message == null) return
         if (smartUpdateCost > 0) return rewriteEmojis()
         if (activeMenu.context.isPublic) {
             if (!isClosed) {
-                val startIndex = clearIncorrectReactions()
+                val requestInfo = clearIncorrectReactionRequest()
+                var clearEvent = requestInfo.first
+                val startIndex = requestInfo.second
                 activeMenu.menuResponses.subList(startIndex, activeMenu.menuResponses.size).forEach { menuResponse ->
                     if (menuResponse.isValid) {
                         //TODO don't try to add reactions if the message has been deleted.
-                        //TODO don't add reactions until clearIncorrect is actually complete (they use different queues, apparently.)
-                        originalMenu.message!!.addReaction(menuResponse.emoji).queue()
+                        val addReactEvent = originalMenu.message!!.addReaction(menuResponse.emoji)
+                        clearEvent = clearEvent?.flatMap { println("Adding ${menuResponse.emoji.encodeToByteArray()}"); addReactEvent }
+                                ?: run{ println("Brand new add event"); addReactEvent }
                     }
                 }
+                clearEvent?.queue()
             } else {
                 message?.clearReactions()?.queue()
             }
@@ -137,25 +141,27 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         }.invoke()
 
     /**
-     * Returns the number of correct reactions left.
+     * Returns: the action that would clear all incorrect reactions,
+     * and the number of correct reactions left after this.
      */
-    private fun clearIncorrectReactions(): Int {
+    private fun clearIncorrectReactionRequest(): Pair<RestAction<Void>?, Int> {
+        var clearEvent: RestAction<Void>? = null
         originalMenu.message?.reactions
                 ?.filter { reaction -> !reaction.reactionEmote.isEmoji }
-                ?.forEach { reaction -> reaction.clearInstances() }
+                ?.forEach { reaction -> clearEvent = reaction.clearInstanceEvent(clearEvent) }
         var index = 0
         originalMenu.message?.reactions?.forEach { existingReaction ->
             if (activeMenu.menuResponses
                             .filter { response -> response.isValid }
                             .getOrNull(index)
                             ?.let { it.emoji != existingReaction.reactionEmote.emoji } != false) { //skip if it's what it should be
-                existingReaction.clearInstances()
+                clearEvent = existingReaction.clearInstanceEvent(clearEvent)
             } else {
-                existingReaction.clearInstances(false)
+                clearEvent = existingReaction.clearInstanceEvent(clearEvent, false)
                 index += 1 //save the first reaction and do nothing to it
             }
         }
-        return index
+        return Pair(clearEvent, index)
     }
 
     fun close(delete: Boolean) {
@@ -279,12 +285,18 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             return mostBabyishMenu
         }
 
-    private fun MessageReaction.clearInstances(self: Boolean = true) {
-        retrieveUsers().queue { users -> users.forEach { user ->
+    private fun MessageReaction.clearInstanceEvent(event: RestAction<Void>?, self: Boolean = true): RestAction<Void>? {
+        var returnEvent = event
+        val users = retrieveUsers().complete()
+        users.forEach { user ->
             if (originalMenu.message!!.isFromGuild && (self || bot.jda.selfUser != user)) {
-                removeReaction(user).queue()
+                val newEvent = removeReaction(user)
+                returnEvent = returnEvent?.flatMap{ println("Deleting ${this.reactionEmote.emoji} from $user"); newEvent } ?: run {
+                    println("Brand new delete event"); newEvent
+                }
             }
-        } }
+        }
+        return returnEvent
     }
 
     fun isChild(): Boolean {
