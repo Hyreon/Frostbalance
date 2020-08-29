@@ -2,8 +2,8 @@ package botmanager.frostbalance
 
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance.Companion.bot
-import botmanager.frostbalance.data.RegimeData
-import botmanager.frostbalance.data.TerminationCondition
+import botmanager.frostbalance.records.RegimeData
+import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container

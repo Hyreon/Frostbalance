@@ -5,7 +5,7 @@ import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildMessageContext;
-import botmanager.frostbalance.data.RegimeData;
+import botmanager.frostbalance.records.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
 
 import java.util.Collections;

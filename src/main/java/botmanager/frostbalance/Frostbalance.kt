@@ -13,8 +13,8 @@ import botmanager.frostbalance.commands.map.GetClaimsCommand
 import botmanager.frostbalance.commands.map.MoveCommand
 import botmanager.frostbalance.commands.map.ViewMapCommand
 import botmanager.frostbalance.commands.meta.*
-import botmanager.frostbalance.data.RegimeData
-import botmanager.frostbalance.data.TerminationCondition
+import botmanager.frostbalance.records.RegimeData
+import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.Container
 import botmanager.frostbalance.grid.TileObject
