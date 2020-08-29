@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
+import botmanager.frostbalance.Player;
 import botmanager.frostbalance.Nation;
 
 /**
@@ -72,15 +73,15 @@ public class Claim implements Containable<ClaimData> {
     }
 
     public Influence getStrength() {
-        return strength.subtract(evictionStrength);
+        return isActive() ? strength.subtract(evictionStrength) : Influence.none();
     }
 
     public Influence getInvestedStrength() {
         return strength;
     }
 
-    public PlayerCharacter getPlayer() {
-        return PlayerCharacter.get(userId, claimData.getTile().getMap());
+    public Player getPlayer() {
+        return Frostbalance.bot.getUserWrapper(userId).playerIn(claimData.getTile().getMap().getGameNetwork());
     }
 
     public boolean isActive() {
@@ -88,7 +89,7 @@ public class Claim implements Containable<ClaimData> {
     }
 
     private boolean ownerIsInNation() {
-        return getPlayer().getNation() == nation;
+        return getPlayer().getAllegiance() == nation;
     }
 
     /**
@@ -113,11 +114,20 @@ public class Claim implements Containable<ClaimData> {
     @Override
     public String toString() {
         if (!isActive()) {
-            return "~~" + Frostbalance.bot.getUserName(getUserId()) + ": " + getStrength() + "~~";
+            return "~~" + ownerName() + ": " + getInvestedStrength() + "~~";
         }
         if (!getStrength().equals(getInvestedStrength())) {
-            return Frostbalance.bot.getUserName(getUserId()) + ": ~~" + getInvestedStrength() + "~~ " + getStrength();
+            return ownerName() + ": ~~" + getInvestedStrength() + "~~ " + getStrength();
         }
-        return Frostbalance.bot.getUserName(getUserId()) + ": " + getInvestedStrength();
+        return ownerName() + ": " + getInvestedStrength();
+    }
+
+    private String ownerName() {
+        return Frostbalance.bot.getUserWrapper(getUserId()).getName();
+    }
+
+    @Override
+    public void setParent(ClaimData parent) {
+        claimData = parent;
     }
 }

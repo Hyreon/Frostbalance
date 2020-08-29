@@ -2,32 +2,34 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.MessageContext;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceCommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ImplicitInfluence extends FrostbalanceCommandBase {
+public class ImplicitInfluence extends FrostbalanceCommand {
 
     SimpleDateFormat sdf = new SimpleDateFormat("M/dd/yyyy hh:mm");
     ArrayList<Member> minuteMembers;
     String cachedDate;
 
     public ImplicitInfluence(Frostbalance bot) {
-        super(bot, null, AuthorityLevel.GENERIC);
+        super(bot, new String[] {"implicit"}, AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE);
         minuteMembers = new ArrayList<>();
         cachedDate = sdf.format(new Date());
     }
 
     @Override
-    public void run(Event genericEvent) {
+    public void run(@NotNull Event genericEvent) {
         GuildMessageReceivedEvent event;
         Guild guild;
         Member member;
@@ -53,15 +55,12 @@ public class ImplicitInfluence extends FrostbalanceCommandBase {
             }
         }
 
-        bot.gainDailyInfluence(event.getMember(), new Influence(0.05));
+        getBot().getMemberWrapper(event.getAuthor().getId(), event.getGuild().getId()).gainDailyInfluence(new Influence(0.05));
         minuteMembers.add(member);
     }
 
-    //TODO change how this is handled, as it has no execution behavior
     @Override
-    public void execute(GenericMessageReceivedEventWrapper eventWrapper, String[] params) {
-        return;
-    }
+    public void execute(MessageContext eventWrapper, String[] params) {}
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {

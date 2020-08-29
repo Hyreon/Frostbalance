@@ -2,10 +2,12 @@ package botmanager.frostbalance.grid;
 
 import botmanager.Utils;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Player;
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,13 +27,15 @@ public class PlayerCharacter extends TileObject {
 
     public static final long MOVEMENT_SPEED = 120000;
 
+    @Deprecated
     static List<PlayerCharacter> cache = new ArrayList<>();
 
+    @Deprecated
     public static PlayerCharacter get(String userId, WorldMap map) {
         if (Utils.isNullOrEmpty(userId)) return null;
-        for (PlayerCharacter player : cache) {
-            if (player.getUserId().equals(userId) && player.getTile().getMap().equals(map)) {
-                return player;
+        for (PlayerCharacter character : cache) {
+            if (character.getUserId().equals(userId) && character.getTile().getMap().equals(map)) {
+                return character;
             }
         }
         PlayerCharacter newPlayer = new PlayerCharacter(userId, map);
@@ -40,7 +44,8 @@ public class PlayerCharacter extends TileObject {
         return newPlayer;
     }
 
-    public static PlayerCharacter get(User user, Guild guild) {
+    @Deprecated
+    public static PlayerCharacter get(User user, @NotNull Guild guild) {
         return get(user.getId(), WorldMap.get(guild));
     }
 
@@ -57,7 +62,7 @@ public class PlayerCharacter extends TileObject {
     Hex destination;
 
     public PlayerCharacter(String userId, WorldMap map) {
-        super(map.getTile(new Hex()));
+        super(map.getTile(Hex.origin()));
         this.userId = userId;
     }
 
@@ -79,11 +84,7 @@ public class PlayerCharacter extends TileObject {
      * Note the user can change this at any time.
      */
     public Nation getNation() {
-        if (getMap().isMainMap() || getMap().isTutorialMap()) {
-            return Frostbalance.bot.getMainAllegiance(getUser());
-        } else {
-            return Nation.NONE;
-        }
+        return getPlayer().getAllegiance();
     }
 
 
@@ -153,30 +154,12 @@ public class PlayerCharacter extends TileObject {
         }
     }
 
-    /**
-     * Gets this player as though it were a member of the guild it has its allegiance to.
-     * @return null if the guild doesn't exist, or if the user isn't in the guild.
-     */
-    public Member getMember() {
-        if (getMap().getGuild() == null) {
-            Guild guild = Frostbalance.bot.getGuildFor(getNation());
-            if (guild == null) {
-                return null;
-            } else {
-                return guild.getMember(getUser());
-            }
-        } else {
-            return getMap().getGuild().getMember(getUser());
-        }
+    private Player getPlayer() {
+        return Frostbalance.bot.getUserWrapper(userId).playerIn(getMap().getGameNetwork());
     }
 
     public String getName() {
-        Member member = getMember();
-        if (member == null) {
-            return getUser().getName();
-        } else {
-            return member.getEffectiveName();
-        }
+        return getPlayer().getName();
     }
 
     public String getTravelTime() {

@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.Utilities;
+import botmanager.frostbalance.grid.coordinate.Hex;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

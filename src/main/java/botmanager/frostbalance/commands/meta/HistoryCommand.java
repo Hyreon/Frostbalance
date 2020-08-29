@@ -1,48 +1,39 @@
 package botmanager.frostbalance.commands.meta;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
-import botmanager.frostbalance.history.RegimeData;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
+import botmanager.frostbalance.command.GuildMessageContext;
+import botmanager.frostbalance.data.RegimeData;
 import botmanager.frostbalance.menu.HistoryMenu;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class HistoryCommand extends FrostbalanceHybridCommandBase {
+public class HistoryCommand extends FrostbalanceGuildCommand {
 
     private static final int HISTORY_PAGE_SIZE = 6;
 
     public HistoryCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "history"
-        }, AuthorityLevel.GENERIC);
+                "history"
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
-    public void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
-        String[] words;
+    public void executeWithGuild(GuildMessageContext context, String... params) {
         String result = "";
         int page = 1;
         List<RegimeData> records;
 
-        words = message.split(" ");
-
-        if (eventWrapper.getGuild() == null) {
-            result += "You need to have a default server to do that.";
-            eventWrapper.sendResponse(result);
-            return;
-        }
-
-        if (words.length >= 1 && !message.isEmpty()) {
+        if (params.length >= 1) {
             try {
-                page = Integer.parseInt(words[0]);
+                page = Integer.parseInt(params[0]);
             } catch (NumberFormatException e) {
-                result += "Couldn't recognize the number '" + words[0] + "'.";
+                result += "Couldn't recognize the number '" + params[0] + "'.";
 
-                eventWrapper.sendResponse(result);
+                context.sendResponse(result);
 
                 return;
             }
@@ -51,12 +42,12 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
         if (page < 0) {
             result += "This number is too low, it must be at least 1.";
 
-            eventWrapper.sendResponse(result);
+            context.sendResponse(result);
 
             return;
         }
 
-        records = bot.readRecords(eventWrapper.getGuild());
+        records = context.getGuild().readRecords();
         Collections.reverse(records);
 
         if (page > maxPages(records)) {
@@ -67,27 +58,17 @@ public class HistoryCommand extends FrostbalanceHybridCommandBase {
                 result += "This number is too high, it must be at most " + maxPages(records) + ".";
             }
 
-            eventWrapper.sendResponse(result);
+            context.sendResponse(result);
             return;
         }
 
-        new HistoryMenu(bot, records, page, eventWrapper.getGuild()).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        new HistoryMenu(getBot(), context, records, page).send(context.getChannel(), context.getAuthor());
 
     }
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "history PAGE** - find out about previous regimes on a server.";
-    }
-
-    private String displayRecords(List<RegimeData> records, int page) {
-
-        List<RegimeData> sublist = records.subList((page - 1) * HISTORY_PAGE_SIZE, Math.min(page * HISTORY_PAGE_SIZE, records.size()));
-        List<String> displayList = sublist.stream().map(regimeData -> regimeData.forHumans()).collect(Collectors.toList());
-
-        return String.join("\n", displayList)
-                + "\nPage " + page + "/" + maxPages(records);
-
+        return "**" + getBot().getPrefix() + "history PAGE** - find out about previous regimes on a server.";
     }
 
     private int maxPages(List<?> list) {

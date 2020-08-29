@@ -1,7 +1,13 @@
 package botmanager.frostbalance.render;
 
 import botmanager.frostbalance.Nation;
-import botmanager.frostbalance.grid.*;
+import botmanager.frostbalance.grid.PlayerCharacter;
+import botmanager.frostbalance.grid.Tile;
+import botmanager.frostbalance.grid.TileObject;
+import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.grid.coordinate.Hex;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -16,22 +22,25 @@ public class MapRenderer {
 
     private static final int DEFAULT_HEIGHT = 300;
     private static final int DEFAULT_WIDTH = 400;
-    private static final int BCOLOR = 48;
+    private static final int BCOLOR = 64;
 
     public static String render(WorldMap map, Hex center) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            renderTile(g, map.getTileLazy(drawHex), center);
+            renderTile(g, map.getRenderTile(drawHex), center);
         }
         for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            renderTileObjects(g, map.getTileLazy(drawHex), center);
+            renderTileObjects(g, map.getRenderTile(drawHex), center);
         }
         g.dispose();
 
         try {
             ImageIO.write(image, "png", new File("maprender.png"));
-            return "attachment://maprender.png";
+            String resultJson = net.dv8tion.imup.Uploader.upload(new File("maprender.png"));
+            System.out.println(resultJson);
+            JsonObject obj = JsonParser.parseString(resultJson).getAsJsonObject();
+            return obj.get("data").getAsJsonObject().get("link").getAsString();
         } catch (IOException e) {
             System.err.println("Unable to write map file!");
             return null;
@@ -86,7 +95,10 @@ public class MapRenderer {
      */
     private static void renderMovementLine(Graphics2D g, Hex location, Hex destination, PlayerCharacter playerCharacter) {
         g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
-        Color color = playerCharacter.getNation().getColor();
+        Color color;
+        if (playerCharacter.getNation() != null) {
+            color = playerCharacter.getNation().getColor();
+        } else color = Color.GRAY;
         g.setColor(new Color(Math.max(128, color.getRed()), Math.max(128, color.getGreen()), Math.max(128, color.getBlue())));
         Hex offset = Hex.origin();
         System.out.println("Movement line: " + destination.subtract(location));
@@ -114,31 +126,25 @@ public class MapRenderer {
         return p;
     }
 
+    /**
+     * Gets the primary background political color for this tile.
+     * Contesting nations' colors aren't included here.
+     * @param tile
+     * @return
+     */
     private static Color getPoliticalColor(Tile tile) {
         Nation owningNation = tile.getClaimData().getOwningNation();
-        Color color = Color.BLACK;
-        if (owningNation != Nation.NONE && tile.getMap().getStrongestClaim().getValue() > 0) {
-            //darken according to fraction of strongest political color.
-            for (Nation nation : Nation.getNations()) {
-                double ratio = tile.getClaimData().getNationalStrength(nation).getValue()
-                        / tile.getMap().getStrongestClaim().getValue();
-                int drawValue;
-                if (nation != owningNation) {
-                    drawValue = (BCOLOR + (int) ((255 - BCOLOR) * ratio)) / 2;
-                } else {
-                    drawValue = BCOLOR + (int) ((255 - BCOLOR) * ratio);
-                }
-                System.out.println("DrawValue: " + drawValue);
-                color = nation.adjustDisplayColor(color, drawValue);
-            }
+        if (owningNation != null && tile.getMap().getStrongestClaim().getValue() > 0) {
+            double intensity = tile.getClaimData().getNationalDominance().getValue() / tile.getMap().getStrongestClaim().getValue();
+            Color nationColor = owningNation.getColor();
+            return new Color(
+                    (int) (BCOLOR * (1 - intensity) + (nationColor.getRed() * intensity)),
+                    (int) (BCOLOR * (1 - intensity) + (nationColor.getGreen() * intensity)),
+                    (int) (BCOLOR * (1 - intensity) + (nationColor.getBlue() * intensity))
+            );
         } else {
-            color = new Color(BCOLOR, BCOLOR, BCOLOR);
+            return new Color(BCOLOR, BCOLOR, BCOLOR);
         }
-        return color;
-    }
-
-    public static String render(PlayerCharacter playerCharacter) {
-        return render(playerCharacter.getMap(), playerCharacter.getLocation());
     }
 
     public enum Mode {
@@ -157,6 +163,11 @@ public class MapRenderer {
          * Emphasizes your relation to the owner of every claim.
          */
         SOCIAL,
+
+        /**
+         * Shows tactical information, player locations and blind spots.
+         */
+        MILITARY,
 
         /**
          * Apply no color filter to the terrain based on claims.

@@ -12,4 +12,9 @@ public abstract class TileData implements Containable<Tile> {
         return tile;
     }
 
+    @Override
+    public void setParent(Tile parent) {
+        tile = parent;
+    }
+
 }

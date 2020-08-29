@@ -1,10 +1,12 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.grid.ClaimData;
-import botmanager.frostbalance.grid.Hex;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.menu.response.MenuResponse;
 import botmanager.frostbalance.render.MapRenderer;
 import net.dv8tion.jda.api.EmbedBuilder;
 
@@ -21,10 +23,10 @@ public class MapMenu extends Menu {
 
     private CameraBehavior cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
 
-    public MapMenu(Frostbalance bot, WorldMap map, PlayerCharacter player) {
-        super(bot);
-        this.map = map;
-        this.player = player;
+    public MapMenu(Frostbalance bot, GuildMessageContext context) {
+        super(bot, context);
+        this.map = context.getGameNetwork().getWorldMap();
+        this.player = context.getPlayer().getCharacter();
 
         menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.UP));
         menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.UPPER_RIGHT));
@@ -40,7 +42,7 @@ public class MapMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return true;
             }
         });
@@ -52,7 +54,7 @@ public class MapMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return true;
             }
         });
@@ -67,7 +69,7 @@ public class MapMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return getCameraBehavior() != CameraBehavior.CUSTOM;
             }
         });
@@ -82,15 +84,15 @@ public class MapMenu extends Menu {
             }
 
             @Override
-            public boolean validConditions() {
+            public boolean isValid() {
                 return getCameraBehavior() != CameraBehavior.SNAP_TO_PLAYER;
             }
         });
 
     }
 
-    public MapMenu(Frostbalance bot, WorldMap map, PlayerCharacter player, Hex destination) {
-        this(bot, map, player);
+    public MapMenu(Frostbalance bot, GuildMessageContext context, Hex destination) {
+        this(bot, context);
         cameraLocation = destination;
         cameraBehavior = CameraBehavior.CUSTOM;
     }
@@ -116,13 +118,13 @@ public class MapMenu extends Menu {
     }
 
     @Override
-    public EmbedBuilder getMEBuilder() {
+    public EmbedBuilder getEmbedBuilder() {
 
         EmbedBuilder builder = new EmbedBuilder();
-        if (map.isMainMap()) {
+        if (map.getGameNetwork().isMain()) {
             builder.setTitle("World Map");
         } else {
-            builder.setTitle("Map of " + map.getGuild().getName());
+            builder.setTitle("Map of " + map.getGameNetwork().getId());
         }
         String description = "";
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
@@ -156,7 +158,7 @@ public class MapMenu extends Menu {
         }
 
         @Override
-        public boolean validConditions() {
+        public boolean isValid() {
             return true;
         }
     }

@@ -1,60 +1,46 @@
 package botmanager.frostbalance.commands.admin;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.menu.BanManageMenu;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 
-public class SystemBanCommand extends FrostbalanceSplitCommandBase {
+public class SystemBanCommand extends FrostbalanceGuildCommand {
 
     public SystemBanCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "ban"
-        }, AuthorityLevel.GUILD_ADMIN);
+                "ban"
+        }, AuthorityLevel.GUILD_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
+
         String result = "";
         boolean found = false;
-        String targetId;
+        String targetName = String.join(" ", params);
+        UserWrapper targetUser = getBot().getUserByName(targetName);
 
-        targetId = Utilities.findUserId(event.getGuild(), message);
-
-        if (targetId == null) {
-            targetId = Utilities.findBannedUserId(event.getGuild(), message);
-        }
-
-        if (targetId == null) {
-            result += "Could not find user " + message + ".";
-            Utilities.sendGuildMessage(event.getChannel(), result);
+        if (targetUser == null) {
+            result += "Could not find user " + targetName + ".";
+            context.sendResponse(result);
             return;
         }
 
-        User targetUser = event.getJDA().getUserById(targetId);
-
         try {
-            new BanManageMenu(bot, event.getGuild(), targetUser).send(event.getChannel(), event.getAuthor());
+            new BanManageMenu(getBot(), context, targetUser).send(context.getChannel(), context.getAuthor());
         } catch (HierarchyException e) {
-            Utilities.sendGuildMessage(event.getChannel(), "You can't ban system admins with this command. Demote them first.");
+            context.sendResponse("You can't ban system admins with this command. Demote them first.");
         }
 
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
-        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
-            return "**" + bot.getPrefix() + "ban PLAYER** - bans a player across all servers.";
-        } else return null;
+    protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        return "**" + getBot().getPrefix() + "ban PLAYER** - creates a system ban on this player, local or global.";
     }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return null;
-    }
-
 }

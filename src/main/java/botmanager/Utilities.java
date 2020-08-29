@@ -164,13 +164,21 @@ public class Utilities {
             Utilities.addReaction(sentMessage, reactionName);
         }
     }
+
+    public static void sendPrivateMessage(User user, MessageEmbed message) {
+        if (!user.equals(user.getJDA().getSelfUser())) {
+            user.openPrivateChannel().queue((channel) -> channel.sendMessage(message).queue());
+        }
+    }
     
     public static void sendPrivateMessage(User user, String message) {
-        if (message.length() > 1950) {
-            throw new RuntimeException("Message attempted to send too long:\n" + message);
+        if (!user.equals(user.getJDA().getSelfUser())) {
+            if (message.length() > 1950) {
+                throw new RuntimeException("Message attempted to send too long:\n" + message);
+            }
+
+            user.openPrivateChannel().queue((channel) -> channel.sendMessage(message).queue());
         }
-        
-        user.openPrivateChannel().queue((channel) -> channel.sendMessage(message).queue());
     }
     
     public static void sendPrivateMessageWithReactions(TextChannel channel, String message, String[] reactionNames) {
@@ -322,6 +330,7 @@ public class Utilities {
 
     }
 
+    @Deprecated
     public static String getEffectiveName(Guild guild, User target) {
         if (guild.getMember(target) != null) {
             return guild.getMember(target).getEffectiveName();

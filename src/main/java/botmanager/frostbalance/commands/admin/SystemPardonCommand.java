@@ -1,58 +1,42 @@
 package botmanager.frostbalance.commands.admin;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
+import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
+import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.menu.PardonManageMenu;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-public class SystemPardonCommand extends FrostbalanceSplitCommandBase {
+public class SystemPardonCommand extends FrostbalanceGuildCommand {
 
     public SystemPardonCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "pardon"
-        }, AuthorityLevel.GUILD_ADMIN);
+                "pardon"
+        }, AuthorityLevel.GUILD_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
 
         String result = "";
-        User targetUser;
-        String targetId;
+        boolean found = false;
+        String targetName = String.join(" ", params);
+        UserWrapper targetUser = getBot().getUserByName(targetName);
 
-        targetId = Utilities.findBannedUserId(event.getGuild(), message);
-
-        if (targetId == null) {
-            targetId = Utilities.findUserId(event.getGuild(), message);
-        }
-
-        if (targetId == null) {
-            result += "Could not find user " + message + ".";
-            Utilities.sendGuildMessage(event.getChannel(), result);
+        if (targetUser == null) {
+            result += "Could not find user " + targetName + ".";
+            context.sendResponse(result);
             return;
         }
 
-        targetUser = bot.getJDA().getUserById(targetId);
-
-        new PardonManageMenu(bot, event.getGuild(), targetUser).send(event.getChannel(), event.getAuthor());
+        new PardonManageMenu(getBot(), context, targetUser).send(context.getChannel(), context.getAuthor());
 
     }
 
     @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
-        if (authorityLevel.hasAuthority(AUTHORITY_LEVEL)) {
-            return "**" + bot.getPrefix() + "pardon PLAYER** - pardons a player across all servers.";
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return null;
+    protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        return "**" + getBot().getPrefix() + "pardon PLAYER** - revokes a system ban on this player, local or global.";
     }
 
 }

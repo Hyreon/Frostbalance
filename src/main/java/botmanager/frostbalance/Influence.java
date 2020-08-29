@@ -1,5 +1,8 @@
 package botmanager.frostbalance;
 
+import com.google.gson.annotations.JsonAdapter;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A simple wrapper around a double.
  * As we were already using the Double class in most cases
@@ -12,20 +15,23 @@ package botmanager.frostbalance;
  * A lot of the methods here are very low-level, ie they
  * use very fast implementations rather than being focused on readability.
  */
+@JsonAdapter(value=InfluenceAdapter.class)
 public class Influence {
 
     int thousandths;
+
 
     public Influence(int thousandths) {
         this.thousandths = thousandths; //no need to round, it's already guaranteed to be precise enough
     }
 
     public Influence(double value) {
-        this.thousandths = (int) Math.round(value * 1000);
+        this.thousandths = (int) (value * 1000);
     }
 
     public Influence(String string) {
-        String[] words = string.split(".");
+        String[] words = string.split("\\.");
+        if (words.length <= 1) words = new String[] {words[0], ""};
         thousandths = Integer.parseInt(words[0]) * 1000;
         if (words[1].length() > 3) {
             words[1] = words[1].substring(0,3);
@@ -34,6 +40,11 @@ public class Influence {
             words[1] += "0";
         }
         thousandths += Integer.parseInt(words[1]);
+        System.out.println(thousandths);
+    }
+
+    public static Influence none() {
+        return new Influence(0);
     }
 
     public double getValue() {
@@ -46,6 +57,10 @@ public class Influence {
 
     public int compareTo(Influence influence) {
         return thousandths - influence.thousandths; //very sad that you can't do shift operations on doubles :(
+    }
+
+    public int compareTo(Number number) {
+        return Double.compare(getValue(), number.doubleValue()); //very sad that you can't do shift operations on doubles :(
     }
 
     @Override
@@ -81,5 +96,32 @@ public class Influence {
 
     public Influence applyModifier(double modifier) {
         return new Influence(getValue() * modifier);
+    }
+
+    public Influence reverseModifier(double modifier) {
+        return new Influence((int) Math.ceil(getValue() / modifier * 1000));
+    }
+
+    /**
+     *
+     * @param modifier
+     * @return The amount of value rounded off when applying this modifier.
+     */
+    @NotNull
+    public Influence remainderOfModifier(double modifier) {
+        Influence resultingInfluence = applyModifier(modifier);
+        return new Influence(getValue() - resultingInfluence.getValue() / modifier);
+    }
+
+    public boolean isNegative() {
+        return thousandths < 0;
+    }
+
+    public boolean isNonZero() {
+        return thousandths != 0;
+    }
+
+    public boolean greaterThan(Influence influence) {
+        return compareTo(influence) > 0;
     }
 }

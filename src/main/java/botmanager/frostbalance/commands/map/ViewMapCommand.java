@@ -1,43 +1,34 @@
 package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceHybridCommandBase;
-import botmanager.frostbalance.generic.GenericMessageReceivedEventWrapper;
-import botmanager.frostbalance.grid.Hex;
-import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
+import botmanager.frostbalance.command.GuildMessageContext;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.menu.MapMenu;
 
-public class ViewMapCommand extends FrostbalanceHybridCommandBase {
+public class ViewMapCommand extends FrostbalanceGuildCommand {
 
     public ViewMapCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "map"
-        }, AuthorityLevel.GENERIC);
+                "map"
+        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
     @Override
-    protected void runHybrid(GenericMessageReceivedEventWrapper eventWrapper, String message) {
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
 
-        if (eventWrapper.getGuild() == null) {
-            eventWrapper.sendResponse("You need to have a default guild set with `.guild` in order to view its map.");
-            return;
-        }
-
-        String[] words = message.split(" ");
-        PlayerCharacter player = PlayerCharacter.get(eventWrapper.getAuthor(), eventWrapper.getGuild());
-        WorldMap map = WorldMap.get(eventWrapper.getGuild());
         Hex destination;
 
-        if (words.length < 3) {
-            new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor().getId(), map)).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+        if (params.length < 3) {
+            new MapMenu(getBot(), context).send(context.getChannel(), context.getAuthor());
         } else {
             try {
-                destination = new Hex(Integer.parseInt(words[0]), Integer.parseInt(words[1]), Integer.parseInt(words[2]));
-                new MapMenu(bot, map, PlayerCharacter.get(eventWrapper.getAuthor().getId(), map), destination).send(eventWrapper.getChannel(), eventWrapper.getAuthor());
+                destination = new Hex(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
+                new MapMenu(getBot(), context, destination).send(context.getChannel(), context.getAuthor());
             } catch (NumberFormatException e) {
-                eventWrapper.sendResponse("One or more of these numbers aren't really numbers.");
+                context.sendResponse("One or more of these numbers aren't really numbers.");
                 return;
             }
         }
@@ -47,7 +38,7 @@ public class ViewMapCommand extends FrostbalanceHybridCommandBase {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + bot.getPrefix() + "map** - Displays the world map (or the tutorial map)\n" +
-                "**" + bot.getPrefix() + "map X Y Z** - Displays the world map, starting with a freecam at the specified coordinates";
+        return "**" + getBot().getPrefix() + "map** - Displays the world map (or the tutorial map)\n" +
+                "**" + getBot().getPrefix() + "map X Y Z** - Displays the world map, starting with a freecam at the specified coordinates";
     }
 }

@@ -1,93 +1,78 @@
 package botmanager.frostbalance.commands.influence;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.generic.AuthorityLevel;
-import botmanager.frostbalance.generic.FrostbalanceSplitCommandBase;
-import botmanager.frostbalance.history.TerminationCondition;
+import botmanager.frostbalance.MemberWrapper;
+import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.command.AuthorityLevel;
+import botmanager.frostbalance.command.ContextLevel;
+import botmanager.frostbalance.command.FrostbalanceGuildCommand;
+import botmanager.frostbalance.command.GuildMessageContext;
+import botmanager.frostbalance.menu.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
-import java.io.File;
-
-public class InaugurateCommand extends FrostbalanceSplitCommandBase {
+public class InaugurateCommand extends FrostbalanceGuildCommand {
 
     public InaugurateCommand(Frostbalance bot) {
         super(bot, new String[] {
-                bot.getPrefix() + "inaugurate",
-                bot.getPrefix() + "transfer"
-        });
+                "inaugurate",
+                "transfer"
+        }, AuthorityLevel.NATION_LEADER, ContextLevel.PUBLIC_MESSAGE);
     }
 
     @Override
-    public void runPublic(GuildMessageReceivedEvent event, String message) {
+    protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
+        if (isPublic) return null;
+        return ""
+                + "**" + getBot().getPrefix() + "inaugurate USER** - makes someone else server owner.";
+    }
 
-        String targetId;
+    @Override
+    protected void executeWithGuild(GuildMessageContext context, String... params) {
         String result;
-        Member authorAsMember;
-        Member currentOwner;
 
-        try {
-            String info = Utilities.read(new File("data/" + bot.getName() + "/" + event.getGuild().getId() + "/owner.csv"));
-            currentOwner = event.getGuild().getMember(event.getJDA().getUserById(Utilities.getCSVValueAtIndex(info, 0)));
-        } catch (NullPointerException | IllegalArgumentException e) {
-            currentOwner = null;
-        }
+        String targetName = String.join(" ", params);
+        Member authorAsMember = context.getJDAMember();
 
-        authorAsMember = event.getMember();
-
-        if (!authorAsMember.equals(currentOwner)) {
+        if (!authorAsMember.equals(context.getGuild().getLeaderAsMember())) {
             result = "You have to be the owner to transfer ownership of the server peaceably.";
-
-            Utilities.sendGuildMessage(event.getChannel(), result);
+            context.sendResponse(result);
             return;
         }
 
-        if (message.isEmpty()) {
-            result = info(bot.getAuthority(event.getGuild(), event.getAuthor()), true);
-            Utilities.sendGuildMessage(event.getChannel(), result);
+        UserWrapper targetUser = getBot().getUserByName(targetName);
+
+        if (targetUser == null) {
+            result = "Couldn't find user '" + targetName + "'.";
+            context.sendResponse(result);
             return;
         }
 
-        targetId = Utilities.findUserId(event.getGuild(), message);
+        MemberWrapper targetMember = targetUser.memberIn(context.getGuild());
 
-        if (targetId == null) {
-            result = "Couldn't find user '" + message + "'.";
-            Utilities.sendGuildMessage(event.getChannel(), result);
+        if (!targetMember.getOnline()) {
+            result = targetName + " isn't in " + context.getGuild().getName() + " right now.";
+            context.sendResponse(result);
             return;
         }
 
-        if (bot.getAuthority(event.getGuild().getMemberById(targetId)).hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-            if (targetId.equals(event.getJDA().getSelfUser().getId())) {
+        if (targetMember.hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
+            if (targetMember.hasAuthority(AuthorityLevel.BOT)) {
                 result = "A very generous offer, but I can't accept.";
             } else {
                 result = "Staff members are prohibited from getting server ownership through transfer.";
             }
-            Utilities.sendGuildMessage(event.getChannel(), result);
+            context.sendResponse(result);
             return;
         }
 
-        User newOwner = event.getJDA().getUserById(targetId);
+        new ConfirmationMenu(getBot(), context, () -> {
 
-        bot.endRegime(event.getGuild(), TerminationCondition.TRANSFER);
-        bot.startRegime(event.getGuild(), newOwner);
+            context.getGuild().inaugurate(targetMember.getMember());
 
-        result = "**" + currentOwner.getEffectiveName() + "** has transferred ownership to " +
-                newOwner.getAsMention() + " for this server.";
-        Utilities.sendGuildMessage(event.getChannel(), result);
+            context.sendResponse("**" + authorAsMember.getEffectiveName() + "** has transferred ownership to " +
+                    targetMember.getMember().getAsMention() + " for this server.");
+
+        }, "This will remove all of your abilities as leader, and grant those abilities to " + targetMember.getMember().getAsMention() + ".\nAre you sure?");
 
     }
-
-    @Override
-    public String publicInfo(AuthorityLevel authorityLevel) {
-        return ""
-                + "**" + bot.getPrefix() + "inaugurate USER** - makes someone else server owner.";
-    }
-
-    @Override
-    public String privateInfo(AuthorityLevel authorityLevel) {
-        return null;
-    }
-
 }
