@@ -9,14 +9,15 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.api.exceptions.HierarchyException
+import org.jsoup.internal.StringUtil
+import java.time.LocalDate
 
 class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String) : Containable<UserWrapper> {
-
 
     val authority: AuthorityLevel
         get() = {
             when {
-                guild?.owner?.user?.id == userId -> {
+                jdaGuild?.owner?.user?.id == userId -> {
                     AuthorityLevel.GUILD_OWNER
                 }
                 member?.roles?.contains(guildWrapper.systemRole) ?: false -> {
@@ -57,12 +58,36 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
         return Influence.none()
     }
 
-    fun gainDailyInfluence(): Influence {
-        return gainDailyInfluence(DailyInfluenceSource.DAILY_INFLUENCE_CAP)
+    var subscription: WeeklyInfluenceSource? = null
+
+    val subscribed: Boolean
+        get() = subscription?.let { !it.finished } ?: false
+
+    fun subscribe() {
+        subscription = WeeklyInfluenceSource()
     }
 
-    fun gainDailyInfluence(influenceRequested: Influence): Influence {
-        val influenceGained = dailyInfluence.yield(influenceRequested)
+    fun unsubscribe() {
+        subscription = null
+    }
+
+    fun updateSubscription() {
+        subscription?.getWeeklyInfluence(this, dailyInfluence)?.takeIf { it > 0 }?.let {
+            val sub = subscription!!
+            val content = mutableListOf("You have gained $it influence from your subscription in ${guildWrapper.lastKnownName}.")
+            if (sub.finished) {
+                if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
+                    content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
+                } else {
+                    content.add("Your subscription ended today. Gain influence again with `.subscribe`.")
+                }
+            }
+            userWrapper.sendNotification(guildWrapper, StringUtil.join(content, "\n"))
+        }
+    }
+
+    fun gainDailyInfluence(influenceRequested: Influence = DailyInfluenceSource.DAILY_INFLUENCE_CAP, date: Long? = null): Influence {
+        val influenceGained = dailyInfluence.yield(influenceRequested, date)
         influence = influence.add(influenceGained)
         return influenceGained
     }
@@ -88,7 +113,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
 
     val guildWrapper: GuildWrapper
         get() = userWrapper.bot.getGuildWrapper(guildId)
-    private val guild: Guild?
+    private val jdaGuild: Guild?
         get() = jda.getGuildById(guildId)
     private val bot: Frostbalance
         get() = userWrapper.bot
@@ -139,7 +164,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     }
 
     init {
-        lastKnownNickname = guild?.getMemberById(userId)?.nickname
+        lastKnownNickname = jdaGuild?.getMemberById(userId)?.nickname
     }
 
     override fun setParent(parent: UserWrapper) {

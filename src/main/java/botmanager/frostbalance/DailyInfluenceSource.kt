@@ -4,11 +4,13 @@ import java.time.LocalDate
 
 class DailyInfluenceSource {
 
-    fun yield(influenceRequested: Influence): Influence {
+    fun yield(influenceRequested: Influence, forDay: Long? = null ): Influence {
 
-        if (!isActive) { reset() }
+        if (!isActive) { setDate(forDay) }
 
-        return if (influenceLeft >= influenceRequested) { //cap doesn't affect anything
+        return if (forDay?.let { it > dailyDate } == true) {
+            throw IllegalStateException("Asked to yield influence for a day after today!")
+        } else if (influenceLeft >= influenceRequested) { //cap doesn't affect anything
             influenceLeft = influenceLeft.subtract(influenceRequested)
             influenceRequested
         } else { //influence gained is over the cap
@@ -18,9 +20,13 @@ class DailyInfluenceSource {
         }
     }
 
-    private fun reset() {
+    /**
+     * If no parameter is set, the date is set to today.
+     * This cannot set the date to be older than it currently is.
+     */
+    private fun setDate(date: Long? = null) {
         influenceLeft = DAILY_INFLUENCE_CAP
-        dailyDate = LocalDate.now().toEpochDay()
+        dailyDate = date ?: LocalDate.now().toEpochDay() //don't change if the new date is older.
     }
 
     var influenceLeft: Influence

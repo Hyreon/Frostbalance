@@ -1,8 +1,10 @@
 package botmanager.frostbalance
 
+import botmanager.Utilities
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
@@ -175,6 +177,15 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
             playerReference.add(player)
             return player
         }
+    }
+
+    fun sendNotification(guild: GuildWrapper? = null, content: String) {
+        println("Sending notification")
+        Utilities.sendPrivateMessage(jdaUser,
+                EmbedBuilder()
+                        .setDescription(content)
+                        .setColor(guild?.color)
+                        .setFooter(guild?.grantedContextFooter()).build())
     }
 }
 

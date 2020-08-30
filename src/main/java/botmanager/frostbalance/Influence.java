@@ -2,6 +2,7 @@ package botmanager.frostbalance;
 
 import com.google.gson.annotations.JsonAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A simple wrapper around a double.
@@ -123,5 +124,10 @@ public class Influence {
 
     public boolean greaterThan(Influence influence) {
         return compareTo(influence) > 0;
+    }
+
+    @NotNull
+    public Influence plus(@Nullable Influence request) {
+        return add(request);
     }
 }
