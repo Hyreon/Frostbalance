@@ -76,17 +76,17 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
             val sub = subscription!!
             val content = mutableListOf("You have gained $it influence from your subscription in ${guildWrapper.lastKnownName}.")
             if (sub.finished) {
-                if (sub.currentRequestDate < LocalDate.now().toEpochDay()) {
-                    content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.currentRequestDate)}.")
+                if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
+                    content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
                 } else {
-                    content.add("Your subscription has ended.")
+                    content.add("Your subscription ended today. Gain influence again with `.subscribe`.")
                 }
             }
             userWrapper.sendNotification(guildWrapper, StringUtil.join(content, "\n"))
         }
     }
 
-    fun gainDailyInfluence(influenceRequested: Influence = DailyInfluenceSource.DAILY_INFLUENCE_CAP, date: Long = LocalDate.now().toEpochDay()): Influence {
+    fun gainDailyInfluence(influenceRequested: Influence = DailyInfluenceSource.DAILY_INFLUENCE_CAP, date: Long? = null): Influence {
         val influenceGained = dailyInfluence.yield(influenceRequested, date)
         influence = influence.add(influenceGained)
         return influenceGained

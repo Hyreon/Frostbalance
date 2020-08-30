@@ -180,6 +180,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
     }
 
     fun sendNotification(guild: GuildWrapper? = null, content: String) {
+        println("Sending notification")
         Utilities.sendPrivateMessage(jdaUser,
                 EmbedBuilder()
                         .setDescription(content)

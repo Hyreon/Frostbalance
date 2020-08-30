@@ -13,7 +13,7 @@ class SubscribeCommand(bot: Frostbalance?) : FrostbalanceGuildCommand(bot, array
         "subscribe"
 ), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
-        if (!context.member.subscribed) {
+        if (context.member.subscribed) {
             context.member.updateSubscription()
             context.sendResponse("Your subscription in " + context.guild.name + " has been renewed.")
             context.member.subscribe()

@@ -741,11 +741,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         jda.presence.activity = Activity.of(Activity.ActivityType.DEFAULT, prefix + "help for help!")
         setCommands(arrayOf(
                 HelpCommand(this),
-                ImplicitInfluence(this),
                 DailyRewardCommand(this),
                 SubscribeCommand(this),
                 UnsubscribeCommand(this),
-                //SubscriptionUpdater(this),
+                ImplicitSubscription(this),
+                ImplicitInfluence(this),
                 GetInfluenceCommand(this),
                 SupportCommand(this),
                 OpposeCommand(this),
