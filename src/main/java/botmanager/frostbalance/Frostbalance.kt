@@ -576,7 +576,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                                             getUserLastDaily(guild, user)
                                     ),
                                     getUserInfluence(guild, user),
-                                    guild.getMember(user!!)!!.nickname,
+                                    guild.getMember(user!!)?.nickname,
                                     getUserWrapper(userId))
                         }
                     } catch (e: NumberFormatException) {
