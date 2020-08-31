@@ -7,7 +7,6 @@ import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container
-import lombok.Getter
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.entities.Guild
@@ -29,7 +28,6 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     var guildIcon: BufferedImage? = null
 
     @JvmField
-    @Getter
     var lastKnownName: String? = null
 
     var leaderId: String? = null
