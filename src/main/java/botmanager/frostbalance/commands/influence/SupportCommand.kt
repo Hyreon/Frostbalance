@@ -2,7 +2,6 @@ package botmanager.frostbalance.commands.influence
 
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
-import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
 import botmanager.frostbalance.menu.ConfirmationMenu
 import java.lang.NumberFormatException
@@ -18,7 +17,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
 
         val resultLines: MutableList<String> = ArrayList()
         val bMember = context.member!!
-        val targetName = arguments.exhaustArguments(1)
+        val targetName = arguments.exhaust(1)
         val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
         if (targetMember == null) {
             resultLines.add("Could not find user '$targetName'.")

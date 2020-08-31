@@ -31,17 +31,16 @@ public class Influence {
     }
 
     public Influence(String string) {
-        String[] words = string.split("\\.");
-        if (words.length <= 1) words = new String[] {words[0], ""};
-        thousandths = Integer.parseInt(words[0]) * 1000;
-        if (words[1].length() > 3) {
-            words[1] = words[1].substring(0,3);
+        double inputValue = Double.parseDouble(string);
+        if (Double.isNaN(inputValue)) {
+            throw new IllegalArgumentException("Nan.");
+        } else if (inputValue == Double.NEGATIVE_INFINITY) {
+            thousandths = Integer.MIN_VALUE;
+        } else if (inputValue == Double.POSITIVE_INFINITY) {
+            thousandths = Integer.MAX_VALUE;
+        } else {
+            thousandths = (int) Math.round(inputValue * 1000);
         }
-        while (words[1].length() < 3) {
-            words[1] += "0";
-        }
-        thousandths += Integer.parseInt(words[1]);
-        System.out.println(thousandths);
     }
 
     public static Influence none() {

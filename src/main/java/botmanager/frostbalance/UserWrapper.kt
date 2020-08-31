@@ -169,7 +169,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
 
     /**
      * Return this user as if it were a player in the given game instance.
-     * If this player hasn't yet joined this game, then it returns null instead.
+     * If this player hasn't yet joined this game, then it creates a player (but not necessarily a character).
      */
     fun playerIn(gameNetwork: GameNetwork): Player {
         return playerReference.firstOrNull { player -> player.gameNetwork == gameNetwork} ?: let {

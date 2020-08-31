@@ -20,9 +20,17 @@ public class Claim implements Containable<ClaimData> {
     Influence strength;
     Influence evictionStrength = new Influence(0);
 
-    Claim(PlayerCharacter player, Nation nation, Influence strength) {
-        this.claimData = player.getTile().getClaimData();
-        this.userId = player.getUserId();
+    Claim(ClaimData tileClaimData, Player player, Nation nation, Influence strength) {
+        this.claimData = tileClaimData;
+        this.userId = player.getUserWrapper().getId();
+        this.nation = nation;
+        this.strength = strength;
+        claimData.addClaim(this);
+    }
+
+    Claim(PlayerCharacter character, Nation nation, Influence strength) {
+        this.claimData = character.getTile().getClaimData();
+        this.userId = character.getUserId();
         this.nation = nation;
         this.strength = strength;
         claimData.addClaim(this);
@@ -45,9 +53,9 @@ public class Claim implements Containable<ClaimData> {
      * Tests if a claim's parameters are already extant.
      * @return True if the claims overlap.
      */
-    public boolean overlaps(ClaimData claimData, PlayerCharacter player, Nation nation) {
+    public boolean overlaps(ClaimData claimData, Player player, Nation nation) {
         return this.claimData.equals(claimData) &&
-                this.userId.equals(player.getUserId()) &&
+                this.userId.equals(player.getUserWrapper().getId()) &&
                 this.nation.equals(nation);
     }
 
@@ -58,13 +66,18 @@ public class Claim implements Containable<ClaimData> {
     /**
      * Reduce the strength of a claim.
      * Any player can do this to their own claims at no cost, but with no refund.
+     * @param usable Whether or not the influence returned is usable (if so, then eviction strength
+     *               is not modified)
      * @return The amount of influence actually reduced; this might be lower if there wasn't enough influence
      * to transfer.
      */
-    public Influence reduce(Influence amount) {
+    public Influence reduce(Influence amount, boolean usable) {
         amount = new Influence(Math.min(strength.getThousandths(), amount.getThousandths()));
         strength = strength.subtract(amount);
-        evictionStrength = evictionStrength.subtract(amount);
+        if (!usable) {
+            evictionStrength = evictionStrength.subtract(amount);
+            if (evictionStrength.isNegative()) evictionStrength = Influence.none();
+        }
         return amount;
     }
 
@@ -96,12 +109,12 @@ public class Claim implements Containable<ClaimData> {
      * Transfer this claim to another in the same nation.
      * @return the amount of influence actually transferred.
      */
-    public Influence transferToClaim(PlayerCharacter player, Influence amount) {
+    public Influence transferToClaim(Player player, Influence amount) {
         Claim claim = claimData.getClaim(player, nation);
         if (claim == null) {
-            return new Influence(0);
+            claim = new Claim(claimData, player, nation, Influence.none());
         }
-        amount = reduce(amount);
+        amount = reduce(amount, true);
         claim.add(amount);
         return amount;
 

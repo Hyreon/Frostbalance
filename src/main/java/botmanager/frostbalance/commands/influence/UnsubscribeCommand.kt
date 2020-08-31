@@ -27,7 +27,7 @@ class UnsubscribeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(
     }
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        TODO("Not yet implemented")
+        return "**.unsubscribe** - unsubscribe."
     }
 
 }

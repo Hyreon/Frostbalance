@@ -33,9 +33,9 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
         try {
 
-            arguments.exhaustArguments(1);
+            arguments.exhaust(1);
             try {
-                amount = arguments.nextInfluence();
+                amount = arguments.nextInfluence(true);
                 if (amount == null) {
                     amount = Influence.none();
                 }
@@ -67,7 +67,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
         } else {
 
             context.getMember().adjustInfluence(amount.negate());
-            character.getTile().getClaimData().addClaim(character, amount);
+            character.getTile().getClaimData().addClaim(context.getPlayer(), amount);
 
             context.sendResponse("You have added " + String.format("%s", amount) + " to your nations' claim on this tile.\n" +
                     character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));

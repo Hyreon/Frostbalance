@@ -9,18 +9,21 @@ import java.awt.*;
 
 public class ConfirmationMenu extends Menu {
 
+    private final Runnable action;
+
     private final String description;
 
     public ConfirmationMenu(Frostbalance bot, MessageContext context, Runnable runnable, String description) {
         super(bot, context);
         this.description = description;
+        this.action = runnable;
 
         menuResponses.add(new MenuResponse("✅", "Confirm") {
 
             @Override
             public void reactEvent() {
                 try {
-                    runnable.run();
+                    action.run();
                     close(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -61,5 +64,16 @@ public class ConfirmationMenu extends Menu {
             builder.setDescription(description);
         }
         return builder;
+    }
+
+    /**
+     * Sends a confirmation if the given condition is TRUE.
+     * If the condition is FALSE, then it will not send a confirmation;
+     * instead, it will simply run its assigned runnable.
+     * @param condition
+     */
+    public void sendOnCondition(boolean condition) {
+        if (condition) send();
+        else action.run();
     }
 }

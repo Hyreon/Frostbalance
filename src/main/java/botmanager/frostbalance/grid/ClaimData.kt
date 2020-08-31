@@ -3,6 +3,7 @@ package botmanager.frostbalance.grid
 import botmanager.Utils
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.Nation
+import botmanager.frostbalance.Player
 import java.util.*
 import java.util.stream.Collectors
 
@@ -74,11 +75,11 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
 
     /**
      * Adds a claim with the given parameters to this tile.
-     * @param player
+     * @param character
      * @param nation
      * @param strength
      */
-    fun addClaim(player: PlayerCharacter?, nation: Nation?, strength: Influence?): Claim {
+    fun addClaim(player: Player, nation: Nation, strength: Influence): Claim {
         for (claim in claims) {
             if (claim.overlaps(this, player, nation)) {
                 claim.add(strength)
@@ -87,14 +88,14 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                 return claim
             }
         }
-        val newClaim = Claim(player, nation, strength)
+        val newClaim = Claim(player.character, nation, strength)
         owningNation
         getTile().getMap().updateStrongestClaim()
         return newClaim
     }
 
-    fun addClaim(player: PlayerCharacter, strength: Influence?): Claim {
-        return addClaim(player, player.nation, strength)
+    fun addClaim(player: Player, strength: Influence): Claim {
+        return addClaim(player, player.allegiance!!, strength)
     }
 
     fun addClaim(newClaim: Claim): Claim {
@@ -107,7 +108,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         return newClaim
     }
 
-    fun getClaim(player: PlayerCharacter?, nation: Nation?): Claim? {
+    fun getClaim(player: Player?, nation: Nation?): Claim? {
         for (claim in claims) {
             if (claim.overlaps(this, player, nation)) {
                 return claim
@@ -121,10 +122,10 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
      * Any player can do this to their own claims at no cost, but with no refund.
      * @return
      */
-    fun reduceClaim(player: PlayerCharacter?, nation: Nation?, amount: Influence?): Influence {
+    fun reduceClaim(player: Player?, nation: Nation?, amount: Influence?): Influence {
         val claim = getClaim(player, nation) ?: return Influence(0)
         getTile().getMap().updateStrongestClaim()
-        return claim.reduce(amount)
+        return claim.reduce(amount, false)
     }
 
     private fun getUserStrength(userId: String?): Influence {
@@ -194,7 +195,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             if (owningNation != null) {
                 for (nation in tile.map.gameNetwork.nations) {
                     val strength = getNationalStrength(nation)
-                    if (strength.thousandths == 0) continue
+                    if (!strength.isNonZero) continue
                     var effectiveString: String
                     effectiveString = if (tile.map.gameNetwork.isTutorial()) {
                         nation.toString() + ": " + String.format("%s", strength)
@@ -212,10 +213,10 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         }
 
     @JvmOverloads
-    fun displayClaims(format: Format, amount: Int = 3, asker: PlayerCharacter? = null): String {
+    fun displayClaims(format: Format, amount: Int = 3, asker: Player? = null): String {
         val askerClaim: Claim?
         askerClaim = if (asker != null) {
-            getClaim(asker, asker.nation)
+            getClaim(asker, asker.allegiance)
         } else {
             null
         }
@@ -293,7 +294,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                 claims = claims.subList(0, amount)
             }
             if (askerClaim != null && !claims.contains(askerClaim) && askerClaim.isActive && askerClaim.getNation() == owningNation) {
-                getClaim(asker, asker?.nation)?.let { claims.add(it) }
+                getClaim(asker, asker?.allegiance)?.let { claims.add(it) }
             }
             val claimDisplays = claims.stream().map { x: Claim? -> x.toString() }.collect(Collectors.toList())
             nationalState + String.format(java.lang.String.join("\n", claimDisplays))

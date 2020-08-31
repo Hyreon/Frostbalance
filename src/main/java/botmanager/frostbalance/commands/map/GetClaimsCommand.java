@@ -1,9 +1,9 @@
 package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.Player;
 import botmanager.frostbalance.command.*;
 import botmanager.frostbalance.grid.ClaimData;
-import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
 public class GetClaimsCommand extends FrostbalanceGuildCommand {
@@ -17,18 +17,18 @@ public class GetClaimsCommand extends FrostbalanceGuildCommand {
     @Override
     protected void executeWithGuild(GuildMessageContext context, String... params) {
 
-        PlayerCharacter character = context.getPlayer().getCharacter();
+        Player player = context.getPlayer();
 
         ArgumentStream arguments = new ArgumentStream(params);
-        Hex coordinate = arguments.nextSpacedCoordinate();
+        Hex coordinate = arguments.nextCoordinate();
         if (coordinate == null) {
-            coordinate = character.getLocation();
+            coordinate = player.getCharacter().getLocation();
         }
 
         context.sendResponse(String.format("Claims on %s:\n%s",
                 coordinate.toString(),
                 context.getGameNetwork().getWorldMap().getTile(coordinate)
-                        .getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, character)));
+                        .getClaimData().displayClaims(ClaimData.Format.COMPETITIVE, 8, player)));
 
     }
 

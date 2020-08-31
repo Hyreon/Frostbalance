@@ -8,10 +8,7 @@ import botmanager.frostbalance.command.FrostbalanceCommand
 import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
-import botmanager.frostbalance.commands.map.ClaimTileCommand
-import botmanager.frostbalance.commands.map.GetClaimsCommand
-import botmanager.frostbalance.commands.map.MoveCommand
-import botmanager.frostbalance.commands.map.ViewMapCommand
+import botmanager.frostbalance.commands.map.*
 import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.records.RegimeData
 import botmanager.frostbalance.records.TerminationCondition
@@ -764,6 +761,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 AllegianceCommand(this),
                 MoveCommand(this),
                 GetClaimsCommand(this),
+                GrantClaimCommand(this),
                 LoadLegacyCommand(this),
                 GarbageCommand(this)
         ))

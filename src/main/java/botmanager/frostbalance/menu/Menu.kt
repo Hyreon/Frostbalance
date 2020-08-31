@@ -38,6 +38,10 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         this.hook = hook
     }
 
+    open fun send() {
+        return send(context.channel, context.author)
+    }
+
     open fun send(channel: MessageChannel, actor: UserWrapper) {
         bot.addMenu(this)
         this.actor = actor
