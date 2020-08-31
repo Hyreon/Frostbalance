@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
  * has a built-in to-string method that displays the double rapidly
  * and correctly, and can be changed to work better internally by
  * avoiding floating-point precision problems.
- * A lot of the methods here are very low-level, ie they
- * use very fast implementations rather than being focused on readability.
  */
 @JsonAdapter(value=InfluenceAdapter.class)
 public class Influence {
@@ -27,7 +25,7 @@ public class Influence {
     }
 
     public Influence(double value) {
-        this.thousandths = (int) (value * 1000);
+        this.thousandths = (int) Math.round(value * 1000);
     }
 
     public Influence(String string) {
@@ -117,7 +115,7 @@ public class Influence {
         return thousandths < 0;
     }
 
-    public boolean isNonZero() {
+    public boolean getNonZero() {
         return thousandths != 0;
     }
 

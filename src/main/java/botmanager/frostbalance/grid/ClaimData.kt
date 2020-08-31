@@ -124,8 +124,12 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
      */
     fun reduceClaim(player: Player?, nation: Nation?, amount: Influence?): Influence {
         val claim = getClaim(player, nation) ?: return Influence(0)
+        val reduceAmount = claim.reduce(amount, false)
+        if (!claim.investedStrength.nonZero) {
+            claims.remove(claim)
+        }
         getTile().getMap().updateStrongestClaim()
-        return claim.reduce(amount, false)
+        return reduceAmount
     }
 
     private fun getUserStrength(userId: String?): Influence {
@@ -195,7 +199,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             if (owningNation != null) {
                 for (nation in tile.map.gameNetwork.nations) {
                     val strength = getNationalStrength(nation)
-                    if (!strength.isNonZero) continue
+                    if (!strength.nonZero) continue
                     var effectiveString: String
                     effectiveString = if (tile.map.gameNetwork.isTutorial()) {
                         nation.toString() + ": " + String.format("%s", strength)

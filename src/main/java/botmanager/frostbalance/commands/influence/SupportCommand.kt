@@ -32,7 +32,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to give. You will instead use all of your influence.")
-        } else if (transferAmount.isNegative || !transferAmount.isNonZero) { //'else' allows you to bluff when you have 0 influence.
+        } else if (transferAmount.isNegative || !transferAmount.nonZero) { //'else' allows you to bluff when you have 0 influence.
             resultLines.add("You have to spend *some* influence to support someone.")
             context.sendMultiLineResponse(resultLines)
             return
@@ -62,7 +62,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     targetMember.adjustInfluence(transferAmount.applyModifier(PRIVATE_MODIFIER))
 
                     val refundAmount = transferAmount.remainderOfModifier(PRIVATE_MODIFIER)
-                    if (refundAmount.isNonZero) {
+                    if (refundAmount.nonZero) {
                         resultLines.add("You have been refunded $refundAmount that would have gone unused.")
                         bMember.adjustInfluence(transferAmount)
                     }

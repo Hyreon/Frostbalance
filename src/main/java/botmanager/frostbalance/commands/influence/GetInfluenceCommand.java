@@ -35,7 +35,7 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
                 result += "**" + guild.getName() + "**: " + bMember.getInfluence();
 
                 Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
-                if (remaining.isNonZero()) {
+                if (remaining.getNonZero()) {
                     result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
                 }
 
@@ -83,7 +83,7 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
                 }
             }
 
-            if (remaining.isNonZero()) {
+            if (remaining.getNonZero()) {
                 result += " (**+" + remaining + "** from unclaimed daily)";
             }
 

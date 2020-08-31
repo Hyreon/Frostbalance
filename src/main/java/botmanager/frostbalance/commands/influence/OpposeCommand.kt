@@ -31,7 +31,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         if (transferAmount.greaterThan(bMember.influence)) {
             transferAmount = bMember.influence
             resultLines.add("You don't have that much influence to use. You will instead use all of your influence.")
-        } else if (transferAmount.isNegative || !transferAmount.isNonZero) { //'else' allows you to bluff when you have 0 influence.
+        } else if (transferAmount.isNegative || !transferAmount.nonZero) { //'else' allows you to bluff when you have 0 influence.
             resultLines.add("You have to spend *some* influence to oppose someone.")
             return context.sendMultiLineResponse(resultLines)
         }
@@ -54,7 +54,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                             context.guild.name,
                             reduceAmount), false))
                 }
-                transferAmount.isNonZero -> {
+                transferAmount.nonZero -> {
                     context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
                 }
                 else -> {
@@ -62,7 +62,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                 }
             }
             refundAmount = transferAmount.subtract(reduceAmount)
-            if (refundAmount.isNonZero) {
+            if (refundAmount.nonZero) {
                 resultLines.add("You have been refunded $refundAmount that would have gone unused.")
                 bMember.adjustInfluence(refundAmount)
             }
@@ -79,7 +79,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                                     context.guild.name,
                                     reduceAmount), false))
                         }
-                        transferAmount.isNonZero -> {
+                        transferAmount.nonZero -> {
                             context.sendPrivateResponse("The target player is out of influence. Nothing has happened.")
                         }
                         else -> {
@@ -93,7 +93,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     refundAmount = transferAmount
                 }
 
-                if (refundAmount.isNonZero) {
+                if (refundAmount.nonZero) {
                     resultLines.add("You have been refunded $refundAmount that would have gone unused.")
                     bMember.adjustInfluence(refundAmount)
                 }

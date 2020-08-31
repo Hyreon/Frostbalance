@@ -72,7 +72,11 @@ public class Claim implements Containable<ClaimData> {
      * to transfer.
      */
     public Influence reduce(Influence amount, boolean usable) {
-        amount = new Influence(Math.min(strength.getThousandths(), amount.getThousandths()));
+        if (usable) {
+            amount = new Influence(Math.min(getStrength().getThousandths(), amount.getThousandths()));
+        } else {
+            amount = new Influence(Math.min(strength.getThousandths(), amount.getThousandths()));
+        }
         strength = strength.subtract(amount);
         if (!usable) {
             evictionStrength = evictionStrength.subtract(amount);

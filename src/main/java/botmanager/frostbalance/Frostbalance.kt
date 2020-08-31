@@ -762,6 +762,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 MoveCommand(this),
                 GetClaimsCommand(this),
                 GrantClaimCommand(this),
+                UnclaimCommand(this),
                 LoadLegacyCommand(this),
                 GarbageCommand(this)
         ))
