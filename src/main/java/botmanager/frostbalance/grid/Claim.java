@@ -85,6 +85,14 @@ public class Claim implements Containable<ClaimData> {
         return amount;
     }
 
+    public void evict() {
+        evictionStrength = strength;
+    }
+
+    public void unevict() {
+        evictionStrength = Influence.none();
+    }
+
     public Nation getNation() {
         return nation;
     }

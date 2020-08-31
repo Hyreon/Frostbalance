@@ -14,7 +14,7 @@ class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, array
         val grantAmount = argumentStream.nextInfluence()
                 ?: return context.sendResponse("The amount '${argumentStream.lastArgument}' wasn't recognized as a valid influence amount.")
         val targetPlayer = bot.getUserByName(argumentStream.exhaust())?.playerIn(context.gameNetwork)
-                ?: return context.sendResponse("Could not find player '${argumentStream.lastArgument}.")
+                ?: return context.sendResponse("Could not find player '${argumentStream.lastArgument}'.")
 
         if (claimData.getClaim(context.player, context.player.allegiance)?.strength?.let { it < grantAmount} == true ) {
             return context.sendResponse("You don't have $grantAmount of territory to give on this tile! Make sure it's right one, " +
