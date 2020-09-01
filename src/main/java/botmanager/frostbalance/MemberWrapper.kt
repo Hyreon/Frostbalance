@@ -71,19 +71,36 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
         subscription = null
     }
 
-    fun updateSubscription() {
-        subscription?.getWeeklyInfluence(this, dailyInfluence)?.takeIf { it > 0 }?.let {
-            val sub = subscription!!
-            val content = mutableListOf("You have gained $it influence from your subscription in ${guildWrapper.lastKnownName}.")
-            if (sub.finished) {
-                if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
-                    content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
-                } else {
-                    content.add("Your subscription ended today. Gain influence again with `.subscribe`.")
+    //java compatibility
+    fun updateSubscription(): Influence {
+        return updateSubscription(false, Influence.none())
+    }
+
+    private fun updateSubscription(silent: Boolean = false, bonus: Influence = Influence.none()): Influence {
+        subscription?.getWeeklyInfluence(this, dailyInfluence)?.takeIf { it > 0 }?.let { gain ->
+            (gain + bonus).let {
+                val sub = subscription!!
+                val content = mutableListOf("You have gained $it influence from your subscription in ${guildWrapper.lastKnownName}.")
+                if (sub.finished) {
+                    if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
+                        content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
+                    } else {
+                        content.add("Your subscription ended today. Gain influence again with `.subscribe`.")
+                    }
                 }
+                if (!silent) {
+                    userWrapper.sendNotification(guildWrapper, StringUtil.join(content, "\n"))
+                }
+                return it
             }
-            userWrapper.sendNotification(guildWrapper, StringUtil.join(content, "\n"))
         }
+        return Influence.none()
+    }
+
+    fun renewSubscription() {
+        var bonus = updateSubscription(true)
+        subscribe()
+        updateSubscription(bonus = bonus)
     }
 
     fun gainDailyInfluence(influenceRequested: Influence = DailyInfluenceSource.DAILY_INFLUENCE_CAP, date: Long? = null): Influence {
