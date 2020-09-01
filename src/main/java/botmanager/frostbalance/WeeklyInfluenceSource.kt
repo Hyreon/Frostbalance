@@ -16,7 +16,9 @@ class WeeklyInfluenceSource {
 
         nextRequestAmount().takeIf { it > 0 }?.let {
 
-            return getWeeklyInfluence(member, daily) + member.gainDailyInfluence(it, nextRequestDate - 1)
+            //there was a major bug that got fixed by swapping the order of these two functions.
+            //functional and object-oriented programming go about as well as salt and sugar.
+            return member.gainDailyInfluence(it, nextRequestDate - 1) + getWeeklyInfluence(member, daily)
 
         } ?: return Influence.none()
 
