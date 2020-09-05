@@ -20,7 +20,7 @@ class UnevictCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             return context.sendResponse("${targetPlayer.name} hasn't been evicted at this tile!")
         }
 
-        claim.unevict()
+        claimData.unevict(claim)
         context.sendResponse("You have restored ${targetPlayer.name}'s claim at ${claimData.tile.location}.")
 
     }

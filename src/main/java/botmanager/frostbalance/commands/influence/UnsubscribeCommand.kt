@@ -7,7 +7,7 @@ import botmanager.frostbalance.command.*
 import java.util.*
 
 class UnsubscribeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(
-        bot, arrayOf("unsubscribe"), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE
+        bot, arrayOf("unsubscribe", "unsub"), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE
 ) {
 
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String?) {

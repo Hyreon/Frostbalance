@@ -7,6 +7,7 @@ import botmanager.frostbalance.command.*;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
+import botmanager.frostbalance.menu.ConfirmationMenu;
 
 public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
@@ -60,17 +61,19 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
             new AllegianceMenu(getBot(), context).send(context.getChannel(), context.getAuthor());
 
-        } else if (allegiance != context.getGuild().getNation()) {
-
-            context.sendResponse("You're in the wrong server for this!");
-
         } else {
 
-            context.getMember().adjustInfluence(amount.negate());
-            character.getTile().getClaimData().addClaim(context.getPlayer(), amount);
+            Influence finalAmount = amount;
+            new ConfirmationMenu(getBot(), context, () -> {
+                context.getMember().adjustInfluence(finalAmount.negate());
+                character.getTile().getClaimData().addClaim(context.getMember(), finalAmount);
 
-            context.sendResponse("You have added " + String.format("%s", amount) + " to your nations' claim on this tile.\n" +
-                    character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
+                context.sendResponse("You have added " + String.format("%s", finalAmount) + " to this nations' claim on this tile.\n" +
+                        character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
+            }, "Your allegiance isn't to this nation, so you this claim won't be active unless you switch. Are you sure?")
+                    .sendOnCondition(allegiance != context.getGuild().getNation());
+
+
 
         }
     }

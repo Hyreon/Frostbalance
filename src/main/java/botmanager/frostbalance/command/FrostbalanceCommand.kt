@@ -55,7 +55,9 @@ abstract class FrostbalanceCommand(protected var bot: Frostbalance, protected va
         }
     }
 
-    protected abstract fun execute(context: MessageContext?, params: Array<String>?)
+
+    protected abstract fun execute(context: MessageContext, params: Array<String>)
+
     fun hasAlias(genericEvent: Event?): Boolean {
         val message: String = when (genericEvent) {
             is GuildMessageReceivedEvent -> {

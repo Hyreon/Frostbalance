@@ -1,6 +1,7 @@
 package botmanager.frostbalance.commands.map
 
 import botmanager.frostbalance.Frostbalance
+import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
 import botmanager.frostbalance.menu.ConfirmationMenu
 
@@ -16,16 +17,26 @@ class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, array
         val targetPlayer = bot.getUserByName(argumentStream.exhaust())?.playerIn(context.gameNetwork)
                 ?: return context.sendResponse("Could not find player '${argumentStream.lastArgument}'.")
 
-        if (claimData.getClaim(context.player, context.player.allegiance)?.strength?.let { it < grantAmount} == true ) {
-            return context.sendResponse("You don't have $grantAmount of territory to give on this tile! Make sure it's right one, " +
-                    "and that you haven't changed allegiance.")
-        }
-
         ConfirmationMenu(bot, context, {
-            claimData.getClaim(context.player, context.player.allegiance)?.transferToClaim(targetPlayer, grantAmount)
-            context.sendResponse("You have given ${targetPlayer.name} $grantAmount territory units at ${claimData.tile.location}.")
-        }, "This player is not in your nation and won't be able to use the claim unless they join your nation! Are you sure?")
-                .sendOnCondition(targetPlayer.allegiance != context.player.allegiance)
+
+            val influenceOnTile = claimData.getClaim(context.player, context.guild.nation)?.strength
+                    ?: Influence.none()
+
+            ConfirmationMenu(bot, context, {
+
+                if (influenceOnTile < grantAmount) {
+                    claimData.addClaim(context.player, grantAmount.subtract(influenceOnTile))
+                }
+
+                claimData.transferToClaim(context.member, targetPlayer, grantAmount)
+                context.sendResponse("You have given ${targetPlayer.name} $grantAmount influence at ${claimData.tile.location}.")
+
+            }, "Your $influenceOnTile influence on this tile isn't enough to grant $grantAmount. Do you want to spend influence " +
+                    "to complete this?")
+                    .sendOnCondition(influenceOnTile < grantAmount)
+
+        }, "This player is not in this nation and won't be able to use the claim unless they switch allegiance! Are you sure?")
+                .sendOnCondition(targetPlayer.allegiance != context.guild.nation)
 
     }
 

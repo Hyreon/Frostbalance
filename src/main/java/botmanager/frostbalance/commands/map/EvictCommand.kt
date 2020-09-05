@@ -21,7 +21,7 @@ class EvictCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("e
         }
 
         ConfirmationMenu(bot, context, {
-            claim.evict()
+            claimData.evict(claim)
             context.sendResponse("You have evicted ${targetPlayer.name} at ${claimData.tile.location}.")
         }, "${targetPlayer.name} will lose all claims to ${claimData.tile.location}, and your nation will lose its strength on this " +
                 "tile. You can always reverse this, but you can't make them forgive you too!")

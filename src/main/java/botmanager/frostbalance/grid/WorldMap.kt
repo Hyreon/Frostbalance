@@ -16,7 +16,7 @@ import java.util.stream.Collectors
 class WorldMap(@Transient var gameNetwork: GameNetwork) : Container {
 
     @Transient
-    var strongestNationalClaim = Influence(0)
+    var highestLevelClaimData: ClaimData? = null
     var loadedTiles: MutableList<Tile> = ArrayList()
 
     val players: List<PlayerCharacter>
@@ -64,35 +64,16 @@ class WorldMap(@Transient var gameNetwork: GameNetwork) : Container {
         loadedTiles = loadedTiles.stream().filter { tile: Tile -> !tile.isEmpty }.collect(Collectors.toList())
     }
 
-    val strongestClaim: Influence
+    val highestLevelClaim: ClaimData?
         get() {
-            updateStrongestClaim()
-            return strongestNationalClaim
+            updateHighestLevelClaim()
+            return highestLevelClaimData
         }
 
-    fun updateStrongestClaim() {
-        strongestNationalClaim = Influence(0)
-        for (tile in loadedTiles) {
-            val nationalStrength = tile.getClaimData().nationalStrength
-            if (nationalStrength != null) {
-                if (nationalStrength > strongestNationalClaim) {
-                    strongestNationalClaim = nationalStrength
-                }
-            }
-        }
+    fun updateHighestLevelClaim() {
+        highestLevelClaimData = loadedTiles.maxByOrNull { tile -> tile.claimData.claimLevel }
+                ?.claimData
     }
-
-    /**
-     * Tests whether this map is part of the main map, shared between
-     * the three main servers.
-     * @return Whether this is the main map
-     */
-    @Deprecated("", ReplaceWith("gameNetwork.isMain()"))
-    val isMainMap: Boolean
-        get() = gameNetwork.isMain()
-    @Deprecated("", ReplaceWith("gameNetwork.isTutorial()"))
-    val isTutorialMap: Boolean
-        get() = gameNetwork.isTutorial()
 
     override fun adopt() {
         for (tile in loadedTiles) {

@@ -134,8 +134,8 @@ public class MapRenderer {
      */
     private static Color getPoliticalColor(Tile tile) {
         Nation owningNation = tile.getClaimData().getOwningNation();
-        if (owningNation != null && tile.getMap().getStrongestClaim().getValue() > 0) {
-            double intensity = tile.getClaimData().getNationalDominance().getValue() / tile.getMap().getStrongestClaim().getValue();
+        if (owningNation != null && tile.getMap().getHighestLevelClaim() != null) {
+            double intensity = tile.getClaimData().getClaimLevel() / tile.getMap().getHighestLevelClaim().getClaimLevel();
             Color nationColor = owningNation.getColor();
             return new Color(
                     (int) (BCOLOR * (1 - intensity) + (nationColor.getRed() * intensity)),

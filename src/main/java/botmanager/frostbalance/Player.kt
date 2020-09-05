@@ -10,6 +10,12 @@ class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : C
 
     var allegiance //guild this player has allegiance to
             : Nation? = null
+        set(value) {
+            field = value
+            gameNetwork.worldMap.loadedTiles
+                    .filter { tile -> tile.claimData.hasClaim(this) }
+                    .forEach { tile -> tile.claimData.updateCacheTime() }
+        }
 
     val guild: GuildWrapper?
         get() = gameNetwork.guildWithAllegiance(allegiance)

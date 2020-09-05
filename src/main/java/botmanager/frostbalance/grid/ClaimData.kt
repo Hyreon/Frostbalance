@@ -1,18 +1,16 @@
 package botmanager.frostbalance.grid
 
-import botmanager.Utils
+import botmanager.Cache
+import botmanager.Utilities
 import botmanager.frostbalance.Influence
+import botmanager.frostbalance.MemberWrapper
 import botmanager.frostbalance.Nation
 import botmanager.frostbalance.Player
+import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.Collectors
 
 class ClaimData(tile: Tile?) : TileData(tile), Container {
-
-    private val owningNationName: String
-        get() {
-            return tile.map.gameNetwork.guildWithAllegiance(owningNation)?.name ?: "Wildnerness"
-        }
 
     /**
      * The strength of each players' claim to a specific tile. See Claim for details.
@@ -20,58 +18,13 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
     var claims: MutableList<Claim> = ArrayList()
         get() = field
 
-    private var lastOwningNation: Nation? = null
-    private var lastOwningUserId: String? = null
     override fun getTile(): Tile {
         return tile
     }
 
-    /**
-     * Gets the user who has the strongest relevant claim on this tile.
-     * @return The user who owns this tile (or null if there are no active claims).
-     */
-    val owningUserId: String?
-        get() {
-            if (claims.isEmpty()) return null
-            owningNation
-            var selectedUserId: String? = null
-            var selectedStrength = Influence(0)
-            for (claim in activeClaims) {
-                if (claim.getNation() !== lastOwningNation) continue
-                if (!claim.isActive) continue
-                if (claim.getStrength() > selectedStrength ||
-                        lastOwningUserId == claim.getUserId() && claim.getStrength() == selectedStrength) {
-                    selectedUserId = claim.getUserId()
-                    selectedStrength = claim.getStrength()
-                }
-            }
-            lastOwningUserId = selectedUserId
-            return selectedUserId
-        }
-
-    /**
-     * Gets the nation whose members have the strongest combined claim on this tile.
-     * Note that this will return NONE every time for world maps outside the global set.
-     * @return The nation that owns this tile (or NONE if there are no national claims).
-     */
-    val owningNation: Nation?
-        get() {
-            if (claims.isEmpty()) return null
-            var selectedNation = lastOwningNation
-            var selectedStrength = lastOwningNation?.let { getNationalStrength(it) } ?: Influence.none()
-            for (nation in tile.map.gameNetwork.nations) {
-                val nationalStrength = getNationalStrength(nation)
-                if (nationalStrength > selectedStrength) {
-                    selectedNation = nation
-                    selectedStrength = nationalStrength
-                }
-            }
-            if (selectedStrength.thousandths <= 0) {
-                return null
-            }
-            lastOwningNation = selectedNation
-            return selectedNation
-        }
+    //cached function: depends on state 'claims'; if 'claims' is modified since
+    //the last function call or the state is null, run the function. otherwise,
+    //return the last value.
 
     /**
      * Adds a claim with the given parameters to this tile.
@@ -79,19 +32,19 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
      * @param nation
      * @param strength
      */
-    fun addClaim(player: Player, nation: Nation, strength: Influence): Claim {
+    private fun addClaim(player: Player, nation: Nation, strength: Influence): Claim {
+        updateCacheTime()
         for (claim in claims) {
             if (claim.overlaps(this, player, nation)) {
                 claim.add(strength)
-                owningNation
-                getTile().getMap().updateStrongestClaim()
                 return claim
             }
         }
-        val newClaim = Claim(player.character, nation, strength)
-        owningNation
-        getTile().getMap().updateStrongestClaim()
-        return newClaim
+        return Claim(player.character, nation, strength)
+    }
+
+    fun addClaim(member: MemberWrapper, strength: Influence): Claim {
+        return addClaim(member.player, member.guildWrapper.nation, strength)
     }
 
     fun addClaim(player: Player, strength: Influence): Claim {
@@ -99,12 +52,11 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
     }
 
     fun addClaim(newClaim: Claim): Claim {
+        updateCacheTime()
         for (claim in claims) {
             require(!newClaim.overlaps(claim)) { "This claim overlaps an existing claim!" }
         }
         claims.add(newClaim)
-        owningNation
-        getTile().getMap().updateStrongestClaim()
         return newClaim
     }
 
@@ -117,76 +69,238 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
         return null
     }
 
+    fun getClaim(member: MemberWrapper): Claim? {
+        return getClaim(member.userWrapper.playerIn(member.guildWrapper.gameNetwork), member.guildWrapper.nation)
+    }
+
+    fun hasClaim(player: Player): Boolean {
+        return claims.any { claim -> claim.player == player }
+    }
+
     /**
      * Reduce the strength of a claim.
      * Any player can do this to their own claims at no cost, but with no refund.
      * @return
      */
     fun reduceClaim(player: Player?, nation: Nation?, amount: Influence?): Influence {
+        updateCacheTime()
         val claim = getClaim(player, nation) ?: return Influence(0)
         val reduceAmount = claim.reduce(amount, false)
         if (!claim.investedStrength.nonZero) {
             claims.remove(claim)
         }
-        getTile().getMap().updateStrongestClaim()
+        getTile().getMap().updateHighestLevelClaim()
         return reduceAmount
     }
 
+    fun evict(claim: Claim) {
+        assert(claim.claimData == this) { "Attempted to evict a claim from a different tile!" }
+        updateCacheTime()
+        claim.evict()
+    }
+
+    fun unevict(claim: Claim) {
+        assert(claim.claimData == this) { "Attempted to unevict a claim from a different tile!" }
+        updateCacheTime()
+        claim.unevict()
+    }
+
+    fun transferToClaim(member: MemberWrapper, targetPlayer: Player, grantAmount: Influence) {
+        assert(getClaim(member) != null) { "Could not find any claim belonging to the specified member!" }
+        updateCacheTime()
+        getClaim(member)!!.transferToClaim(targetPlayer, grantAmount)
+    }
+
+    /**
+     * Gets the strength of the claim made by the given player.
+     * Will return the 'none' influence if no claim was found.
+     */
     private fun getUserStrength(userId: String?): Influence {
         for (claim in activeClaims) {
             if (claim.getUserId() == userId) {
                 return claim.getStrength()
             }
         }
-        return Influence(0)
+        return Influence.none()
     }
 
-    fun getNationalStrength(nation: Nation): Influence {
-        var nationalStrength = Influence.none()
-        for (claim in activeClaims) {
-            if (claim.getNation() === nation) {
-                nationalStrength = nationalStrength.add(claim!!.getStrength())
-            }
-        }
-        return nationalStrength
+    //---CACHE STUFF
+
+    /**
+     * Returns the last time that a change was made to the claims on this TileClaimData instance.
+     * This is used by cache functions to determine whether it should perform the (sometimes expensive)
+     * recalculation of some value.
+     */
+    @Transient
+    var lastModificationTime: LocalDateTime = LocalDateTime.now()
+
+    fun updateCacheTime() {
+        lastModificationTime = LocalDateTime.now()
     }
 
-    val nationalStrength: Influence
-        get() {
-            val nationalClaimStrengths = HashMap<Nation, Influence>()
-            for (claim in activeClaims) {
-                nationalClaimStrengths[claim.getNation()] = nationalClaimStrengths.getOrDefault(claim.getNation(), Influence(0)).add(claim.getStrength())
-            }
-            var selectedStrength = Influence(0)
-            for (nation in nationalClaimStrengths.keys) {
-                if (nationalClaimStrengths.getOrDefault(nation, Influence.none()) > selectedStrength) {
-                    selectedStrength = nationalClaimStrengths.getOrDefault(nation, Influence.none())
-                }
-            }
-            return selectedStrength
-        }
-
-    val nationalDominance: Influence
-        get() {
-            return nationalStrength.subtract(
-                    tile.map.gameNetwork.nations
-                            .filter { nation -> nation != owningNation }
-                            .minByOrNull { nation -> getNationalStrength(nation).value }
-                            ?.let {getNationalStrength(it)}
-                            ?: Influence.none()
-            )
-        }
-
-    val activeClaims: MutableList<Claim>
-        get() {
+    //this means a player allegiance change will have to update every single one of these claims.
+    /**
+     * Unfortunately, this method cannot be cached. Whether a claim is active
+     * depends not only on modifications to the claim state, but also on the properties
+     * of users.
+     * As such, calls to activeClaims should be made infrequently, and calls
+     * from cache methods to other cache methods should also be avoided.
+     */
+    private val activeClaimsGetter: () -> List<Claim>
+        get() = {
             val activeClaims: MutableList<Claim> = ArrayList()
             for (claim in claims) {
                 if (claim.isActive) activeClaims.add(claim)
             }
-            return activeClaims
+            activeClaims
+        }
+    @Transient
+    private var activeClaimsCache: Cache<List<Claim>> = Cache(activeClaimsGetter)
+    private val activeClaims: List<Claim>
+        get() {
+            activeClaimsCache = activeClaimsCache ?: Cache(activeClaimsGetter)
+            return activeClaimsCache.retrieve(lastModificationTime)
+        }
+
+
+    private val getTotalStrength: () -> Influence
+        get() = {
+            activeClaims.map { claim -> claim.strength }
+                    .reduce { running, next -> running.add(next) }
+        }
+    @Transient
+    private var totalStrengthCache: Cache<Influence> = Cache(getTotalStrength)
+    private val totalStrength: Influence
+        get() {
+            totalStrengthCache = totalStrengthCache ?: Cache(getTotalStrength)
+            return totalStrengthCache.retrieve(lastModificationTime)
+        }
+
+    /**
+     * A lambda function that returns a map of nation to influence; if you
+     * put in a given nation, you will get the sum of all active influence
+     * working for that nation on behalf of this tile.
+     * This is *only* to be used by other methods, as the internal claim strength
+     * is never directly used. Instead, the effectiveClaimStrength of the owner
+     * is used.
+     */
+    private val internalNationClaimStrengthsGetter: () -> HashMap<Nation, Influence>
+        get() = {
+            val nationalClaimStrengths = HashMap<Nation, Influence>()
+            for (claim in activeClaims) {
+                nationalClaimStrengths[claim.getNation()] = nationalClaimStrengths.getOrDefault(claim.getNation(), Influence(0)).add(claim.getStrength())
+            }
+            nationalClaimStrengths
+        }
+    @Transient
+    private var internalNationStrengthsCache: Cache<HashMap<Nation, Influence>> = Cache(internalNationClaimStrengthsGetter)
+    private val internalNationalStrengths: HashMap<Nation, Influence>
+        get() {
+            internalNationStrengthsCache = internalNationStrengthsCache ?: Cache(internalNationClaimStrengthsGetter)
+            return internalNationStrengthsCache.retrieve(lastModificationTime)
+        }
+    private fun internalNationStrengthOf(nation: Nation): Influence {
+        return internalNationalStrengths[nation] ?: Influence.none()
+    }
+
+
+    /**
+     * Gets the nation whose members have the strongest combined claim on this tile.
+     * @return The nation that owns this tile (or null if there are no national claims).
+     */
+    private val owningNationGetter: () -> Nation?
+        get() = {
+            internalNationalStrengths.maxByOrNull { entry ->
+                entry.value.value
+            }
+                    ?.takeIf { it.value > totalStrength.applyModifier(0.5) } //over half
+                    ?.key
+        }
+    @Transient
+    private var owningNationCache: Cache<Nation?> = Cache(owningNationGetter)
+    val owningNation: Nation?
+        get() {
+            owningNationCache = owningNationCache ?: Cache(owningNationGetter)
+            return owningNationCache.retrieve(lastModificationTime)
+        }
+
+    private val owningNationName: String
+        get() = tile.map.gameNetwork.guildWithAllegiance(owningNation)?.name ?: "Wildnerness"
+
+
+    private val effectiveNationClaimStrengthGetter: () -> Influence
+        get() = {
+            internalNationalStrengths[owningNation]
+                    ?.let { it.subtract(totalStrength.subtract(it)) } //reduce strength
+                    ?.takeUnless { it.isNegative } //don't take non-majority national strengths
+                    ?: Influence.none()
+        }
+    @Transient
+    private var effectiveNationClaimStrengthCache: Cache<Influence> = Cache(effectiveNationClaimStrengthGetter)
+    val effectiveNationalStrength: Influence
+        get() {
+            effectiveNationClaimStrengthCache = effectiveNationClaimStrengthCache ?: Cache(effectiveNationClaimStrengthGetter)
+            return effectiveNationClaimStrengthCache.retrieve(lastModificationTime)
+        }
+
+
+    /**
+     * Gets the user who has the strongest relevant claim on this tile.
+     * @return The user who owns this tile (or null if there are no active claims).
+     */
+    private val owningPlayerGetter: () -> Player?
+        get() = {
+            activeClaims
+                    .filter { claim -> claim.nation == owningNation }
+                    .maxByOrNull { claim -> claim.strength.value }
+                    ?.takeIf { it.strength > effectiveNationalStrength.applyModifier(0.5) } //over half
+                    ?.player
+        }
+    @Transient
+    private var owningPlayerCache: Cache<Player?> = Cache(owningPlayerGetter)
+    val owningPlayer: Player?
+        get() {
+            owningPlayerCache = owningPlayerCache ?: Cache(owningPlayerGetter)
+            return owningPlayerCache.retrieve(lastModificationTime)
+        }
+
+
+    private val ownerStrengthGetter: () -> Influence
+        get() = {
+            activeClaims
+                    .firstOrNull { claim -> claim.player == owningPlayer && claim.nation == owningNation }
+                    ?.strength
+                    ?.let { it.subtract(effectiveNationalStrength.subtract(it)) }
+                    ?.let { if (effectiveNationalStrength < it) effectiveNationalStrength else it } //cap at national strength
+                    ?.takeUnless { it.isNegative }
+                    ?: Influence.none()
+        }
+    @Transient
+    private var ownerStrengthCache: Cache<Influence> = Cache(ownerStrengthGetter)
+    val ownerStrength: Influence
+        get() {
+            ownerStrengthCache = ownerStrengthCache ?: Cache(ownerStrengthGetter)
+            return ownerStrengthCache.retrieve(lastModificationTime)
+        }
+
+    private val claimLevelGetter: () -> Double
+    get() = {
+        Utilities.triangulateWithRemainder(ownerStrength.value)
+                .run {
+                    println("Level on this tile: $this (from owner strength $ownerStrength)")
+                    this
+                }
+    }
+    @Transient
+    private var claimLevelCache: Cache<Double> = Cache(claimLevelGetter)
+    val claimLevel: Double
+        get() {
+            claimLevelCache = claimLevelCache ?: Cache(claimLevelGetter)
+            return claimLevelCache.retrieve(lastModificationTime)
         }
 
     override fun adopt() {
+        updateCacheTime()
         for (claim in claims) {
             claim.setParent(this)
         }
@@ -198,7 +312,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             val owningNation = owningNation
             if (owningNation != null) {
                 for (nation in tile.map.gameNetwork.nations) {
-                    val strength = getNationalStrength(nation)
+                    val strength = internalNationStrengthOf(nation)
                     if (!strength.nonZero) continue
                     var effectiveString: String
                     effectiveString = if (tile.map.gameNetwork.isTutorial()) {
@@ -225,14 +339,14 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             null
         }
         val tinyFormat = owningNation?.let {String.format("%s/%s/%s",
-                getNationalStrength(it),
-                getUserStrength(owningUserId),
+                internalNationStrengthOf(it),
+                getUserStrength(owningPlayer?.userWrapper?.id),
                 totalStrength.toString())} ?: "Wildnerness"
         return if (format == Format.TINY) {
             tinyFormat
         } else if (format == Format.ONE_LINE) {
-            val ownerName = owningUserName
-            if (!Utils.isNullOrEmpty(owningUserId)) {
+            val ownerName = owningPlayer?.name
+            if (owningPlayer == null) {
                 String.format("%s of %s (%s)",
                         ownerName,
                         owningNation!!.effectiveName,
@@ -241,17 +355,17 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                 "Wildnerness"
             }
         } else if (format == Format.SIMPLE) {
-            if (Utils.isNullOrEmpty(owningUserId)) {
+            if (owningPlayer == null) {
                 return "Wildnerness"
             }
             var nationalCompetitionByColor = ""
             val nationalCompetitors: MutableList<String> = ArrayList()
             for (nation in tile.map.gameNetwork.nations) {
                 if (nation === owningNation) continue
-                if (getNationalStrength(nation).thousandths > 0) {
+                if (internalNationStrengthOf(nation).thousandths > 0) {
                     nationalCompetitors.add(String.format("%s: %s",
                             nation,
-                            getNationalStrength(nation)))
+                            internalNationStrengthOf(nation)))
                 }
             }
             if (!nationalCompetitors.isEmpty()) {
@@ -266,23 +380,23 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
     %s: %s %s
     """.trimIndent(),
                     owningNationName,
-                    nationalStrength,
+                    effectiveNationalStrength,
                     nationalCompetitionByColor,
-                    owningUserName,
+                    owningPlayer?.name,
                     ownerStrength,
                     youTag)
         } else if (format == Format.COMPETITIVE) {
-            if (Utils.isNullOrEmpty(owningUserId)) {
+            if (owningPlayer == null) {
                 return "Wildnerness"
             }
             var nationalCompetition = ""
             val nationalCompetitors: MutableList<String> = ArrayList()
             for (nation in tile.map.gameNetwork.nations) {
-                if (nation === owningNation) continue
-                if (getNationalStrength(nation).thousandths > 0.0) {
+                if (nation == owningNation) continue
+                if (internalNationStrengthOf(nation).thousandths > 0.0) {
                     nationalCompetitors.add(String.format("%s: %s",
                             nation.effectiveName,
-                            getNationalStrength(nation)))
+                            internalNationStrengthOf(nation)))
                 }
             }
             if (nationalCompetitors.isNotEmpty()) {
@@ -290,7 +404,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             }
             val nationalState = String.format("**%s: %s** %s\n",
                     owningNationName,
-                    nationalStrength,
+                    effectiveNationalStrength,
                     nationalCompetition)
             var claims = this.claims.toMutableList()
             claims.sortByDescending{ x: Claim -> x.getStrength().thousandths }
@@ -306,25 +420,6 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             claimList
         }
     }
-
-    private val ownerStrength: Influence
-        get() = getUserStrength(owningUserId)
-    private val owningUser: PlayerCharacter?
-        get() = PlayerCharacter.get(owningUserId, getTile().getMap())
-    private val owningUserName: String
-        get() = if (owningUser != null) {
-            owningUser!!.name
-        } else {
-            "Nobody"
-        }
-    private val totalStrength: Influence
-        get() {
-            var totalStrength = Influence(0)
-            for (claim in activeClaims) {
-                if (claim!!.getStrength().thousandths > 0) totalStrength = totalStrength.add(claim.getStrength())
-            }
-            return totalStrength
-        }
 
     enum class Format(var format: String) {
         //1.5/1.8/2 //last value hidden for private servers

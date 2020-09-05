@@ -80,7 +80,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
         subscription?.getWeeklyInfluence(this, dailyInfluence)?.takeIf { it > 0 }?.let { gain ->
             (gain + bonus).let {
                 val sub = subscription!!
-                val content = mutableListOf("You have gained $it influence from your subscription in ${guildWrapper.lastKnownName}.")
+                val content = mutableListOf("You have gained $it influence in ${guildWrapper.lastKnownName} from your subscription.")
                 if (sub.finished) {
                     if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
                         content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
@@ -128,12 +128,17 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     val online: Boolean
         get() = member != null
 
+    /**
+     * Returns the player instance that is a part of this member's guild's network.
+     * There is only one player per member.
+     * This value is a shorthand for a string of already existing, public methods.
+     */
+    val player: Player
+        get() = userWrapper.playerIn(guildWrapper.gameNetwork)
     val guildWrapper: GuildWrapper
         get() = userWrapper.bot.getGuildWrapper(guildId)
     private val jdaGuild: Guild?
         get() = jda.getGuildById(guildId)
-    private val bot: Frostbalance
-        get() = userWrapper.bot
     private val jda: JDA
         get() = userWrapper.jda
     val influenceSource: DailyInfluenceSource

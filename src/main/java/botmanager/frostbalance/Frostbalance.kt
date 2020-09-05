@@ -766,6 +766,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 EvictCommand(this),
                 UnevictCommand(this),
                 LoadLegacyCommand(this),
+                TopClaimsCommand(this),
+                TriangleCommand(this),
                 GarbageCommand(this)
         ))
         load()
