@@ -41,7 +41,8 @@ class ImplicitInfluence(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arrayOf
         minuteMembers.add(member)
     }
 
-    public override fun execute(eventWrapper: MessageContext?, params: Array<String>?) {}
+    public override fun execute(eventWrapper: MessageContext, params: Array<String>) {}
+
     public override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
         return if (isPublic) {
             "type in chat to gain influence gradually (0.05 per minute with a message); this is capped to 1.00 and does not stack with `.daily`."

@@ -23,6 +23,7 @@ enum class Nation(var emoji: String, var color: Color) {
         return name.toLowerCase().capitalize()
     }
 
+    @Deprecated("Assumes this is on the main map")
     val effectiveName: String
         get() {
             val guild = Frostbalance.bot.getGuildFor(this)

@@ -15,7 +15,7 @@ import java.util.*
 
 class ImplicitSubscription(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arrayOf("implicit"), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
     var sdf = SimpleDateFormat("M/dd/yyyy hh:mm")
-    var minuteMembers: ArrayList<Member?>
+    var minuteMembers: ArrayList<Member?> = ArrayList()
     var cachedDate: String
     override fun run(genericEvent: Event) {
         val guild: Guild
@@ -28,7 +28,8 @@ class ImplicitSubscription(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arra
         bot.getMemberWrapper(event.author.id, event.guild.id).updateSubscription()
     }
 
-    public override fun execute(eventWrapper: MessageContext?, params: Array<String>?) {}
+    override fun execute(context: MessageContext, params: Array<String>) {}
+
     public override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
         return if (isPublic) {
             "type in chat to gain influence gradually (0.05 per minute with a message); this is capped to 1.00 and does not stack with `.daily`."
@@ -38,7 +39,6 @@ class ImplicitSubscription(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arra
     }
 
     init {
-        minuteMembers = ArrayList()
         cachedDate = sdf.format(Date())
     }
 }

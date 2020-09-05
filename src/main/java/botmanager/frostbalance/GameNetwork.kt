@@ -13,6 +13,9 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
     val nations: Set<Nation>
         get() = associatedGuilds.map { guild -> guild.nation }.toHashSet()
 
+    val players: List<Player>
+        get() = bot.userWrappers.mapNotNull { user -> user.playerIfIn(this) }
+
     private var flags: MutableSet<NetworkFlag> = HashSet()
 
     fun addGuild(guild: GuildWrapper) {

@@ -6,6 +6,9 @@ import botmanager.frostbalance.Influence
 import botmanager.frostbalance.MemberWrapper
 import botmanager.frostbalance.Nation
 import botmanager.frostbalance.Player
+import org.apache.commons.exec.util.StringUtils
+import java.lang.Math.floor
+import java.lang.String.join
 import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.Collectors
@@ -243,6 +246,13 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             return effectiveNationClaimStrengthCache.retrieve(lastModificationTime)
         }
 
+    private val strongestClaimantGetter: () -> Player?
+        get() = {
+            activeClaims
+                    .filter { claim -> claim.nation == owningNation }
+                    .maxByOrNull { claim -> claim.strength.value }
+                    ?.player
+        }
 
     /**
      * Gets the user who has the strongest relevant claim on this tile.
@@ -250,9 +260,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
      */
     private val owningPlayerGetter: () -> Player?
         get() = {
-            activeClaims
-                    .filter { claim -> claim.nation == owningNation }
-                    .maxByOrNull { claim -> claim.strength.value }
+            strongestClaimantGetter() ?.run { getClaim(this, this.allegiance)}
                     ?.takeIf { it.strength > effectiveNationalStrength.applyModifier(0.5) } //over half
                     ?.player
         }
@@ -330,92 +338,98 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             return java.lang.String.join("\n", lines)
         }
 
+    private fun displayTinyClaim(): String {
+        return owningPlayer?.let {String.format("%s : %s/%s/%s",
+                claimLevel.toString(),
+                ownerStrength.toString(),
+                getClaim(it, it.allegiance)!!.strength.toString(),
+                totalStrength.toString())} ?:
+        owningNation?.let {String.format("%s/%s/%s",
+                strongestClaimantGetter() ?.run { getClaim(this, this.allegiance) }?.strength,
+                internalNationStrengthOf(it).toString(),
+                totalStrength.toString())} ?:
+        "-/-/-"
+    }
+
+    private fun displayLineClaim(): String {
+        return owningPlayer?.let {
+            String.format("%s of %s (%s)",
+                    it.name,
+                    owningNation!!.effectiveName,
+                    displayTinyClaim())
+        } ?: owningNation?.let {
+            String.format("%s with disputed owner (%s)",
+                    owningNationName,
+                    displayTinyClaim())
+        } ?: "Wildnerness"
+    }
+
+    private fun displaySimpleClaim(asker: Player?): String {
+        val ownerLine = owningPlayer?.let {
+            String.format("__Owned by **%s** for **%s**__",
+                    it.name,
+                    owningNation!!.effectiveName)
+        } ?: owningNation?.let {
+            String.format("**%s** with disputed owner",
+                    owningNationName)
+        } ?: "Wildnerness"
+        val levelLine = owningPlayer?.let {
+            String.format("**Level %s** [To level %d: %s / %d Influence]",
+                    claimLevel,
+                    kotlin.math.floor(claimLevel + 1).toInt(),
+                    Influence((claimLevel - kotlin.math.floor(claimLevel)) * kotlin.math.floor(claimLevel + 1)),
+                    kotlin.math.floor(claimLevel + 1).toInt())
+        }
+        val influenceLine = owningPlayer?.let {
+            String.format("Influence: **%s Working** / %s Spent / %s Total",
+                    ownerStrength.toString(),
+                    getClaim(it, it.allegiance)!!.strength.toString(),
+                    totalStrength.toString())
+        } ?: owningNation?.let {
+            String.format("Influence: %s Strongest / %s National / %s Total",
+                    strongestClaimantGetter() ?.run { getClaim(this, this.allegiance) }?.strength,
+                    internalNationStrengthOf(it).toString(),
+                    totalStrength.toString())
+        }
+        return listOfNotNull(ownerLine, levelLine, influenceLine).joinToString("\n")
+    }
+
+    private fun displayCompetitive(asker: Player?): String {
+        val displaySimple = displaySimpleClaim(asker)
+        var nationalCompetition: String? = null
+        val nationalCompetitors = tile.map.gameNetwork.associatedGuilds
+                .filter { it.nation != owningNation }
+                .filter { internalNationStrengthOf(it.nation) > 0.0 }
+                .map {
+            "${it.name}: ${internalNationStrengthOf(it.nation)}"
+        }
+        if (nationalCompetitors.isNotEmpty()) {
+            nationalCompetition = "(" + join(", ", nationalCompetitors) + ")"
+        }
+        var claims = this.claims.toMutableList()
+                .filter { it.getNation() == owningNation
+                        && it.player != owningPlayer}
+                .sortedByDescending {
+                    it.getStrength().thousandths
+                }
+        if (claims.size > 3) {
+            claims = claims.subList(0, 3)
+        }
+        val claimDisplays = claims.stream().map { x: Claim? -> x.toString() }.collect(Collectors.toList())
+        return join("\n", listOfNotNull(displaySimple, nationalCompetition) + claimDisplays)
+    }
+
     @JvmOverloads
     fun displayClaims(format: Format, amount: Int = 3, asker: Player? = null): String {
-        val askerClaim: Claim?
-        askerClaim = if (asker != null) {
-            getClaim(asker, asker.allegiance)
-        } else {
-            null
-        }
-        val tinyFormat = owningNation?.let {String.format("%s/%s/%s",
-                internalNationStrengthOf(it),
-                getUserStrength(owningPlayer?.userWrapper?.id),
-                totalStrength.toString())} ?: "Wildnerness"
+        val tinyFormat = displayTinyClaim()
         return if (format == Format.TINY) {
             tinyFormat
         } else if (format == Format.ONE_LINE) {
-            val ownerName = owningPlayer?.name
-            if (owningPlayer == null) {
-                String.format("%s of %s (%s)",
-                        ownerName,
-                        owningNation!!.effectiveName,
-                        tinyFormat)
-            } else {
-                "Wildnerness"
-            }
+            displayLineClaim()
         } else if (format == Format.SIMPLE) {
-            if (owningPlayer == null) {
-                return "Wildnerness"
-            }
-            var nationalCompetitionByColor = ""
-            val nationalCompetitors: MutableList<String> = ArrayList()
-            for (nation in tile.map.gameNetwork.nations) {
-                if (nation === owningNation) continue
-                if (internalNationStrengthOf(nation).thousandths > 0) {
-                    nationalCompetitors.add(String.format("%s: %s",
-                            nation,
-                            internalNationStrengthOf(nation)))
-                }
-            }
-            if (!nationalCompetitors.isEmpty()) {
-                nationalCompetitionByColor = "(" + java.lang.String.join(", ", nationalCompetitors) + ")"
-            }
-            var youTag = ""
-            if (askerClaim != null && askerClaim.investedStrength.thousandths > 0) {
-                youTag = String.format("*(%s)*", askerClaim.toString())
-            }
-            String.format("""
-    **%s: %s** %s
-    %s: %s %s
-    """.trimIndent(),
-                    owningNationName,
-                    effectiveNationalStrength,
-                    nationalCompetitionByColor,
-                    owningPlayer?.name,
-                    ownerStrength,
-                    youTag)
+            displaySimpleClaim(asker)
         } else if (format == Format.COMPETITIVE) {
-            if (owningPlayer == null) {
-                return "Wildnerness"
-            }
-            var nationalCompetition = ""
-            val nationalCompetitors: MutableList<String> = ArrayList()
-            for (nation in tile.map.gameNetwork.nations) {
-                if (nation == owningNation) continue
-                if (internalNationStrengthOf(nation).thousandths > 0.0) {
-                    nationalCompetitors.add(String.format("%s: %s",
-                            nation.effectiveName,
-                            internalNationStrengthOf(nation)))
-                }
-            }
-            if (nationalCompetitors.isNotEmpty()) {
-                nationalCompetition = "(" + java.lang.String.join(", ", nationalCompetitors) + ")"
-            }
-            val nationalState = String.format("**%s: %s** %s\n",
-                    owningNationName,
-                    effectiveNationalStrength,
-                    nationalCompetition)
-            var claims = this.claims.toMutableList()
-            claims.sortByDescending{ x: Claim -> x.getStrength().thousandths }
-            if (claims.size > amount) {
-                claims = claims.subList(0, amount)
-            }
-            if (askerClaim != null && !claims.contains(askerClaim) && askerClaim.isActive && askerClaim.getNation() == owningNation) {
-                getClaim(asker, asker?.allegiance)?.let { claims.add(it) }
-            }
-            val claimDisplays = claims.stream().map { x: Claim? -> x.toString() }.collect(Collectors.toList())
-            nationalState + String.format(java.lang.String.join("\n", claimDisplays))
+            displayCompetitive(asker)
         } else {
             claimList
         }

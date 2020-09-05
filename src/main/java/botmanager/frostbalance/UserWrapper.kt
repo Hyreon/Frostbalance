@@ -179,6 +179,10 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         }
     }
 
+    fun playerIfIn(gameNetwork: GameNetwork): Player? {
+        return playerReference.firstOrNull { player -> player.gameNetwork == gameNetwork}
+    }
+
     fun sendNotification(guild: GuildWrapper? = null, content: String) {
         println("Sending notification")
         Utilities.sendPrivateMessage(jdaUser,
