@@ -25,7 +25,7 @@ public class Influence {
     }
 
     public Influence(double value) {
-        this.thousandths = (int) Math.round(value * 1000);
+        this.thousandths = (int) (value * 1000);
     }
 
     public Influence(String string) {

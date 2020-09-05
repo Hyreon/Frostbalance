@@ -13,7 +13,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
     public ClaimTileCommand(Frostbalance bot) {
         super(bot, new String[] {
-                "claim"
+                "claimtile"
         }, AuthorityLevel.GENERIC, ContextLevel.NATIONAL_MESSAGE);
     }
 
@@ -80,6 +80,6 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + getBot().getPrefix() + "claim AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
+        return "**" + getBot().getPrefix() + "claimtile AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
     }
 }
