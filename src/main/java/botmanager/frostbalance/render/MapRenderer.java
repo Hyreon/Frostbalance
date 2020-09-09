@@ -8,6 +8,7 @@ import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.dv8tion.imup.WebException;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -37,10 +38,18 @@ public class MapRenderer {
 
         try {
             ImageIO.write(image, "png", new File("maprender.png"));
-            String resultJson = net.dv8tion.imup.Uploader.upload(new File("maprender.png"));
-            System.out.println(resultJson);
-            JsonObject obj = JsonParser.parseString(resultJson).getAsJsonObject();
-            return obj.get("data").getAsJsonObject().get("link").getAsString();
+            String link;
+            try {
+                String resultJson = net.dv8tion.imup.Uploader.upload(new File("maprender.png"));
+                System.out.println(resultJson);
+                JsonObject obj = JsonParser.parseString(resultJson).getAsJsonObject();
+                link = obj.get("data").getAsJsonObject().get("link").getAsString();
+            } catch (WebException e) {
+                e.printStackTrace();
+                System.out.println("Found an exception uploading to imgur. Attempting manual file upload");
+                link = "attachment://maprender.png";
+            }
+            return link;
         } catch (IOException e) {
             System.err.println("Unable to write map file!");
             return null;
