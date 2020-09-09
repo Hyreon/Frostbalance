@@ -69,17 +69,17 @@ public class Hex {
 
     public Hex move(Direction direction, long value) {
         switch (direction) {
-            case UP:
+            case NORTH:
                 return new Hex(x, y, z - value);
-            case UPPER_LEFT:
+            case NORTHWEST:
                 return new Hex(x + value, y, z);
-            case LOWER_LEFT:
+            case SOUTHWEST:
                 return new Hex(x, y - value, z);
-            case DOWN:
+            case SOUTH:
                 return new Hex(x, y, z + value);
-            case LOWER_RIGHT:
+            case SOUTHEAST:
                 return new Hex(x - value, y, z);
-            case UPPER_RIGHT:
+            case NORTHEAST:
                 return new Hex(x, y + value, z);
             default:
                 return this;
@@ -218,12 +218,12 @@ public class Hex {
     }
 
     public Direction crawlDirection() {
-        if (getX() > 0) return Direction.UPPER_LEFT;
-        else if (getX() < 0) return Direction.LOWER_RIGHT;
-        else if (getY() > 0) return Direction.UPPER_RIGHT;
-        else if (getY() < 0) return Direction.LOWER_LEFT;
-        else if (getZ() > 0) return Direction.DOWN;
-        else if (getZ() < 0) return Direction.UP;
+        if (getX() > 0) return Direction.NORTHWEST;
+        else if (getX() < 0) return Direction.SOUTHEAST;
+        else if (getY() > 0) return Direction.NORTHEAST;
+        else if (getY() < 0) return Direction.SOUTHWEST;
+        else if (getZ() > 0) return Direction.SOUTH;
+        else if (getZ() < 0) return Direction.NORTH;
         else throw new IllegalStateException("Origin hex asked to crawl!");
     }
 
@@ -250,7 +250,7 @@ public class Hex {
      * All directions, starting from up and going clockwise.
      */
     public enum Direction {
-        UP(1), UPPER_LEFT(0), LOWER_LEFT(5), DOWN(4), LOWER_RIGHT(3), UPPER_RIGHT(2);
+        NORTH(1), NORTHWEST(0), SOUTHWEST(5), SOUTH(4), SOUTHEAST(3), NORTHEAST(2);
 
         int anglePart;
 

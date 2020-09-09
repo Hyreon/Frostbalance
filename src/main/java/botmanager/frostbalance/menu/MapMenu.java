@@ -2,13 +2,16 @@ package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.GuildMessageContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.grid.ClaimData;
-import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.menu.response.MenuResponse;
+import botmanager.frostbalance.menu.response.SimpleTextHook;
 import botmanager.frostbalance.render.MapRenderer;
 import net.dv8tion.jda.api.EmbedBuilder;
+import org.jetbrains.annotations.NotNull;
 
 public class MapMenu extends Menu {
 
@@ -29,12 +32,12 @@ public class MapMenu extends Menu {
         this.map = context.getGameNetwork().getWorldMap();
         this.player = context.getPlayer().getCharacter();
 
-        menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.UP));
-        menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.UPPER_RIGHT));
-        menuResponses.add(new MapMoveResponse("↘️", "Southeast", Hex.Direction.LOWER_RIGHT));
-        menuResponses.add(new MapMoveResponse("⬇️", "South", Hex.Direction.DOWN));
-        menuResponses.add(new MapMoveResponse("↙️", "Southwest", Hex.Direction.LOWER_LEFT));
-        menuResponses.add(new MapMoveResponse("↖️", "Northwest", Hex.Direction.UPPER_LEFT));
+        menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.NORTH));
+        menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.NORTHEAST));
+        menuResponses.add(new MapMoveResponse("↘️", "Southeast", Hex.Direction.SOUTHEAST));
+        menuResponses.add(new MapMoveResponse("⬇️", "South", Hex.Direction.SOUTH));
+        menuResponses.add(new MapMoveResponse("↙️", "Southwest", Hex.Direction.SOUTHWEST));
+        menuResponses.add(new MapMoveResponse("↖️", "Northwest", Hex.Direction.NORTHWEST));
 
         menuResponses.add(new MenuResponse("⏫", "Zoom out") {
 
@@ -62,6 +65,20 @@ public class MapMenu extends Menu {
             @Override
             public boolean isValid() {
                 return zoomFactor < 4;
+            }
+
+        });
+
+        menuResponses.add(new MenuResponse("\uD83D\uDD04", "Refresh map") {
+
+            @Override
+            public void reactEvent() {
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return true;
             }
 
         });
@@ -117,6 +134,30 @@ public class MapMenu extends Menu {
             @Override
             public boolean isValid() {
                 return getCameraBehavior() != CameraBehavior.SNAP_TO_PLAYER;
+            }
+        });
+
+        hook(new SimpleTextHook(this, "Or type DIRECTION AMOUNT to move") {
+
+            @Override
+            public void hookEvent(@NotNull MessageContext context) {
+                String[] args = context.getMessage().getContentRaw().split(" ");
+                Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase());
+                int amount = Integer.parseInt(args[1]);
+                player.setDestination(player.getLocation().move(direction, amount));
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid(@NotNull MessageContext context) {
+                String[] directionNames = new String[Hex.Direction.values().length];
+                for (int i = 0; i < Hex.Direction.values().length; i++) {
+                    directionNames[i] = "(" + Hex.Direction.values()[i].name().toLowerCase() + ")";
+                }
+                String pattern = "(" + String.join("|", directionNames) + ") [0-9]{1,3}";
+                System.out.println(pattern);
+                System.out.println(context.getMessage().getContentRaw());
+                return context.getMessage().getContentRaw().matches(pattern);
             }
         });
 
