@@ -22,6 +22,7 @@ public class MapMenu extends Menu {
     private Hex cameraLocation;
 
     private CameraBehavior cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
+    private double zoomFactor = 1.0;
 
     public MapMenu(Frostbalance bot, GuildMessageContext context) {
         super(bot, context);
@@ -34,6 +35,36 @@ public class MapMenu extends Menu {
         menuResponses.add(new MapMoveResponse("⬇️", "South", Hex.Direction.DOWN));
         menuResponses.add(new MapMoveResponse("↙️", "Southwest", Hex.Direction.LOWER_LEFT));
         menuResponses.add(new MapMoveResponse("↖️", "Northwest", Hex.Direction.UPPER_LEFT));
+
+        menuResponses.add(new MenuResponse("⏫", "Zoom out") {
+
+            @Override
+            public void reactEvent() {
+                zoomFactor /= 1.25;
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return zoomFactor > 1.0 / 8;
+            }
+
+        });
+
+        menuResponses.add(new MenuResponse("⏬", "Zoom in") {
+
+            @Override
+            public void reactEvent() {
+                zoomFactor *= 1.25;
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return zoomFactor < 4;
+            }
+
+        });
 
         menuResponses.add(new MenuResponse("✅", "Exit") {
             @Override
@@ -137,7 +168,7 @@ public class MapMenu extends Menu {
         }
         description += drawLocation() + "\n" + player.getTile().getMap().getTile(drawLocation()).getClaimData().displayClaims(ClaimData.Format.SIMPLE);
         builder.setDescription(description);
-        builder.setImage(MapRenderer.render(map, drawLocation()));
+        builder.setImage(MapRenderer.render(map, drawLocation(), zoomFactor));
 
         return builder;
     }

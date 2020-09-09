@@ -74,4 +74,8 @@ public class Tile implements Containable<WorldMap>, Container {
     public boolean isEmpty() {
         return claimData.getClaims().isEmpty() && objects.isEmpty();
     }
+
+    public Tile getNeighbor(Hex.Direction direction) {
+        return getMap().getTile(getLocation().move(direction));
+    }
 }

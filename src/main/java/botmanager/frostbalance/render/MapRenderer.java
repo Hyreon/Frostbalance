@@ -15,6 +15,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 
 //TODO make the map renderer more sane.
@@ -24,14 +25,20 @@ public class MapRenderer {
     private static final int DEFAULT_WIDTH = 400;
     private static final int BCOLOR = 64;
 
-    public static String render(WorldMap map, Hex center) {
+    public static String render(WorldMap map, Hex center, double size_factor) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
-        for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            renderTile(g, map.getRenderTile(drawHex), center);
+        //RenderingHints rh = new RenderingHints(
+        //        RenderingHints.KEY_TEXT_ANTIALIASING,
+        //        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        //g.setRenderingHints(rh);
+        Collection<Hex> drawHexes = center.getHexesToDrawAround(DEFAULT_WIDTH / size_factor, DEFAULT_HEIGHT / size_factor);
+        for (Hex drawHex : drawHexes) {
+            renderTile(g, map.getRenderTile(drawHex), center, size_factor);
         }
-        for (Hex drawHex : center.getHexesToDrawAround(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            renderTileObjects(g, map.getRenderTile(drawHex), center);
+        for (Hex drawHex : drawHexes) {
+            drawBorders(g, map.getRenderTile(drawHex), center, size_factor);
+            renderTileObjects(g, map.getRenderTile(drawHex), center, size_factor);
         }
         g.dispose();
 
@@ -48,7 +55,7 @@ public class MapRenderer {
 
     }
 
-    private static void renderTileObjects(Graphics2D g, Tile tile, Hex center) {
+    private static void renderTileObjects(Graphics2D g, Tile tile, Hex center, double size_factor) {
         Hex drawnHex = tile.getLocation().subtract(center);
         for (TileObject object : tile.getObjects()) {
             try {
@@ -57,7 +64,7 @@ public class MapRenderer {
                 if (object instanceof PlayerCharacter) {
                     PlayerCharacter player = (PlayerCharacter) object;
                     if (player.getDestination() != player.getLocation()) {
-                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player);
+                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player, size_factor);
                     }
                 }
                 int width = image.getWidth();
@@ -65,10 +72,10 @@ public class MapRenderer {
                 Graphics2D g2 = circleBuffer.createGraphics();
                 g2.setClip(new Ellipse2D.Float(0, 0, width, width));
                 g2.drawImage(image, 0, 0, width, width, null);
-                g.drawImage(circleBuffer, (int) (drawnHex.drawX() - Hex.X_SCALE/2 + DEFAULT_WIDTH/2),
-                        (int) (drawnHex.drawY() - Hex.Y_SCALE/2 + DEFAULT_HEIGHT/2),
-                        (int) Hex.X_SCALE,
-                        (int) Hex.Y_SCALE,
+                g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
+                        (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
+                        (int) (Hex.X_SCALE * size_factor),
+                        (int) (Hex.Y_SCALE * size_factor),
                         null);
                 System.out.println("Draw object at " + tile.getLocation());
             } catch (IOException e) {
@@ -78,13 +85,43 @@ public class MapRenderer {
         }
     }
 
-    private static void renderTile(Graphics2D g, Tile tile, Hex center) {
+    private static void renderTile(Graphics2D g, Tile tile, Hex center, double size_factor) {
         g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Hex drawnHex = tile.getLocation().subtract(center);
-        g.setColor(getPoliticalColor(tile));
-        g.fillPolygon(getHex(drawnHex));
-        g.setColor(Color.BLACK);
-        g.drawPolygon(getHex(drawnHex));
+        g.setColor(getPoliticalColor(tile, false));
+        g.fillPolygon(getHex(drawnHex, size_factor));
+    }
+
+    private static void drawBorders(Graphics2D g, Tile tile, Hex center, double size_factor) {
+        g.setColor(getPoliticalColor(tile, true));
+        g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+
+        for (Hex.Direction direction : Hex.Direction.values()) {
+            Tile neighbor = tile.getNeighbor(direction);
+            Hex hex = tile.getLocation().subtract(center);
+
+            int x1 = (int) ((hex.drawX() - Hex.xSize() * direction.xEdge(false))*size_factor + DEFAULT_WIDTH / 2);
+            int y1 = (int) ((hex.drawY() - Hex.ySize() * direction.yEdge(false))*size_factor + DEFAULT_HEIGHT / 2);
+            int x2 = (int) ((hex.drawX() - Hex.xSize() * direction.xEdge(true))*size_factor + DEFAULT_WIDTH / 2);
+            int y2 = (int) ((hex.drawY() - Hex.ySize() * direction.yEdge(true))*size_factor + DEFAULT_HEIGHT / 2);
+
+            if ((neighbor.getClaimData().getOwningNation() != tile.getClaimData().getOwningNation())
+                    && (tile.getClaimData().getOwningNation() != null)
+                    && (neighbor.getClaimData().getOwningNation() != null)) {
+                //draw two lines of different colors, using a midpoint
+                int x3 = (x1 + x2) / 2;
+                int y3 = (y1 + y2) / 2;
+                g.drawLine(x1, y1, x3, y3);
+                g.setColor(getPoliticalColor(neighbor, true));
+                g.drawLine(x3, y3, x2, y2);
+                g.setColor(getPoliticalColor(tile, true));
+            } else if (neighbor.getClaimData().getOwningNation() == tile.getClaimData().getOwningNation()
+                    || (tile.getClaimData().getOwningNation() != null)) {
+                //draw line normally
+                g.drawLine(x1, y1, x2, y2);
+            }
+        }
+
     }
 
     /**
@@ -92,8 +129,9 @@ public class MapRenderer {
      * @param g
      * @param location
      * @param destination
+     * @param size_factor
      */
-    private static void renderMovementLine(Graphics2D g, Hex location, Hex destination, PlayerCharacter playerCharacter) {
+    private static void renderMovementLine(Graphics2D g, Hex location, Hex destination, PlayerCharacter playerCharacter, double size_factor) {
         g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Color color;
         if (playerCharacter.getNation() != null) {
@@ -105,23 +143,20 @@ public class MapRenderer {
         Iterator<Hex.Direction> instructions = destination.subtract(location).crawlDirections();
         while (instructions.hasNext()) {
             Hex.Direction nextDirection = instructions.next();
-            g.drawLine((int)location.add(offset).drawX() + DEFAULT_WIDTH/2,
-                    (int)location.add(offset).drawY() + DEFAULT_HEIGHT/2,
-                    (int)location.add(offset.move(nextDirection)).drawX() + DEFAULT_WIDTH/2,
-                    (int)location.add(offset.move(nextDirection)).drawY() + DEFAULT_HEIGHT/2);
+            g.drawLine((int)(location.add(offset).drawX() * size_factor) + DEFAULT_WIDTH/2,
+                    (int)(location.add(offset).drawY() * size_factor) + DEFAULT_HEIGHT/2,
+                    (int)(location.add(offset.move(nextDirection)).drawX() * size_factor) + DEFAULT_WIDTH/2,
+                    (int)(location.add(offset.move(nextDirection)).drawY() * size_factor) + DEFAULT_HEIGHT/2);
             offset = offset.move(nextDirection);
         }
     }
 
-    private static Polygon getHex(Hex hex) {
-
-        double xDist = Hex.X_SCALE / Hex.WIDTH_RATIO / 2.0;
-        double yDist = Hex.Y_SCALE / Hex.WIDTH_RATIO / 2.0;
+    private static Polygon getHex(Hex hex, double size_factor) {
 
         Polygon p = new Polygon();
         for (int i = 0; i < 6; i++) {
-            p.addPoint((int) (hex.drawX() - xDist * Math.cos(i * 2 * Math.PI / 6) + DEFAULT_WIDTH / 2),
-                    (int) (hex.drawY() - yDist * Math.sin(i * 2 * Math.PI / 6) + DEFAULT_HEIGHT / 2));
+            p.addPoint((int) ((hex.drawX() - Hex.xSize() * Math.cos(i * 2 * Math.PI / 6))*size_factor + DEFAULT_WIDTH / 2),
+                    (int) ((hex.drawY() - Hex.ySize() * Math.sin(i * 2 * Math.PI / 6))*size_factor + DEFAULT_HEIGHT / 2));
         }
         return p;
     }
@@ -132,10 +167,15 @@ public class MapRenderer {
      * @param tile
      * @return
      */
-    private static Color getPoliticalColor(Tile tile) {
+    private static Color getPoliticalColor(Tile tile, boolean maxIntensity) {
         Nation owningNation = tile.getClaimData().getOwningNation();
         if (owningNation != null && tile.getMap().getHighestLevelClaim() != null) {
-            double intensity = tile.getClaimData().getClaimLevel() / tile.getMap().getHighestLevelClaim().getClaimLevel();
+            double intensity;
+            if (maxIntensity) {
+                intensity = 1;
+            } else {
+                intensity = tile.getClaimData().getClaimLevel() / tile.getMap().getHighestLevelClaim().getClaimLevel();
+            }
             Color nationColor = owningNation.getColor();
             return new Color(
                     (int) (BCOLOR * (1 - intensity) + (nationColor.getRed() * intensity)),
@@ -143,6 +183,9 @@ public class MapRenderer {
                     (int) (BCOLOR * (1 - intensity) + (nationColor.getBlue() * intensity))
             );
         } else {
+            if (maxIntensity) {
+                return new Color(BCOLOR * 3 / 4, BCOLOR * 3 / 4, BCOLOR * 3 / 4);
+            }
             return new Color(BCOLOR, BCOLOR, BCOLOR);
         }
     }
