@@ -87,7 +87,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             command.run(event)
         }
         for (menu in activeMenus.filter { menu -> menu.hasHook }) {
-            menu.hook!!.hookEvent(MessageContext(this, event))
+            menu.hook!!.readMessage(MessageContext(this, event))
         }
     }
 
@@ -96,7 +96,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             command.run(event)
         }
         for (menu in activeMenus.filter { menu -> menu.hasHook }) {
-            menu.hook!!.hookEvent(MessageContext(this, event))
+            menu.hook!!.readMessage(MessageContext(this, event))
         }
     }
 

@@ -26,8 +26,8 @@ import java.util.*;
  */
 public class Hex {
 
-    public static final double X_SCALE = 32.0;
-    public static final double Y_SCALE = 32.0;
+    public static final double X_SCALE = 40.0;
+    public static final double Y_SCALE = 40.0;
     public static final double WIDTH_RATIO = Math.sqrt(3)/2.0;
 
     long x;
@@ -47,6 +47,14 @@ public class Hex {
         normalize();
     }
 
+    public static double xSize() {
+        return Hex.X_SCALE / Hex.WIDTH_RATIO / 2.0;
+    }
+
+    public static double ySize() {
+        return Hex.Y_SCALE / Hex.WIDTH_RATIO / 2.0;
+    }
+
     /**
      * Mutates the hex into a normal one.
      */
@@ -61,17 +69,17 @@ public class Hex {
 
     public Hex move(Direction direction, long value) {
         switch (direction) {
-            case UP:
+            case NORTH:
                 return new Hex(x, y, z - value);
-            case UPPER_LEFT:
+            case NORTHWEST:
                 return new Hex(x + value, y, z);
-            case LOWER_LEFT:
+            case SOUTHWEST:
                 return new Hex(x, y - value, z);
-            case DOWN:
+            case SOUTH:
                 return new Hex(x, y, z + value);
-            case LOWER_RIGHT:
+            case SOUTHEAST:
                 return new Hex(x - value, y, z);
-            case UPPER_RIGHT:
+            case NORTHEAST:
                 return new Hex(x, y + value, z);
             default:
                 return this;
@@ -138,25 +146,25 @@ public class Hex {
         return Math.min(Math.min(x, y), z);
     }
 
-    public Collection<Hex> getHexesToDrawAround(int width, int height) {
+    public Collection<Hex> getHexesToDrawAround(double width, double height) {
         Set<Hex> hexes = new HashSet<>();
         for (int j = (int) (- height / Y_SCALE / 2 - 1); j < height / Y_SCALE / 2 + 1; j++) {
             for (int i = -1; i > - width / X_SCALE / 4 - 2; i--) {
 
                 if (!hexes.add(add(new Hex( i, -i-1, j)))) {
-                    System.out.printf("Duplicate at i=%i, j=%i in pass 1/4", i, j);
+                    System.out.printf("Duplicate at i=%d, j=%d in pass 1/4", i, j);
                 }
                 if (!hexes.add(add(new Hex( i, -i, j)))) {
-                    System.out.printf("Duplicate at i=%i, j=%i in pass 2/4", i, j);
+                    System.out.printf("Duplicate at i=%d, j=%d in pass 2/4", i, j);
                 }
             }
             for (int i = 1; i < width / X_SCALE / 4 + 2; i++) {
 
                 if (!hexes.add(add(new Hex(i - 1, -i, j)))) {
-                    System.out.printf("Duplicate at i=%i, j=%i in pass 3/4", i, j);
+                    System.out.printf("Duplicate at i=%d, j=%d in pass 3/4", i, j);
                 }
                 if (!hexes.add(add(new Hex(i, -i, j)))) {
-                    System.out.printf("Duplicate at i=%i, j=%i in pass 4/4", i, j);
+                    System.out.printf("Duplicate at i=%d, j=%d in pass 4/4", i, j);
                 }
             }
             if (!hexes.add(add(new Hex(0, 0, j)))) {
@@ -210,12 +218,12 @@ public class Hex {
     }
 
     public Direction crawlDirection() {
-        if (getX() > 0) return Direction.UPPER_LEFT;
-        else if (getX() < 0) return Direction.LOWER_RIGHT;
-        else if (getY() > 0) return Direction.UPPER_RIGHT;
-        else if (getY() < 0) return Direction.LOWER_LEFT;
-        else if (getZ() > 0) return Direction.DOWN;
-        else if (getZ() < 0) return Direction.UP;
+        if (getX() > 0) return Direction.NORTHWEST;
+        else if (getX() < 0) return Direction.SOUTHEAST;
+        else if (getY() > 0) return Direction.NORTHEAST;
+        else if (getY() < 0) return Direction.SOUTHWEST;
+        else if (getZ() > 0) return Direction.SOUTH;
+        else if (getZ() < 0) return Direction.NORTH;
         else throw new IllegalStateException("Origin hex asked to crawl!");
     }
 
@@ -242,7 +250,25 @@ public class Hex {
      * All directions, starting from up and going clockwise.
      */
     public enum Direction {
-        UP, UPPER_LEFT, LOWER_LEFT, DOWN, LOWER_RIGHT, UPPER_RIGHT;
+        NORTH(1), NORTHWEST(0), SOUTHWEST(5), SOUTH(4), SOUTHEAST(3), NORTHEAST(2);
+
+        int anglePart;
+
+        Direction(int anglePart) {
+            this.anglePart = anglePart;
+        }
+
+        public double xEdge(boolean secondPoint) {
+            double anglePortion = anglePart;
+            if (secondPoint) anglePortion += 1;
+            return Math.cos(anglePortion * 2 * Math.PI / 6.0);
+        }
+
+        public double yEdge(boolean secondPoint) {
+            double anglePortion = anglePart;
+            if (secondPoint) anglePortion += 1;
+            return Math.sin(anglePortion * 2 * Math.PI / 6.0);
+        }
     }
 
 }

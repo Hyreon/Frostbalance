@@ -13,7 +13,7 @@ class HotMap<K, V> : HashMap<K, V>() {
     override fun getOrDefault(key: K, defaultValue: V): V {
         val result = super.getOrDefault(key, defaultValue)
         if (super.get(key) == null) {
-            super.put(key as K, result)
+            super.put(key, result)
         }
         return result
     }
