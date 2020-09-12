@@ -17,6 +17,8 @@ class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : C
                     .forEach { tile -> tile.claimData.updateCacheTime() }
         }
 
+    var locallyBanned: Boolean = false
+
     val guild: GuildWrapper?
         get() = gameNetwork.guildWithAllegiance(allegiance)
 
