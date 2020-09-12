@@ -35,7 +35,8 @@ class TopClaimsCommand(bot: Frostbalance?) : FrostbalanceGuildCommand(bot, array
                 context.gameNetwork.worldMap.loadedTiles.map { tile -> tile.claimData }
                         .filter { claimData -> claimData.owningPlayer == player }
                         .map { claimData -> claimData.claimLevel }
-                        .reduce { acc, level -> acc + level }
+                        .reduceOrNull { acc, level -> acc + level }
+                        ?: 0.0
             }
                     .entries
                     .sortedByDescending { it.value }
