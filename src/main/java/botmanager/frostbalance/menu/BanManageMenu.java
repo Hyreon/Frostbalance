@@ -4,16 +4,16 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.GuildMessageContext;
+import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 
 public class BanManageMenu extends Menu {
 
     MemberWrapper target;
-    Alternative outcome = Alternative.NETWORK;
+    Alternative outcome = Alternative.LOCAL;
 
-    public BanManageMenu(Frostbalance bot, GuildMessageContext context, UserWrapper targetUser) {
+    public BanManageMenu(Frostbalance bot, MessageContext context, UserWrapper targetUser) {
         super(bot, context);
 
         this.target = targetUser.memberIn(context.getGuild());
@@ -24,7 +24,7 @@ public class BanManageMenu extends Menu {
             target.ban();
         }
 
-        if (target.getUserWrapper().getGloballyBanned() && !target.getPlayer().getLocallyBanned()) {
+        if (target.getUserWrapper().getGloballyBanned() && !target.getLocallyBanned()) {
             outcome = Alternative.INCOMPLETE;
         }
 
@@ -45,11 +45,11 @@ public class BanManageMenu extends Menu {
             }
         });
 
-        menuResponses.add(new MenuResponse("✅", getMenuResponseName(Alternative.NETWORK)) {
+        menuResponses.add(new MenuResponse("✅", getMenuResponseName(Alternative.LOCAL)) {
 
             @Override
             public void reactEvent() {
-                outcome = Alternative.NETWORK;
+                outcome = Alternative.LOCAL;
                 target.ban();
                 close(false);
             }
@@ -85,7 +85,7 @@ public class BanManageMenu extends Menu {
                     default:
                         return "Globally ban instead";
                 }
-            case NETWORK:
+            case LOCAL:
                 switch (this.outcome) {
                     case INCOMPLETE:
                         return "Add local ban";
@@ -112,7 +112,7 @@ public class BanManageMenu extends Menu {
         if (outcome.equals(Alternative.GLOBAL)) {
             builder.setTitle("**" + target.getEffectiveName() + " globally banned**");
             builder.setDescription("This player has been instead removed from **all** Frostbalance guilds, and will be immediately banned when entering any one.");
-        } else if (outcome.equals(Alternative.NETWORK)) {
+        } else if (outcome.equals(Alternative.LOCAL)) {
             builder.setTitle(target.getEffectiveName() + " banned");
             builder.setDescription("This player has been removed from this Frostbalance guild and can no longer re-join it.");
         } else if (outcome.equals(Alternative.UNDONE)) {
@@ -139,7 +139,7 @@ public class BanManageMenu extends Menu {
 
     private enum Alternative {
         UNDONE,
-        NETWORK,
+        LOCAL,
         GLOBAL,
         FAILED, //ban failed because the player already has a local ban. they may also be globally banned.
         INCOMPLETE; //ban failed because the player has a global ban, but no local one.

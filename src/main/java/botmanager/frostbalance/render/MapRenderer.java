@@ -39,8 +39,6 @@ public class MapRenderer {
         }
         for (Hex drawHex : drawHexes) {
             drawBorders(g, map.getRenderTile(drawHex), center, size_factor);
-        }
-        for (Hex drawHex : drawHexes) {
             renderTileObjects(g, map.getRenderTile(drawHex), center, size_factor);
         }
         g.dispose();

@@ -13,7 +13,7 @@ public class SystemBanCommand extends FrostbalanceGuildCommand {
 
     public SystemBanCommand(Frostbalance bot) {
         super(bot, new String[] {
-                "sysban"
+                "ban"
         }, AuthorityLevel.GUILD_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 

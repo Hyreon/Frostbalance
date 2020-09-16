@@ -749,8 +749,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 CheckCommand(this),
                 CoupCommand(this),
                 InaugurateCommand(this),
-                BanCommand(this),
-                PardonCommand(this),
                 HistoryCommand(this),
                 SetGuildCommand(this),
                 InterveneCommand(this),

@@ -144,7 +144,7 @@ public class MapMenu extends Menu {
                 String[] args = context.getMessage().getContentRaw().split(" ");
                 Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase());
                 int amount = Integer.parseInt(args[1]);
-                move(direction, amount);
+                player.setDestination(player.getLocation().move(direction, amount));
                 updateMessage();
             }
 
@@ -173,11 +173,11 @@ public class MapMenu extends Menu {
         return cameraBehavior;
     }
 
-    private void move(Hex.Direction direction, int amount) {
+    private void move(Hex.Direction direction) {
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
-            player.adjustDestination(direction, amount);
+            player.adjustDestination(direction);
         } else {
-            cameraLocation = cameraLocation.move(direction, amount);
+            cameraLocation = cameraLocation.move(direction);
         }
     }
 
@@ -225,7 +225,7 @@ public class MapMenu extends Menu {
 
         @Override
         public void reactEvent() {
-            move(direction, 1);
+            move(direction);
             updateMessage();
         }
 

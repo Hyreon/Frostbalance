@@ -24,7 +24,7 @@ public class PardonManageMenu extends Menu {
             target.pardon();
         }
 
-        if (target.getUserWrapper().getGloballyBanned() && !target.getPlayer().getLocallyBanned()) {
+        if (target.getUserWrapper().getGloballyBanned() && !target.getLocallyBanned()) {
             outcome = Alternative.INCOMPLETE;
         }
 

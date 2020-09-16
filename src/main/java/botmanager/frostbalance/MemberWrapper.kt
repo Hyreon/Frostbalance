@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.api.exceptions.HierarchyException
-import net.dv8tion.jda.api.requests.RestAction
 import org.jsoup.internal.StringUtil
 import java.time.LocalDate
 
@@ -27,8 +26,8 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
                 member?.roles?.contains(guildWrapper.leaderRole) ?: false -> {
                     AuthorityLevel.NATION_LEADER
                 }
-                member?.hasPermission(Permission.KICK_MEMBERS) ?: false -> {
-                    AuthorityLevel.NATION_SECURITY
+                member?.hasPermission(Permission.ADMINISTRATOR) ?: false -> {
+                    AuthorityLevel.NATION_ADMIN
                 }
                 else -> {
                     AuthorityLevel.GENERIC
@@ -40,8 +39,9 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
 
     var influence: Influence = Influence(0)
     var dailyInfluence = DailyInfluenceSource()
+    var locallyBanned = false
     val banned: Boolean
-        get() = userWrapper.globallyBanned || player.locallyBanned
+        get() = userWrapper.globallyBanned || locallyBanned
     private val userId: String
         get() = userWrapper.id
 
@@ -154,7 +154,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     }
 
     fun loadLegacy(LocallyBanned: Boolean, dailyInfluenceSource: DailyInfluenceSource, UserInfluence: Influence, Nickname: String?, User: UserWrapper) {
-        player.locallyBanned = LocallyBanned
+        locallyBanned = LocallyBanned
         dailyInfluence = dailyInfluenceSource
         influence = UserInfluence
         lastKnownNickname = Nickname
@@ -166,7 +166,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     }
 
     fun pardon(): Boolean {
-        player.locallyBanned = false
+        locallyBanned = false
         try {
             userWrapper.jdaUser?.let {guildWrapper.jdaGuild?.unban(it)?.queue() ?: return false} ?: return false
         } catch (e: ErrorResponseException) {
@@ -176,26 +176,13 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     }
 
     fun ban() {
-        player.locallyBanned = true
+        locallyBanned = true
         try {
             userWrapper.jdaUser?.let { guildWrapper.jdaGuild?.ban(it, 0)?.queue() }
         } catch (e: HierarchyException) {
             System.err.println("Unable to ban admin user $effectiveName.")
             e.printStackTrace()
         }
-    }
-
-    fun softBan() {
-        try {
-            userWrapper.jdaUser?.let { guildWrapper.jdaGuild?.ban(it, 0)?.queue() }
-        } catch (e: HierarchyException) {
-            System.err.println("Unable to ban admin user $effectiveName.")
-            e.printStackTrace()
-        }
-    }
-
-    fun softPardon() {
-        userWrapper.jdaUser?.let { guildWrapper.jdaGuild?.unban(it)?.queue() }
     }
 
     init {
@@ -205,11 +192,6 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     override fun setParent(parent: UserWrapper) {
         userWrapper = parent
     }
-
-    fun softBanHandler(): RestAction<Guild.Ban>? {
-        return guildWrapper.jdaGuild?.retrieveBanById(userId)
-    }
-
 }
 
 val Member.wrapper: MemberWrapper

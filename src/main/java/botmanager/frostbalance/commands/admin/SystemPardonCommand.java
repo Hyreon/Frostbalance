@@ -12,7 +12,7 @@ public class SystemPardonCommand extends FrostbalanceGuildCommand {
 
     public SystemPardonCommand(Frostbalance bot) {
         super(bot, new String[] {
-                "syspardon"
+                "pardon"
         }, AuthorityLevel.GUILD_ADMIN, ContextLevel.PUBLIC_MESSAGE);
     }
 

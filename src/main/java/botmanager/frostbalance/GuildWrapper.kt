@@ -178,7 +178,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
                 val role = jdaGuild!!.createRole()
                         .setColor(color)
                         .setName("Leader")
-                        .setPermissions(Permission.ALL_PERMISSIONS - Permission.ADMINISTRATOR.offset - Permission.BAN_MEMBERS.offset)
+                        .setPermissions(Permission.ADMINISTRATOR)
                         .setHoisted(true)
                         .complete()
                 jdaGuild!!.addRoleToMember(jda.selfUser.id, role).queue()
@@ -215,10 +215,6 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     fun grantedContextFooter(): String {
         return "From $name"
-    }
-
-    fun getMemberByName(name: String): MemberWrapper? {
-        return members.firstOrNull { member -> member.effectiveName.equals(name, ignoreCase = true)}
     }
 
 

@@ -14,7 +14,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
     public ClaimTileCommand(Frostbalance bot) {
         super(bot, new String[] {
                 "claimtile"
-        }, AuthorityLevel.GENERIC, ContextLevel.ANY);
+        }, AuthorityLevel.GENERIC, ContextLevel.NATIONAL_MESSAGE);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
                 context.sendResponse("You have added " + String.format("%s", finalAmount) + " to this nations' claim on this tile.\n" +
                         character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
-            }, "Your allegiance isn't to the nation " + context.getGuild().getName() + ", so you this claim won't be active. Are you sure? If you want your claim to be active, go to the Discord Server **" + context.getGameNetwork().guildWithAllegiance(allegiance).getName() + "** and make your claim there.")
+            }, "Your allegiance isn't to this nation, so you this claim won't be active unless you switch. Are you sure?")
                     .sendOnCondition(allegiance != context.getGuild().getNation());
 
 
