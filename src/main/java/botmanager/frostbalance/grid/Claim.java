@@ -17,7 +17,7 @@ public class Claim implements Containable<ClaimData> {
     String userId;
     Nation nation;
 
-    Influence strength;
+    private Influence strength;
     Influence evictionStrength = new Influence(0);
 
     Claim(ClaimData tileClaimData, Player player, Nation nation, Influence strength) {
