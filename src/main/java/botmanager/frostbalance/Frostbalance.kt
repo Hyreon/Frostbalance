@@ -716,8 +716,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return gameNetwork
     }
 
-    fun getUserByName(targetName: String): UserWrapper? {
-        return userWrappers.firstOrNull { user -> user.name == targetName }
+    fun getUserByName(targetName: String, guild: GuildWrapper?): UserWrapper? {
+        return guild?.let { userWrappers.firstOrNull { user -> user.memberIfIn(it)?.effectiveName == targetName }}
+                ?: userWrappers.firstOrNull { user -> user.name == targetName }
     }
 
     /**

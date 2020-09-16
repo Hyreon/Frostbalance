@@ -61,7 +61,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
     }
 
     fun hasMultipleNations(): Boolean {
-        return associatedGuilds.size > 1 || flags.contains(NetworkFlag.TUTORIAL)
+        return associatedGuilds.size > 1
     }
 
     /**

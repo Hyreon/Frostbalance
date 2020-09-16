@@ -11,7 +11,7 @@ class EvictCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("e
         val argumentStream = ArgumentStream(params)
         val claimData = argumentStream.nextCoordinate()?.let { context.gameNetwork.worldMap.getTile(it).claimData }
                 ?: return context.sendResponse("Could not recognize location '${argumentStream.lastArgument}'.")
-        val targetPlayer = bot.getUserByName(argumentStream.exhaust())?.playerIn(context.gameNetwork)
+        val targetPlayer = bot.getUserByName(argumentStream.exhaust(), context.guild)?.playerIn(context.gameNetwork)
                 ?: return context.sendResponse("Could not find player '${argumentStream.lastArgument}'.")
         val claim = claimData.getClaim(context.player, context.player.allegiance)
                 ?: return context.sendResponse("${targetPlayer.name} doesn't have any claim for your nation at ${claimData.tile.location}.")

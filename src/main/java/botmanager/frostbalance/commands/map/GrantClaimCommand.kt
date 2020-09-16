@@ -14,7 +14,7 @@ class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, array
                 ?: return context.sendResponse("Could not recognize location '${argumentStream.lastArgument}'.")
         val grantAmount = argumentStream.nextInfluence()
                 ?: return context.sendResponse("The amount '${argumentStream.lastArgument}' wasn't recognized as a valid influence amount.")
-        val targetPlayer = bot.getUserByName(argumentStream.exhaust())?.playerIn(context.gameNetwork)
+        val targetPlayer = bot.getUserByName(argumentStream.exhaust(), context.guild)?.playerIn(context.gameNetwork)
                 ?: return context.sendResponse("Could not find player '${argumentStream.lastArgument}'.")
 
         ConfirmationMenu(bot, context, {

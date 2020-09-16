@@ -7,7 +7,7 @@ abstract class MemberNameHook(menu: Menu, name: String) : SimpleTextHook(menu, n
 
     override fun isValid(context: MessageContext): Boolean {
         return super.isValid(context) && context.guild?.let {
-            context.bot.getUserByName(context.message.contentStripped)
+            context.bot.getUserByName(context.message.contentStripped, context.guild)
                 ?.memberIfIn(it)
         } != null
     }

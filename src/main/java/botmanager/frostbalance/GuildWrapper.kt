@@ -2,6 +2,7 @@ package botmanager.frostbalance
 
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance.Companion.bot
+import botmanager.frostbalance.flags.GuildOptions
 import botmanager.frostbalance.records.RegimeData
 import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
@@ -20,6 +21,9 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
 
     constructor(gameNetwork: GameNetwork, guild: Guild) : this(gameNetwork, guild.id)
+
+    @Transient
+    private var guildOptions = GuildOptions(this)
 
     val members: Collection<MemberWrapper>
         get() = bot.userWrappers.mapNotNull { user -> user.memberIfIn(this) }
@@ -57,6 +61,10 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     override fun adopt() {
         regimes.forEach { regime -> regime.setParent(this) }
+        if (guildOptions == null) {
+            guildOptions = GuildOptions(this)
+        }
+        guildOptions.setParent(this)
     }
 
     fun isOnline(): Boolean {

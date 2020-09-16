@@ -18,7 +18,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val resultLines: MutableList<String> = ArrayList()
         val bMember = context.member
         val targetName = arguments.exhaust(1)
-        val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
+        val targetMember = bot.getUserByName(targetName, context.guild)?.memberIfIn(context.guild)
         if (targetMember == null) {
             resultLines.add("Could not find member '$targetName'.")
             return context.sendMultiLineResponse(resultLines)
