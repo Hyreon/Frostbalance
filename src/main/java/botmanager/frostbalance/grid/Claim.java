@@ -67,13 +67,13 @@ public class Claim implements Containable<ClaimData> {
      * Reduce the strength of a claim.
      * Any player can do this to their own claims at no cost, but with no refund.
      * @param usable Whether or not the influence returned is usable (if so, then eviction strength
-     *               is not modified)
+     *               is not modified); does NOT take into account what nation it comes from or to.
      * @return The amount of influence actually reduced; this might be lower if there wasn't enough influence
      * to transfer.
      */
     public Influence reduce(Influence amount, boolean usable) {
         if (usable) {
-            amount = new Influence(Math.min(getStrength().getThousandths(), amount.getThousandths()));
+            amount = new Influence(Math.min(strength.subtract(evictionStrength).getThousandths(), amount.getThousandths()));
         } else {
             amount = new Influence(Math.min(strength.getThousandths(), amount.getThousandths()));
         }
