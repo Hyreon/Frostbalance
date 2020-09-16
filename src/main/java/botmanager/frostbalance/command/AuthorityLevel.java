@@ -8,9 +8,9 @@ public enum AuthorityLevel {
     GENERIC(0),
 
     /**
-     * Possessed by users with administrator privileges in the guild
+     * Possessed by users with the 'kick' privilege in the guild
      */
-    NATION_ADMIN(1),
+    NATION_SECURITY(1),
 
     /**
      * Possessed by users with the leader rank in the guild
