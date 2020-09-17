@@ -9,11 +9,11 @@ import botmanager.frostbalance.menu.Menu
  */
 abstract class MenuTextHook(var menu: Menu, name: String) : MenuAction(name) {
 
-    fun readMessage(context: MessageContext) {
-        if (isValid(context)) hookEvent(context)
+    fun readMessage(hookContext: MessageContext) {
+        if (isValid(hookContext)) hookEvent(hookContext)
     }
 
-    abstract fun hookEvent(context: MessageContext)
-    abstract fun isValid(context: MessageContext): Boolean
+    abstract fun hookEvent(hookContext: MessageContext)
+    abstract fun isValid(hookContext: MessageContext): Boolean
 
 }

@@ -2,6 +2,7 @@ package botmanager.frostbalance
 
 import botmanager.Utilities
 import botmanager.frostbalance.command.AuthorityLevel
+import botmanager.frostbalance.flags.UserOptions
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container
 import net.dv8tion.jda.api.EmbedBuilder
@@ -25,6 +26,8 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
 
     @Transient
     var bot: Frostbalance = bot
+
+    var userOptions = UserOptions(this)
 
     var id: String = userId
 
@@ -161,6 +164,10 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         for (player in playerReference) {
             player.setParent(this)
         }
+        if (userOptions == null) {
+            userOptions = UserOptions(this)
+        }
+        userOptions.setParent(this)
     }
 
     override fun setParent(parent: Frostbalance) {

@@ -1,7 +1,8 @@
-package botmanager.frostbalance.menu;
+package botmanager.frostbalance.menu.input;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.command.MessageContext;
+import botmanager.frostbalance.menu.Menu;
 import botmanager.frostbalance.menu.response.MenuResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 

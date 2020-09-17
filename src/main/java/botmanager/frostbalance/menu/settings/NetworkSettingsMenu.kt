@@ -27,13 +27,13 @@ class NetworkSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Men
                     init {
                         hook(object : SimpleTextHook(this, "Or, get name...") {
 
-                            override fun hookEvent(context: MessageContext) {
-                                context.gameNetwork.id = context.message.contentStripped
+                            override fun hookEvent(hookContext: MessageContext) {
+                                hookContext.gameNetwork.id = hookContext.message.contentStripped
                                 close(false)
                             }
 
-                            override fun isValid(context: MessageContext): Boolean {
-                                return super.isValid(context) && bot.networkList.none { network -> network.id == context.message.contentStripped }
+                            override fun isValid(hookContext: MessageContext): Boolean {
+                                return super.isValid(hookContext) && bot.networkList.none { network -> network.id == hookContext.message.contentStripped }
                             }
 
                         })

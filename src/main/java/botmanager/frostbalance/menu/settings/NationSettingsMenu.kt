@@ -5,6 +5,7 @@ import botmanager.frostbalance.Nation
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.GuildMessageContext
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.menu.input.BooleanMenu
 import botmanager.frostbalance.menu.option.NationOptionMenu
 import botmanager.frostbalance.menu.response.MenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
@@ -37,6 +38,24 @@ class NationSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Menu
                 }, true)
 
             }
+
+        })
+
+        menuResponses.add(object : MenuResponse("\uD83D\uDEC2", "Open Borders") {
+            override fun reactEvent() {
+
+                redirectTo(BooleanMenu(bot, context, {
+                    context.guild.guildOptions.openBorders = true
+                    close(false)
+                }, {
+                    context.guild.guildOptions.openBorders = false
+                    close(false)
+                }, "$emoji $name"), true)
+
+            }
+
+            override val isValid: Boolean
+                get() = true
 
         })
     }

@@ -7,7 +7,7 @@ import botmanager.frostbalance.command.*;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
-import botmanager.frostbalance.menu.ConfirmationMenu;
+import botmanager.frostbalance.menu.input.ConfirmationMenu;
 
 public class ClaimTileCommand extends FrostbalanceGuildCommand {
 

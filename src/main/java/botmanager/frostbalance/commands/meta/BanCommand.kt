@@ -2,7 +2,7 @@ package botmanager.frostbalance.commands.meta
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 
 class BanCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("ban"), AuthorityLevel.NATION_SECURITY, ContextLevel.PUBLIC_MESSAGE) {
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {

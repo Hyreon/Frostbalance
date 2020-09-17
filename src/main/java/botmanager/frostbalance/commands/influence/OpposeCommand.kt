@@ -4,7 +4,7 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 import java.util.*
 
 class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
@@ -98,7 +98,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     bMember.adjustInfluence(refundAmount)
                 }
                 context.sendMultiLineResponse(resultLines)
-            }, "Are you sure you want to oppose ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER *100}% of your influence will be used.")
+            }, "Are you sure you want to oppose ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER * 100}% of your influence will be used.")
                     .send(context.channel, context.author)
         }
     }

@@ -22,8 +22,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     constructor(gameNetwork: GameNetwork, guild: Guild) : this(gameNetwork, guild.id)
 
-    @Transient
-    private var guildOptions = GuildOptions(this)
+    var guildOptions = GuildOptions(this)
 
     val members: Collection<MemberWrapper>
         get() = bot.userWrappers.mapNotNull { user -> user.memberIfIn(this) }

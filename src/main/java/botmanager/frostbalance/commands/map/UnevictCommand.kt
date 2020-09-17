@@ -2,7 +2,6 @@ package botmanager.frostbalance.commands.map
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
 
 class UnevictCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("unevict"), AuthorityLevel.NATION_LEADER, ContextLevel.ANY) {
 

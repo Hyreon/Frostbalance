@@ -2,7 +2,7 @@ package botmanager.frostbalance.commands.map
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 
 class EvictCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("evict"), AuthorityLevel.NATION_LEADER, ContextLevel.ANY) {
 

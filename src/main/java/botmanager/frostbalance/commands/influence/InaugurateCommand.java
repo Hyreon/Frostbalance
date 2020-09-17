@@ -7,7 +7,7 @@ import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildMessageContext;
-import botmanager.frostbalance.menu.ConfirmationMenu;
+import botmanager.frostbalance.menu.input.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
 
 public class InaugurateCommand extends FrostbalanceGuildCommand {

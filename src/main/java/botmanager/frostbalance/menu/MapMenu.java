@@ -140,8 +140,8 @@ public class MapMenu extends Menu {
         hook(new SimpleTextHook(this, "Or type DIRECTION AMOUNT to move") {
 
             @Override
-            public void hookEvent(@NotNull MessageContext context) {
-                String[] args = context.getMessage().getContentRaw().split(" ");
+            public void hookEvent(@NotNull MessageContext hookContext) {
+                String[] args = hookContext.getMessage().getContentRaw().split(" ");
                 Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase());
                 int amount = Integer.parseInt(args[1]);
                 move(direction, amount);
@@ -149,15 +149,15 @@ public class MapMenu extends Menu {
             }
 
             @Override
-            public boolean isValid(@NotNull MessageContext context) {
+            public boolean isValid(@NotNull MessageContext hookContext) {
                 String[] directionNames = new String[Hex.Direction.values().length];
                 for (int i = 0; i < Hex.Direction.values().length; i++) {
                     directionNames[i] = "(" + Hex.Direction.values()[i].name().toLowerCase() + ")";
                 }
                 String pattern = "(" + String.join("|", directionNames) + ") [0-9]{1,3}";
                 System.out.println(pattern);
-                System.out.println(context.getMessage().getContentRaw());
-                return context.getMessage().getContentRaw().matches(pattern);
+                System.out.println(hookContext.getMessage().getContentRaw());
+                return hookContext.getMessage().getContentRaw().matches(pattern);
             }
         });
 

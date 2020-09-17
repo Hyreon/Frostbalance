@@ -1,6 +1,5 @@
 package botmanager.frostbalance.flags
 
-import botmanager.frostbalance.GuildWrapper
 import botmanager.frostbalance.UserWrapper
 import botmanager.frostbalance.grid.Containable
 
