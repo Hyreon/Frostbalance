@@ -27,10 +27,6 @@ public class SettingsCommand extends FrostbalanceGuildCommand {
 
     @Override
     public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        if (authorityLevel.hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-            return "**" + getBot().getPrefix() + "settings** - view/edit settings for this server";
-        } else {
-            return "**" + getBot().getPrefix() + "settings** - view settings for this server";
-        }
+        return "**" + getBot().getPrefix() + "settings** - open the settings menu";
     }
 }

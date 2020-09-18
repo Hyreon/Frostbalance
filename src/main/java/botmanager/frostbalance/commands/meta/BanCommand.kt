@@ -36,6 +36,6 @@ class BanCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("ban
     }
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return "**.ban** - Ban a player if their influence is 0"
+        return "**.ban** - Ban a member if their influence is 0"
     }
 }

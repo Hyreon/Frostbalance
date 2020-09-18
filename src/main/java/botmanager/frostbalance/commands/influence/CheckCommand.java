@@ -175,7 +175,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
         if (isPublic) {
-            return "**" + getBot().getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in this guild; result is posted in this channel";
+            return "**" + getBot().getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in this guild; result is posted in the same channel";
         } else {
             return "**" + getBot().getPrefix() + "check** PLAYER - sends a request to a player to see who has more influence in a guild; result is posted privately to both players";
         }

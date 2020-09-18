@@ -32,7 +32,7 @@ class ImplicitSubscription(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arra
 
     public override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
         return if (isPublic) {
-            "type in chat to gain influence gradually (0.05 per minute with a message); this is capped to 1.00 and does not stack with `.daily`."
+            "type in chat to update your subscriptions."
         } else {
             null
         }

@@ -25,6 +25,6 @@ public class AllegianceCommand extends FrostbalanceGuildCommand {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + getMainAlias() + "** - shows the allegiance menu, allowing you to change your national loyalty.";
+        return "**." + getMainAlias() + "** - shows the allegiance menu, allowing you to change your national loyalty.";
     }
 }

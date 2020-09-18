@@ -32,6 +32,6 @@ class PardonCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("
     }
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return "**.ban** - Ban a player if their influence is 0"
+        return "**.pardon** - Pardon a previously banned member"
     }
 }

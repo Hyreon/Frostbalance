@@ -5,6 +5,7 @@ import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
 import botmanager.frostbalance.command.MessageContext;
+import org.jetbrains.annotations.NotNull;
 
 public class GetInfluenceCommand extends FrostbalanceCommand {
 
@@ -112,19 +113,12 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
     }
 
     @Override
-    public String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        if (isPublic && authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
-            return ""
-                    + "**" + getBot().getPrefix() + "influence USER** - sends the influence of another user\n"
-                    + "**" + getBot().getPrefix() + "influence** - sends your influence on this server via PM";
-        } else if (!isPublic && authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
+    public String info(@NotNull AuthorityLevel authorityLevel, boolean isPublic) {
+        if (authorityLevel.hasAuthority(AuthorityLevel.BOT_ADMIN)) {
             return ""
                     + "**" + getBot().getPrefix() + "influence USER** - sends the influence of another user\n"
                     + "**" + getBot().getPrefix() + "influence** - sends your influence on your default server\n" +
                     "**" + getBot().getPrefix() + "influence ALL** - sends your influence on all servers";
-        } else if (isPublic) {
-            return ""
-                    + "**" + getBot().getPrefix() + "influence** - sends your influence on this server via PM";
         } else {
             return ""
                     + "**" + getBot().getPrefix() + "influence** - sends your influence on your default server\n" +
