@@ -14,7 +14,7 @@ class UnclaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val grantAmount = argumentStream.nextInfluence()
                 ?: return context.sendResponse("The amount '${argumentStream.lastArgument}' wasn't recognized as a valid influence amount.")
 
-        if (claimData.getClaim(context.player, context.player.allegiance)?.strength?.let { it < grantAmount} == true ) {
+        if (claimData.getClaim(context.player, context.player.allegiance)?.investedStrength?.let { it < grantAmount} != false) {
             return context.sendResponse("You don't have $grantAmount of territory to remove on this tile! Make sure it's right one, " +
                     "and that you haven't changed allegiance.")
         }

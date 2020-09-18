@@ -340,28 +340,17 @@ public class Utilities {
         }
     }
 
-    public static int triangulate(double value) {
-        assert value >= 0;
-        return triangulateIteration(value, 0);
-    }
-
-    private static int triangulateIteration(double value, int step) {
-        if (value >= step) {
-            return triangulateIteration(value - step, step + 1);
-        }
-        return step;
-    }
-
     public static double triangulateWithRemainder(double value) {
-        assert value >= 0;
+        if (value < 0) throw new IllegalArgumentException("Tried to make an illegal negative triangle!");
         return triangulateWithRemainderIteration(value, 0);
     }
 
     private static double triangulateWithRemainderIteration(double value, int step) {
-        if (value >= step + 1) {
+        if (value < step + 1) {
+            return step + (value / (step + 1.0));
+        } else {
             return triangulateWithRemainderIteration(value - (step + 1), step + 1);
         }
-        return step + (value / (step + 1.0));
     }
 
     /**

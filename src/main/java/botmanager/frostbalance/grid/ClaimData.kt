@@ -43,7 +43,9 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                 return claim
             }
         }
-        return Claim(player.character, nation, strength)
+        if (tile.location == player.character.location)
+            return Claim(player.character, nation, strength)
+        else throw IllegalStateException("Attempting to claim a tile for ${player.name} that they aren't on!")
     }
 
     fun addClaim(member: MemberWrapper, strength: Influence): Claim {
@@ -57,7 +59,7 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
     fun addClaim(newClaim: Claim): Claim {
         updateCacheTime()
         for (claim in claims) {
-            require(!newClaim.overlaps(claim)) { "This claim overlaps an existing claim!" }
+            require(!newClaim.overlaps(claim)) { "This claim overlaps an existing claim! $claim" }
         }
         claims.add(newClaim)
         return newClaim

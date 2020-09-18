@@ -22,6 +22,10 @@ class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, array
             val influenceOnTile = claimData.getClaim(context.player, context.guild.nation)?.strength
                     ?: Influence.none()
 
+            if (claimData.tile.location != context.player.character.location && influenceOnTile < grantAmount) {
+                return@ConfirmationMenu context.sendResponse("Your $influenceOnTile influence on this tile isn't enough to grant $grantAmount. You need to walk to this tile to grant more.")
+            }
+
             if (influenceOnTile + context.member.influence < grantAmount) {
                 context.sendPrivateResponse("You don't have enough influence to grant this tile! Attempting to do so will spend **ALL** of your influence, and everyone will know you did this!")
             }
