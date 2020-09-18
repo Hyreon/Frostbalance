@@ -63,7 +63,6 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     open fun updateMessage() {
         val me = activeMenu.messageEmbed
         editAndSetMessage(me)
-        smartUpdateEmojis()
     }
 
     private fun editAndSetMessage(me: MessageEmbed) {
@@ -72,9 +71,15 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             me.image!!.url!!.contains("attachment://")) {
             val fileName = me.image!!.url!!.replace("attachment://", "")
             originalMenu.message!!.delete().queue()
-            originalMenu.message = originalMenu.message!!.channel.sendFile(File(fileName)).embed(me).complete()
+            originalMenu.message!!.channel.sendFile(File(fileName)).embed(me).queue {
+                originalMenu.message = it
+                smartUpdateEmojis()
+            }
         } else {
-            originalMenu.message = originalMenu.message!!.editMessage(me).complete()
+            originalMenu.message!!.editMessage(me).queue {
+                originalMenu.message = it
+                smartUpdateEmojis()
+            }
         }
     }
 
