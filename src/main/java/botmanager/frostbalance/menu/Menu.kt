@@ -101,14 +101,14 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
                 }
                 clearEvent?.queue()
             } else {
-                message?.clearReactions()?.queue()
+                originalMenu.message?.clearReactions()?.queue()
             }
         } else {
             if (isClosed) {
                 for (menuResponse in activeMenu.menuResponses) {
                     originalMenu.message!!.removeReaction(menuResponse.emoji).queue()
                 }
-            } else if (!message!!.isEdited) {
+            } else if (!originalMenu.message!!.isEdited) {
                 for (menuResponse in activeMenu.menuResponses) {
                     //TODO don't try to add reactions if the message has been deleted.
                     originalMenu.message!!.addReaction(menuResponse.emoji).queue()
@@ -118,9 +118,9 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     }
 
     private fun rewriteEmojis() {
-        if (message == null) return
+        if (originalMenu.message == null) return
         if (activeMenu.context.isPublic) {
-            message!!.clearReactions().queue()
+            originalMenu.message!!.clearReactions().queue()
             if (!isClosed) {
                 for (menuResponse in activeMenu.menuResponses) {
                     if (menuResponse.isValid) {
@@ -134,7 +134,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
                 for (menuResponse in activeMenu.menuResponses) {
                     originalMenu.message!!.removeReaction(menuResponse.emoji).queue()
                 }
-            } else if (!message!!.isEdited) {
+            } else if (!originalMenu.message!!.isEdited) {
                 for (menuResponse in activeMenu.menuResponses) {
                     //TODO don't try to add reactions if the message has been deleted.
                     originalMenu.message!!.addReaction(menuResponse.emoji).queue()
