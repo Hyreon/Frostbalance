@@ -201,7 +201,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         }.invoke()
 
     val leaderAsMember: Member?
-        get() = leaderId?.let { bot.getMemberWrapper(it, id).member }
+        get() = leaderId?.let { bot.getMemberWrapper(it, id).jdaMember }
 
     companion object {
         val Guild.wrapper: GuildWrapper
@@ -228,6 +228,12 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         return members.firstOrNull { member -> member.effectiveName.equals(name, ignoreCase = true)}
     }
 
+    fun allows(player: Player?): Boolean {
+        return player?.allegiance == nation || guildOptions.openBorders!!
+    }
+
+    val notAllowed: String
+        get() = ":passport_control: $name has closed its borders. You cannot gain influence unless you have allegiance here."
 
     val MutableSet<OldOptionFlag>.legacyNation: Nation?
         get() = when {

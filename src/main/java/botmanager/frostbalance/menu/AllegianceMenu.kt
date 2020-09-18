@@ -16,7 +16,7 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Messa
             if (cause == Cause.NOT_SET) {
                 builder.setDescription("You will now claim tiles in the name of " + actor!!.playerIn(context.gameNetwork).allegiance + ". You may now make claims.")
             } else if (cause == Cause.CHANGE) {
-                builder.setDescription("Your allegiance has been moved to " + actor!!.playerIn(context.gameNetwork).allegiance)
+                builder.setDescription("Your allegiance has been moved to " + actor!!.playerIn(context.gameNetwork).allegiance + ".")
             }
             builder.setColor(actor!!.playerIn(context.gameNetwork).allegiance?.color ?: Color.GRAY)
         } else {

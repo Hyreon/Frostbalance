@@ -13,6 +13,11 @@ class DailyRewardCommand(bot: Frostbalance?) : FrostbalanceGuildCommand(bot, arr
 ), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
     var hours = SimpleDateFormat("HH")
     public override fun executeWithGuild(context: GuildMessageContext, params: Array<String>) {
+
+        if (!context.guild.allows(context.player)) {
+            return context.sendResponse(context.guild.notAllowed)
+        }
+
         val gain = context.member.gainDailyInfluence()
         if (gain.value > 0) {
             context.sendResponse(context.member.effectiveName + ", your influence increases in " + context.guild.name + ".")

@@ -27,7 +27,7 @@ class DoubleMenu(bot: Frostbalance, context: MessageContext,
 
     override val embedBuilder: EmbedBuilder
         get() {
-            return EmbedBuilder()
+            return super.embedBuilder
                     .setTitle(title)
                     .setDescription(description)
         }

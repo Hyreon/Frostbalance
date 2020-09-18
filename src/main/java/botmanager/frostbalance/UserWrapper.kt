@@ -22,7 +22,10 @@ import java.util.*
 class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Frostbalance> {
 
     val authority: AuthorityLevel
-     get() = minimumAuthorityLevel
+     get() {
+         return if (id == jda.selfUser.id) AuthorityLevel.SELF
+         else minimumAuthorityLevel
+     }
 
     @Transient
     var bot: Frostbalance = bot
@@ -96,6 +99,10 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         return guild.jdaGuild?.getMemberById(id)?.wrapper
     }
 
+    fun memberIfWasIn(guild: GuildWrapper): MemberWrapper? {
+        return memberReference.find { member: MemberWrapper -> member.guildId == guild.id }
+    }
+
     val jdaUser: User?
         get() = jda.getUserById(id)
     val defaultGuild: GuildWrapper?
@@ -121,7 +128,7 @@ class UserWrapper(bot: Frostbalance, userId: String) : Container, Containable<Fr
         globallyBanned = true
         for (member in memberReference) {
             try {
-                jdaUser?.let{ member.member?.guild?.ban(it, 0)?.queue() }
+                jdaUser?.let{ member.jdaMember?.guild?.ban(it, 0)?.queue() }
             } catch (e: HierarchyException) {
                 System.err.println("Unable to fully ban user " + member.effectiveName + " because they have admin privileges in some servers!")
                 e.printStackTrace()

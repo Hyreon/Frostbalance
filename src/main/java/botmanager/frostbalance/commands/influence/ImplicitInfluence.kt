@@ -18,14 +18,13 @@ class ImplicitInfluence(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arrayOf
     var minuteMembers: ArrayList<Member?>
     var cachedDate: String
     override fun run(genericEvent: Event) {
-        val event: GuildMessageReceivedEvent
         val guild: Guild
         val member: Member?
         val date = sdf.format(Date())
         if (genericEvent !is GuildMessageReceivedEvent) {
             return
         }
-        event = genericEvent
+        val event: GuildMessageReceivedEvent = genericEvent
         guild = event.guild
         member = event.member
         if (cachedDate != date) {
@@ -36,6 +35,10 @@ class ImplicitInfluence(bot: Frostbalance?) : FrostbalanceCommand(bot!!, arrayOf
             if (guild.id == minuteMember!!.guild.id && member!!.id == minuteMember.id) {
                 return
             }
+        }
+        if (!bot.getGuildWrapper(guild.id).allows(
+                bot.getUserWrapper(event.author.id).playerIn(bot.getGuildWrapper(guild.id).gameNetwork))) {
+            return //this is an influence gain
         }
         bot.getMemberWrapper(event.author.id, event.guild.id).gainDailyInfluence(Influence(0.05))
         minuteMembers.add(member)

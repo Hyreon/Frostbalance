@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -361,5 +362,24 @@ public class Utilities {
             return triangulateWithRemainderIteration(value - (step + 1), step + 1);
         }
         return step + (value / (step + 1.0));
+    }
+
+    /**
+     * Returns whether the given string can be coerced into a number.
+     * Non-numeric double values like NaN and infinities are not valid
+     * and will return false.
+     * @param string The string to test
+     * @return true if the given string can be coerced into a number
+     */
+    public static boolean isNumber(@NotNull String string) {
+        try {
+            double d = Double.parseDouble(string);
+            if (d == Double.NEGATIVE_INFINITY) return false;
+            if (d == Double.POSITIVE_INFINITY) return false;
+            if (Double.isNaN(d)) return false;
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }

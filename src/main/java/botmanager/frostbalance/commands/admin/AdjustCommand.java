@@ -38,7 +38,7 @@ public class AdjustCommand extends FrostbalanceGuildCommand {
         }
 
         name = Utilities.combineArrayStopAtIndex(params, params.length - 1);
-        UserWrapper bUser = getBot().getUserByName(name);
+        UserWrapper bUser = getBot().getUserByName(name, context.getGuild());
 
         if (bUser == null) {
             context.sendResponse("Couldn't find user '" + name + "'.");

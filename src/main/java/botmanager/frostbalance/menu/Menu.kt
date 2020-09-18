@@ -46,13 +46,18 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         bot.addMenu(this)
         this.actor = actor
         val me = messageEmbed
-        message = if (me.image != null && me.image!!.url!!.contains("attachment://")) {
+        if (me.image != null && me.image!!.url!!.contains("attachment://")) {
             val fileName = me.image!!.url!!.replace("attachment://", "")
-            channel.sendFile(File(fileName)).embed(me).complete()
+            channel.sendFile(File(fileName)).embed(me).queue {
+                message = it
+                smartUpdateEmojis()
+            }
         } else {
-            channel.sendMessage(me).complete()
+            channel.sendMessage(me).queue {
+                message = it
+                smartUpdateEmojis()
+            }
         }
-        smartUpdateEmojis()
     }
 
     open fun updateMessage() {

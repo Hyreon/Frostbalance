@@ -31,6 +31,7 @@ public class MapMenu extends Menu {
         super(bot, context);
         this.map = context.getGameNetwork().getWorldMap();
         this.player = context.getPlayer().getCharacter();
+        this.zoomFactor = context.getAuthor().getUserOptions().getZoomSize();
 
         menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.NORTH));
         menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.NORTHEAST));

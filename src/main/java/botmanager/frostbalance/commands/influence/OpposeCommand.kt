@@ -63,7 +63,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             }
             refundAmount = transferAmount.subtract(reduceAmount)
             if (refundAmount.nonZero) {
-                resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                context.sendPrivateResponse("You have been refunded $refundAmount that would have gone unused.")
                 bMember.adjustInfluence(refundAmount)
             }
             return context.sendMultiLineResponse(resultLines)

@@ -14,7 +14,7 @@ class BooleanMenu(bot: Frostbalance, context: MessageContext,
     : Menu(bot, context) {
 
     init {
-        menuResponses.add(object : MenuResponse("✅", "Confirm") {
+        menuResponses.add(object : MenuResponse("✅", "Yes") {
             override fun reactEvent() {
                 accept()
                 close(false)
@@ -24,7 +24,7 @@ class BooleanMenu(bot: Frostbalance, context: MessageContext,
                 get() = true
         })
 
-        menuResponses.add(object : MenuResponse("❎", "Cancel") {
+        menuResponses.add(object : MenuResponse("❎", "No") {
             override fun reactEvent() {
                 deny()
                 close(false)

@@ -42,7 +42,8 @@ abstract class ListMenu<T>(bot: Frostbalance, context: MessageContext, protected
                 closeAll(false)
             }
 
-            override val isValid = true
+            override val isValid: Boolean
+                    get() = this@ListMenu.parent == null
         })
 
     }

@@ -46,7 +46,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
-    public val networkList: List<GameNetwork>
+    val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
 
     var mainNetwork: GameNetwork
@@ -705,28 +705,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     fun getGameNetwork(id: String): GameNetwork {
         Objects.requireNonNull(id)
         var gameNetwork = gameNetworks.firstOrNull { gameInstance ->
-            println(gameInstance.id)
             gameInstance.id == id
         }
         if (gameNetwork == null) {
             gameNetwork = GameNetwork(this, id)
             gameNetworks.add(gameNetwork)
         }
-        if (gameNetwork.id == "728433077814165565") println(Thread.dumpStack())
         return gameNetwork
     }
 
     fun getUserByName(targetName: String, guild: GuildWrapper?): UserWrapper? {
         return guild?.let { userWrappers.firstOrNull { user -> user.memberIfIn(it)?.effectiveName == targetName }}
-                ?: userWrappers.firstOrNull { user -> user.name == targetName }
-    }
-
-    /**
-     * Returns a newly created (and therefore safe instance) of
-     * all guilds containing this map.
-     */
-    fun getNetworkByMap(map: WorldMap) : GameNetwork {
-        return gameNetworks.first { network -> network.worldMap == map }
+                ?: userWrappers.firstOrNull { user -> println(user.name); user.name == targetName }
     }
 
     companion object {

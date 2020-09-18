@@ -25,7 +25,7 @@ class NetworkSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Men
                 redirectTo(object : OptionMenu<String>(bot, context, listOf(context.guild.name)) {
 
                     init {
-                        hook(object : SimpleTextHook(this, "Or, get name...") {
+                        hook(object : SimpleTextHook(this, "*Or, type name...*") {
 
                             override fun hookEvent(hookContext: MessageContext) {
                                 hookContext.gameNetwork.id = hookContext.message.contentStripped

@@ -1,14 +1,10 @@
 package botmanager.frostbalance.commands.influence;
 
-import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.MemberWrapper;
-import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.*;
 import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
-import net.dv8tion.jda.api.entities.Guild;
+import botmanager.frostbalance.command.MessageContext;
 
 public class GetInfluenceCommand extends FrostbalanceCommand {
 
@@ -20,26 +16,42 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
 
     @Override
     protected void execute(MessageContext context, String... params) {
-        String result, publicPost;
+        StringBuilder result;
+        String publicPost;
 
         UserWrapper bUser = context.getAuthor();
 
         if (context.getGuild() == null || (params.length >= 1 && params[0].equalsIgnoreCase("all"))) {
 
-            result = "Influence in all guilds:" + "\n";
+            result = new StringBuilder("Influence in all guilds:" + "\n");
 
-            for (Guild guild : context.getJDA().getGuilds()) {
+            for (GameNetwork gameNetwork : getBot().getNetworkList()) {
 
-                MemberWrapper bMember = context.getAuthor().memberIn(guild.getId());
+                if (gameNetwork.getAssociatedGuilds().isEmpty()) continue;
+                if (context.getAuthor().playerIfIn(gameNetwork) == null) continue;
 
-                result += "**" + guild.getName() + "**: " + bMember.getInfluence();
+                result.append("__").append(gameNetwork.getId()).append("__\n");
 
-                Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
-                if (remaining.getNonZero()) {
-                    result += " (**+" + String.format("%s", remaining) + "** from unclaimed daily)";
+                for (GuildWrapper guild : gameNetwork.getAssociatedGuilds()) {
+
+                    MemberWrapper bMember = context.getAuthor().memberIfIn(guild);
+                    if (bMember == null) continue;
+
+                    result.append("**").append(guild.getName()).append("**: ").append(bMember.getInfluence());
+
+                    Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
+                    if (remaining.getNonZero()) {
+                        if (guild.allows(context.getAuthor().playerIn(context.getGameNetwork()))) {
+                            result.append(" (**+").append(String.format("%s", remaining)).append("** from unclaimed daily)");
+                        } else {
+                            result.append(" (:passport_control: cannot gain influence)");
+                        }
+                    }
+
+                    result.append("\n");
+
                 }
 
-                result += "\n";
             }
 
             publicPost = "Your influence for all servers has been sent to you via PM.";
@@ -48,11 +60,11 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
 
             if (params.length > 0) {
                 if (context.getAuthority().hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-                    bUser = getBot().getUserByName(String.join(" ", params));
+                    bUser = getBot().getUserByName(String.join(" ", params), context.getGuild());
 
                     if (bUser == null) {
-                        result = "Could not find user '" + String.join(" ", params) + "'.";
-                        context.sendResponse(result);
+                        result = new StringBuilder("Could not find user '" + String.join(" ", params) + "'.");
+                        context.sendResponse(result.toString());
                         return;
                     } else {
                         publicPost = "This user's influence has been sent to you via PM.";
@@ -71,20 +83,24 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
 
             if (bUser.equals(context.getAuthor())) {
                 if (influence.getValue() <= 0) {
-                    result = "You have *no* influence in **" + context.getGuild().getName() + "**.";
+                    result = new StringBuilder("You have *no* influence in **" + context.getGuild().getName() + "**.");
                 } else {
-                    result = "You have **" + influence + "** influence in **" + context.getGuild().getName() + "**.";
+                    result = new StringBuilder("You have **" + influence + "** influence in **" + context.getGuild().getName() + "**.");
                 }
             } else {
                 if (influence.getValue() <= 0) {
-                    result = bMember.getEffectiveName() + " has *no* influence in **" + context.getGuild().getName() + "**.";
+                    result = new StringBuilder(bMember.getEffectiveName() + " has *no* influence in **" + context.getGuild().getName() + "**.");
                 } else {
-                    result = bMember.getEffectiveName() + " has **" + influence + "** influence in **" + context.getGuild().getName() + "**.";
+                    result = new StringBuilder(bMember.getEffectiveName() + " has **" + influence + "** influence in **" + context.getGuild().getName() + "**.");
                 }
             }
 
             if (remaining.getNonZero()) {
-                result += " (**+" + remaining + "** from unclaimed daily)";
+                if (context.getGuild().allows(context.getAuthor().playerIn(context.getGameNetwork()))) {
+                    result.append(" (**+").append(String.format("%s", remaining)).append("** from unclaimed daily)");
+                } else {
+                    result.append(" (:passport_control: cannot gain influence)");
+                }
             }
 
         }
@@ -92,7 +108,7 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
         if (context.isPublic()) {
             context.sendResponse(publicPost);
         }
-        context.sendPrivateResponse(result);
+        context.sendPrivateResponse(result.toString());
     }
 
     @Override
