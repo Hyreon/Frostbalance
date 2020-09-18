@@ -25,7 +25,7 @@ class UnevictCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
     }
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return "**.evict LOCATION PLAYER** - evict someone from their land"
+        return "**.unevict LOCATION PLAYER** - undo the damage of a previous eviction"
     }
 
 }
