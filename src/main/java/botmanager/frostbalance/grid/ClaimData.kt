@@ -109,9 +109,9 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
     }
 
     fun transferToClaim(member: MemberWrapper, targetPlayer: Player, grantAmount: Influence) {
-        assert(getClaim(member) != null) { "Could not find any claim belonging to the specified member!" }
         updateCacheTime()
-        getClaim(member)!!.transferToClaim(targetPlayer, grantAmount)
+        assert(getClaim(member) != null) { "Could not find any claim belonging to the specified member!" }
+        println("Amount of influence actually given to target: ${getClaim(member)!!.transferToClaim(targetPlayer, grantAmount)}")
     }
 
     /**
@@ -407,15 +407,15 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
             nationalCompetition = "(" + join(", ", nationalCompetitors) + ")"
         }
         var claims = this.claims.toMutableList()
-                .filter { it.getNation() == owningNation
-                        && it.player != owningPlayer}
+                .filter { it.getNation() != owningNation
+                        || it.player != owningPlayer}
                 .sortedByDescending {
                     it.getStrength().thousandths
                 }
         if (claims.size > 3) {
             claims = claims.subList(0, 3)
         }
-        val claimDisplays = claims.stream().map { x: Claim? -> x.toString() }.collect(Collectors.toList())
+        val claimDisplays = claims.stream().map { x: Claim -> x.nation.emoji + " " + x.toString() }.collect(Collectors.toList())
         return join("\n", listOfNotNull(displaySimple, nationalCompetition) + claimDisplays)
     }
 

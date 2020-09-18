@@ -22,14 +22,23 @@ class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, array
             val influenceOnTile = claimData.getClaim(context.player, context.guild.nation)?.strength
                     ?: Influence.none()
 
+            if (influenceOnTile + context.member.influence < grantAmount) {
+                context.sendPrivateResponse("You don't have enough influence to grant this tile! Attempting to do so will spend **ALL** of your influence, and everyone will know you did this!")
+            }
+
             ConfirmationMenu(bot, context, {
 
-                if (influenceOnTile < grantAmount) {
-                    claimData.addClaim(context.player, grantAmount.subtract(influenceOnTile))
+                val effectiveGrantAmount: Influence = if (influenceOnTile < grantAmount) {
+                    val intendedChange = grantAmount.subtract(influenceOnTile)
+                    val amountToChange = intendedChange.subtract(context.member.adjustInfluence(intendedChange.negate()))
+                    claimData.addClaim(context.member, amountToChange)
+                    amountToChange
+                } else {
+                    grantAmount
                 }
 
-                claimData.transferToClaim(context.member, targetPlayer, grantAmount)
-                context.sendResponse("You have given ${targetPlayer.name} $grantAmount influence at ${claimData.tile.location}.")
+                claimData.transferToClaim(context.member, targetPlayer, effectiveGrantAmount)
+                context.sendResponse("You have given ${targetPlayer.name} $effectiveGrantAmount influence at ${claimData.tile.location}.")
 
             }, "Your $influenceOnTile influence on this tile isn't enough to grant $grantAmount. Do you want to spend influence " +
                     "to complete this?")
