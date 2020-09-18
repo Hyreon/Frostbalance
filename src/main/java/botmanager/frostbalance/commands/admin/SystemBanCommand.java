@@ -23,7 +23,7 @@ public class SystemBanCommand extends FrostbalanceGuildCommand {
         String result = "";
         boolean found = false;
         String targetName = String.join(" ", params);
-        UserWrapper targetUser = getBot().getUserByName(targetName);
+        UserWrapper targetUser = getBot().getUserByName(targetName, context.getGuild());
 
         if (targetUser == null) {
             result += "Could not find user " + targetName + ".";

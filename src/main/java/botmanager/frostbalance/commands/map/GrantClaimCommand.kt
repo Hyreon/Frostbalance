@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.map
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 
 class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("grant"), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
@@ -14,13 +14,17 @@ class GrantClaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, array
                 ?: return context.sendResponse("Could not recognize location '${argumentStream.lastArgument}'.")
         val grantAmount = argumentStream.nextInfluence()
                 ?: return context.sendResponse("The amount '${argumentStream.lastArgument}' wasn't recognized as a valid influence amount.")
-        val targetPlayer = bot.getUserByName(argumentStream.exhaust())?.playerIn(context.gameNetwork)
+        val targetPlayer = bot.getUserByName(argumentStream.exhaust(), context.guild)?.playerIn(context.gameNetwork)
                 ?: return context.sendResponse("Could not find player '${argumentStream.lastArgument}'.")
 
         ConfirmationMenu(bot, context, {
 
             val influenceOnTile = claimData.getClaim(context.player, context.guild.nation)?.strength
                     ?: Influence.none()
+
+            if (claimData.tile.location != context.player.character.location && influenceOnTile < grantAmount) {
+                return@ConfirmationMenu context.sendResponse("Your $influenceOnTile influence on this tile isn't enough to grant $grantAmount. You need to walk to this tile to grant more.")
+            }
 
             if (influenceOnTile + context.member.influence < grantAmount) {
                 context.sendPrivateResponse("You don't have enough influence to grant this tile! Attempting to do so will spend **ALL** of your influence, and everyone will know you did this!")

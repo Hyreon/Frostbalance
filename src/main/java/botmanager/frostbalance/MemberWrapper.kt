@@ -21,13 +21,13 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
                 jdaGuild?.owner?.user?.id == userId -> {
                     AuthorityLevel.GUILD_OWNER
                 }
-                member?.roles?.contains(guildWrapper.systemRole) ?: false -> {
+                jdaMember?.roles?.contains(guildWrapper.systemRole) ?: false -> {
                     AuthorityLevel.GUILD_ADMIN
                 }
-                member?.roles?.contains(guildWrapper.leaderRole) ?: false -> {
+                jdaMember?.roles?.contains(guildWrapper.leaderRole) ?: false -> {
                     AuthorityLevel.NATION_LEADER
                 }
-                member?.hasPermission(Permission.KICK_MEMBERS) ?: false -> {
+                jdaMember?.hasPermission(Permission.KICK_MEMBERS) ?: false -> {
                     AuthorityLevel.NATION_SECURITY
                 }
                 else -> {
@@ -111,7 +111,7 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
 
     val effectiveName: String
         get() {
-            val nickname = member?.nickname
+            val nickname = jdaMember?.nickname
             if (nickname != null) {
                 lastKnownNickname = nickname
             }
@@ -123,10 +123,10 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
      * @return The member if extant, or null if the bot has been removed from the relevant guild,
      * or the relevant player has left from it.
      */
-    val member: Member?
+    val jdaMember: Member?
         get() = jda.getGuildById(guildId)?.getMemberById(userId)
     val online: Boolean
-        get() = member != null
+        get() = jdaMember != null
 
     /**
      * Returns the player instance that is a part of this member's guild's network.
@@ -208,6 +208,10 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
 
     fun softBanHandler(): RestAction<Guild.Ban>? {
         return guildWrapper.jdaGuild?.retrieveBanById(userId)
+    }
+
+    fun isAuthority(authority: AuthorityLevel): Boolean {
+        return this.authority == authority
     }
 
 }

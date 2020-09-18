@@ -7,7 +7,7 @@ import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildMessageContext;
-import botmanager.frostbalance.menu.ConfirmationMenu;
+import botmanager.frostbalance.menu.input.ConfirmationMenu;
 import net.dv8tion.jda.api.entities.Member;
 
 public class InaugurateCommand extends FrostbalanceGuildCommand {
@@ -39,7 +39,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommand {
             return;
         }
 
-        UserWrapper targetUser = getBot().getUserByName(targetName);
+        UserWrapper targetUser = getBot().getUserByName(targetName, context.getGuild());
 
         if (targetUser == null) {
             result = "Couldn't find user '" + targetName + "'.";
@@ -56,7 +56,7 @@ public class InaugurateCommand extends FrostbalanceGuildCommand {
         }
 
         if (targetMember.hasAuthority(AuthorityLevel.GUILD_ADMIN)) {
-            if (targetMember.hasAuthority(AuthorityLevel.BOT)) {
+            if (targetMember.hasAuthority(AuthorityLevel.SELF)) {
                 result = "A very generous offer, but I can't accept.";
             } else {
                 result = "Staff members are prohibited from getting server ownership through transfer.";
@@ -67,12 +67,12 @@ public class InaugurateCommand extends FrostbalanceGuildCommand {
 
         new ConfirmationMenu(getBot(), context, () -> {
 
-            context.getGuild().inaugurate(targetMember.getMember());
+            context.getGuild().inaugurate(targetMember.getJdaMember());
 
             context.sendResponse("**" + authorAsMember.getEffectiveName() + "** has transferred ownership to " +
-                    targetMember.getMember().getAsMention() + " for this server.");
+                    targetMember.getJdaMember().getAsMention() + " for this server.");
 
-        }, "This will remove all of your abilities as leader, and grant those abilities to " + targetMember.getMember().getAsMention() + ".\nAre you sure?");
+        }, "This will remove all of your abilities as leader, and grant those abilities to " + targetMember.getJdaMember().getAsMention() + ".\nAre you sure?");
 
     }
 }

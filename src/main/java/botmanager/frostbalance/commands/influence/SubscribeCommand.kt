@@ -15,6 +15,11 @@ class SubscribeCommand(bot: Frostbalance?) : FrostbalanceGuildCommand(bot, array
         "weekly"
 ), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
+
+        if (!context.guild.allows(context.player)) {
+            return context.sendResponse(context.guild.notAllowed)
+        }
+
         if (context.member.subscribed) {
 
             context.member.renewSubscription()

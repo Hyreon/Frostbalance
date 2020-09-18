@@ -5,7 +5,7 @@ import botmanager.frostbalance.command.AuthorityLevel;
 import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.command.ContextLevel;
 import botmanager.frostbalance.command.FrostbalanceCommand;
-import botmanager.frostbalance.menu.ConfirmationMenu;
+import botmanager.frostbalance.menu.input.ConfirmationMenu;
 
 public class LoadLegacyCommand extends FrostbalanceCommand {
 

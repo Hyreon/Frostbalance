@@ -39,7 +39,13 @@ class ArgumentStream(var arguments: MutableList<String>) {
      * @param positive Whether the influence has to be positive or not
      */
     fun nextInfluence(positive: Boolean = false): Influence? {
-        return next()?.let { next -> lastArgument = next; Influence(next).takeIf { it > 0} }
+        return next()?.let { next -> lastArgument = next
+            return try {
+                Influence(next).takeIf { it > 0}
+            } catch (e: NumberFormatException) {
+                null
+            }
+        }
     }
 
     fun nextHexDomain(): HexDomain? {
@@ -59,7 +65,11 @@ class ArgumentStream(var arguments: MutableList<String>) {
         val x: String = coords.getOrNull(0) ?: return null
         val y: String = coords.getOrNull(1)  ?: return null
         val z: String = coords.getOrNull(2)  ?: return null
-        return Hex(x.toLong(), y.toLong(), z.toLong())
+        return try {
+            Hex(x.toLong(), y.toLong(), z.toLong())
+        } catch (e: NumberFormatException) {
+            null
+        }
     }
 
 }

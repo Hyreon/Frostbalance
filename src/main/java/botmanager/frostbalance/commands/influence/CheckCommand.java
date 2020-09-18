@@ -47,7 +47,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
             return;
         }
 
-        targetUser = getBot().getUserByName(message);
+        targetUser = getBot().getUserByName(message, context.getGuild());
 
         if (targetUser == null) {
             result = "Couldn't find user '" + message + "'.";
@@ -59,7 +59,7 @@ public class CheckCommand extends FrostbalanceGuildCommand {
         menu.send(context.getChannel(), targetUser);
         addToCheckCache((TextChannel) context.getChannel(), menu);
 
-        if (targetUser.memberIn(context.getGuild()).hasAuthority(AuthorityLevel.BOT)) {
+        if (targetUser.memberIn(context.getGuild()).hasAuthority(AuthorityLevel.SELF)) {
             result = "Uh, sure?";
             context.sendResponse(result);
             menu.PERFORM_CHECK.applyReaction();

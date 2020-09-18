@@ -5,9 +5,9 @@ import botmanager.frostbalance.menu.Menu
 
 abstract class SimpleTextHook(menu: Menu, string: String) : MenuTextHook(menu, string) {
 
-    override fun isValid(context: MessageContext): Boolean {
-        return context.channel == menu.originalMenu.message?.channel &&
-                context.author == menu.originalMenu.actor
+    override fun isValid(hookContext: MessageContext): Boolean {
+        return hookContext.channel == menu.originalMenu.message?.channel &&
+                hookContext.author == menu.originalMenu.actor
     }
 
 }

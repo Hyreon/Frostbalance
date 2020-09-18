@@ -48,7 +48,7 @@ public enum AuthorityLevel {
     /**
      * Possessed by the Bot itself. There is no higher level of authority.
      */
-    BOT(8);
+    SELF(8);
 
     int rank;
 

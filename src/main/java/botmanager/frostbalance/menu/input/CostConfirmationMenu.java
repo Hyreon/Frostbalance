@@ -1,4 +1,4 @@
-package botmanager.frostbalance.menu;
+package botmanager.frostbalance.menu.input;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;

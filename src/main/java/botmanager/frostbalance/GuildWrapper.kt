@@ -2,6 +2,7 @@ package botmanager.frostbalance
 
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance.Companion.bot
+import botmanager.frostbalance.flags.GuildOptions
 import botmanager.frostbalance.records.RegimeData
 import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
@@ -20,6 +21,8 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
 
     constructor(gameNetwork: GameNetwork, guild: Guild) : this(gameNetwork, guild.id)
+
+    var guildOptions = GuildOptions(this)
 
     val members: Collection<MemberWrapper>
         get() = bot.userWrappers.mapNotNull { user -> user.memberIfIn(this) }
@@ -57,6 +60,10 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
 
     override fun adopt() {
         regimes.forEach { regime -> regime.setParent(this) }
+        if (guildOptions == null) {
+            guildOptions = GuildOptions(this)
+        }
+        guildOptions.setParent(this)
     }
 
     fun isOnline(): Boolean {
@@ -194,7 +201,7 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         }.invoke()
 
     val leaderAsMember: Member?
-        get() = leaderId?.let { bot.getMemberWrapper(it, id).member }
+        get() = leaderId?.let { bot.getMemberWrapper(it, id).jdaMember }
 
     companion object {
         val Guild.wrapper: GuildWrapper
@@ -221,6 +228,12 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
         return members.firstOrNull { member -> member.effectiveName.equals(name, ignoreCase = true)}
     }
 
+    fun allows(player: Player?): Boolean {
+        return player?.allegiance == nation || guildOptions.openBorders!!
+    }
+
+    val notAllowed: String
+        get() = ":passport_control: $name has closed its borders. You cannot gain influence unless you have allegiance here."
 
     val MutableSet<OldOptionFlag>.legacyNation: Nation?
         get() = when {

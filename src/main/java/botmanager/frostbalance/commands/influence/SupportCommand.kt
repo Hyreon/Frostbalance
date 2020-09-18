@@ -3,7 +3,7 @@ package botmanager.frostbalance.commands.influence
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 import java.lang.NumberFormatException
 import java.util.*
 
@@ -18,7 +18,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val resultLines: MutableList<String> = ArrayList()
         val bMember = context.member!!
         val targetName = arguments.exhaust(1)
-        val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
+        val targetMember = bot.getUserByName(targetName, context.guild)?.memberIfIn(context.guild)
         if (targetMember == null) {
             resultLines.add("Could not find user '$targetName'.")
             context.sendMultiLineResponse(resultLines)
@@ -71,7 +71,7 @@ class SupportCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     bMember.adjustInfluence(transferAmount)
                 }
                 context.sendMultiLineResponse(resultLines)
-            }, "Are you sure you want to support ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER*100}% of your influence will be used.")
+            }, "Are you sure you want to support ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER * 100}% of your influence will be used.")
                     .send(context.channel, context.author)
         }
         return

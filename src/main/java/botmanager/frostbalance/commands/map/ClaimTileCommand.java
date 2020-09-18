@@ -7,7 +7,8 @@ import botmanager.frostbalance.command.*;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.menu.AllegianceMenu;
-import botmanager.frostbalance.menu.ConfirmationMenu;
+import botmanager.frostbalance.menu.input.ConfirmationMenu;
+import botmanager.frostbalance.menu.response.MenuResponse;
 
 public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
@@ -64,14 +65,40 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
         } else {
 
             Influence finalAmount = amount;
+
+            Nation nation = context.getGuild().getNation();
+
             new ConfirmationMenu(getBot(), context, () -> {
                 context.getMember().adjustInfluence(finalAmount.negate());
                 character.getTile().getClaimData().addClaim(context.getMember(), finalAmount);
 
                 context.sendResponse("You have added " + String.format("%s", finalAmount) + " to this nations' claim on this tile.\n" +
                         character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
-            }, "Your allegiance isn't to the nation " + context.getGuild().getName() + ", so you this claim won't be active. Are you sure? If you want your claim to be active, go to the Discord Server **" + context.getGameNetwork().guildWithAllegiance(allegiance).getName() + "** and make your claim there.")
-                    .sendOnCondition(allegiance != context.getGuild().getNation());
+            }, "Your allegiance isn't to the nation " + context.getGuild().getName() +
+                    ", so you this claim won't be active. Are you sure? " +
+                    "If you want your claim to be active, go to the Discord Server **" +
+                    context.getGameNetwork().guildWithAllegiance(allegiance).getName() + "** and make your claim there.") {
+
+                public ConfirmationMenu addAllegianceOption() {
+                    menuResponses.add(new MenuResponse(nation.getEmoji(), "Set allegiance to " + context.getGameNetwork().guildWithAllegiance(nation).getName() + " instead") {
+
+                        @Override
+                        public boolean isValid() {
+                            return true;
+                        }
+
+                        @Override
+                        public void reactEvent() {
+                            context.getPlayer().setAllegiance(nation);
+                            context.sendResponse("Your allegiance has been moved to this server. Try making a claim again.");
+                            close(true);
+                        }
+                    });
+                    return this;
+                }
+
+            }.addAllegianceOption()
+                    .sendOnCondition(allegiance != nation);
 
 
 

@@ -5,7 +5,7 @@ import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
 import botmanager.frostbalance.command.GuildMessageContext
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 
 class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         "coup"
@@ -23,7 +23,7 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             return
         }
         if (currentOwnerId == null ||
-                bot.getMemberWrapper(currentOwnerId, guildId).member == null) { //second state shouldn't happen
+                bot.getMemberWrapper(currentOwnerId, guildId).jdaMember == null) { //second state shouldn't happen
             result = "**" + bMember.effectiveName + "** is the first player to declare themselves leader, " +
                     "and is now leader!"
             context.sendMultiLineResponse(listOf(result))
@@ -43,7 +43,7 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     bMember.adjustInfluence(leaderInfluence.negate())
                     currentLeader.adjustInfluence(leaderInfluence.negate())
                     result = "**" + bMember.effectiveName + "** has successfully supplanted **" +
-                            currentLeader.member?.asMention + "** as leader, reducing both users' influence and becoming" +
+                            currentLeader.jdaMember?.asMention + "** as leader, reducing both users' influence and becoming" +
                             " the new leader!"
                     privateResult = "*This maneuver has cost you $leaderInfluence influence. " +
                             "${currentLeader.effectiveName} has lost **ALL** of their influence.*"
@@ -51,7 +51,7 @@ class CoupCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                 } else {
                     bMember.adjustInfluence(influence.negate())
                     currentLeader.adjustInfluence(influence.negate())
-                    result = "**${bMember.effectiveName}** has attempted a coup on **${currentLeader.member?.asMention}**, " +
+                    result = "**${bMember.effectiveName}** has attempted a coup on **${currentLeader.jdaMember?.asMention}**, " +
                             "which has backfired. Both players have lost influence" +
                             " and the leader has not changed."
                     privateResult = "*This maneuver has cost you **ALL** of your influence. " +

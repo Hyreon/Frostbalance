@@ -4,7 +4,7 @@ import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.*
-import botmanager.frostbalance.menu.ConfirmationMenu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 import java.util.*
 
 class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
@@ -18,7 +18,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         val resultLines: MutableList<String> = ArrayList()
         val bMember = context.member
         val targetName = arguments.exhaust(1)
-        val targetMember = bot.getUserByName(targetName)?.memberIfIn(context.guild)
+        val targetMember = bot.getUserByName(targetName, context.guild)?.memberIfIn(context.guild)
         if (targetMember == null) {
             resultLines.add("Could not find member '$targetName'.")
             return context.sendMultiLineResponse(resultLines)
@@ -63,7 +63,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
             }
             refundAmount = transferAmount.subtract(reduceAmount)
             if (refundAmount.nonZero) {
-                resultLines.add("You have been refunded $refundAmount that would have gone unused.")
+                context.sendPrivateResponse("You have been refunded $refundAmount that would have gone unused.")
                 bMember.adjustInfluence(refundAmount)
             }
             return context.sendMultiLineResponse(resultLines)
@@ -98,7 +98,7 @@ class OpposeCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
                     bMember.adjustInfluence(refundAmount)
                 }
                 context.sendMultiLineResponse(resultLines)
-            }, "Are you sure you want to oppose ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER *100}% of your influence will be used.")
+            }, "Are you sure you want to oppose ${targetMember.effectiveName} privately? Only ${PRIVATE_MODIFIER * 100}% of your influence will be used.")
                     .send(context.channel, context.author)
         }
     }

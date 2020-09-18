@@ -2,7 +2,6 @@ package botmanager.frostbalance.commands.meta
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.Influence
-import botmanager.frostbalance.Player
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceGuildCommand
