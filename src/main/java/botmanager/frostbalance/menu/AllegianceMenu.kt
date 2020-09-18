@@ -41,10 +41,11 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Messa
     }
 
     init {
-        for (nation in context.gameNetwork.nations) {
-            menuResponses.add(object : MenuResponse(nation.emoji, nation.toString()) {
+        for (guild in context.gameNetwork.associatedGuilds) {
+
+            menuResponses.add(object : MenuResponse(guild.nation.emoji, guild.name ?: guild.nation.name) {
                 override fun reactEvent() {
-                    actor!!.playerIn(context.gameNetwork).allegiance = nation
+                    actor!!.playerIn(context.gameNetwork).allegiance = guild.nation
                     close(false)
                 }
 

@@ -7,7 +7,7 @@ import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceCommand
 import botmanager.frostbalance.command.MessageContext
 
-class TriangleCommand(bot: Frostbalance) : FrostbalanceCommand(bot, arrayOf("triangle"), AuthorityLevel.GENERIC, ContextLevel.ANY) {
+class TriangleCommand(bot: Frostbalance) : FrostbalanceCommand(bot, arrayOf("levelwith"), AuthorityLevel.GENERIC, ContextLevel.ANY) {
     override fun execute(context: MessageContext, params: Array<String>) {
         return context.sendResponse(params?.getOrNull(0)?.let {
             "Triangle of $it: ${Utilities.triangulateWithRemainder(it.toDouble())}"
@@ -15,7 +15,7 @@ class TriangleCommand(bot: Frostbalance) : FrostbalanceCommand(bot, arrayOf("tri
     }
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return "Make triangles with .triangle NUMBER"
+        return "Find the cost of a tile level with .levelwith NUMBER"
     }
 
 }

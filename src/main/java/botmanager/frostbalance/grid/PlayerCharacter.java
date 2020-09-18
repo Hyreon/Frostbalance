@@ -93,8 +93,8 @@ public class PlayerCharacter extends TileObject {
         updateMovement();
     }
 
-    public void adjustDestination(Hex.Direction direction) {
-        destination = getDestination().move(direction);
+    public void adjustDestination(Hex.Direction direction, int amount) {
+        destination = getDestination().move(direction, amount);
         updateMovement();
     }
 
