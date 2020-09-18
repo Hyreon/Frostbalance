@@ -145,9 +145,28 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
 
     //TODO find the time taken to do a smart update, and compare it to the time taken for a dumb update
     private val smartUpdateCost: Int
-        get() = {
-            0
-        }.invoke()
+        get() {
+            var counter = -1 //saves a clear operation
+            originalMenu.message?.reactions
+                    ?.filter { reaction -> !reaction.reactionEmote.isEmoji }
+                    ?.forEach { counter += it.count }
+            var index = 0
+            originalMenu.message?.reactions?.forEach { existingReaction ->
+                if (activeMenu.menuResponses
+                                .filter { response -> response.isValid }
+                                .getOrNull(index)
+                                ?.let { it.emoji != existingReaction.reactionEmote.emoji } != false) { //skip if it's what it should be
+                    counter += existingReaction.count
+                } else {
+                    counter += existingReaction.count
+                    if (existingReaction.isSelf) {
+                        counter -= 2 //saves a clear operation rather than adding extra work
+                    }
+                    index += 1 //save the first reaction and do nothing to it
+                }
+            }
+            return counter
+        }
 
     /**
      * Returns: the action that would clear all incorrect reactions,

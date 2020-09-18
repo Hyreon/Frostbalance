@@ -23,7 +23,7 @@ public class ParentSettingsMenu extends Menu {
         //PERSONAL (always available; clicked immediately if this is the only one available)
         super(bot, context);
 
-        menuResponses.add(new MenuResponse("⚙️", "Bot Settings") {
+        menuResponses.add(new MenuResponse("\uD83C\uDF10", "Bot Settings") {
 
             @Override
             public void reactEvent() {
@@ -36,7 +36,7 @@ public class ParentSettingsMenu extends Menu {
             }
         });
 
-        menuResponses.add(new MenuResponse("\uD83C\uDF10", "Network Settings") {
+        menuResponses.add(new MenuResponse("\uD83D\uDDFA", "Network Settings") {
 
             @Override
             public void reactEvent() {
@@ -62,7 +62,7 @@ public class ParentSettingsMenu extends Menu {
             }
         });
 
-        menuResponses.add(new MenuResponse("\uD83E\uDD14", "Personal Settings") {
+        menuResponses.add(new MenuResponse("\uD83D\uDC64", "Personal Settings") {
 
             @Override
             public void reactEvent() {
@@ -93,7 +93,7 @@ public class ParentSettingsMenu extends Menu {
     @Override
     public EmbedBuilder getEmbedBuilder() {
         return new EmbedBuilder()
-                .setTitle("Settings")
+                .setTitle(":gear: Settings")
                 .setDescription("Choose the settings you wish to change");
     }
 }
