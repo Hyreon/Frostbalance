@@ -1,6 +1,5 @@
 package botmanager.frostbalance.render;
 
-import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.Tile;
 import botmanager.frostbalance.grid.TileObject;
@@ -24,7 +23,6 @@ public class MapRenderer {
 
     private static final int DEFAULT_HEIGHT = 300;
     private static final int DEFAULT_WIDTH = 400;
-    private static final int BCOLOR = 64;
 
     public static String render(WorldMap map, Hex center, double size_factor) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
@@ -99,12 +97,12 @@ public class MapRenderer {
     private static void renderTile(Graphics2D g, Tile tile, Hex center, double size_factor) {
         g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Hex drawnHex = tile.getLocation().subtract(center);
-        g.setColor(getPoliticalColor(tile, false));
+        g.setColor(tile.getNaiveBiomeColor());
         g.fillPolygon(getHex(drawnHex, size_factor));
     }
 
     private static void drawBorders(Graphics2D g, Tile tile, Hex center, double size_factor) {
-        g.setColor(getPoliticalColor(tile, true));
+        g.setColor(tile.getPoliticalBorderColor());
         g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
 
         for (Hex.Direction direction : Hex.Direction.values()) {
@@ -123,9 +121,9 @@ public class MapRenderer {
                 int x3 = (x1 + x2) / 2;
                 int y3 = (y1 + y2) / 2;
                 g.drawLine(x1, y1, x3, y3);
-                g.setColor(getPoliticalColor(neighbor, true));
+                g.setColor(neighbor.getPoliticalBorderColor());
                 g.drawLine(x3, y3, x2, y2);
-                g.setColor(getPoliticalColor(tile, true));
+                g.setColor(tile.getPoliticalBorderColor());
             } else if (neighbor.getClaimData().getOwningNation() == tile.getClaimData().getOwningNation()
                     || (tile.getClaimData().getOwningNation() != null)) {
                 //draw line normally
@@ -170,35 +168,6 @@ public class MapRenderer {
                     (int) ((hex.drawY() - Hex.ySize() * Math.sin(i * 2 * Math.PI / 6))*size_factor + DEFAULT_HEIGHT / 2));
         }
         return p;
-    }
-
-    /**
-     * Gets the primary background political color for this tile.
-     * Contesting nations' colors aren't included here.
-     * @param tile
-     * @return
-     */
-    private static Color getPoliticalColor(Tile tile, boolean maxIntensity) {
-        Nation owningNation = tile.getClaimData().getOwningNation();
-        if (owningNation != null && tile.getMap().getHighestLevelClaim() != null) {
-            double intensity;
-            if (maxIntensity) {
-                intensity = 1;
-            } else {
-                intensity = tile.getClaimData().getClaimLevel() / tile.getMap().getHighestLevelClaim().getClaimLevel();
-            }
-            Color nationColor = owningNation.getColor();
-            return new Color(
-                    (int) (BCOLOR * (1 - intensity) + (nationColor.getRed() * intensity)),
-                    (int) (BCOLOR * (1 - intensity) + (nationColor.getGreen() * intensity)),
-                    (int) (BCOLOR * (1 - intensity) + (nationColor.getBlue() * intensity))
-            );
-        } else {
-            if (maxIntensity) {
-                return new Color(BCOLOR * 3 / 4, BCOLOR * 3 / 4, BCOLOR * 3 / 4);
-            }
-            return new Color(BCOLOR, BCOLOR, BCOLOR);
-        }
     }
 
     public enum Mode {

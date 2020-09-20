@@ -242,6 +242,14 @@ public class Hex {
         return new Hex();
     }
 
+    public long getXnoZ() {
+        return x - z;
+    }
+
+    public long getYnoZ() {
+        return y - z;
+    }
+
     public enum Coordinate {
         X, Y, Z;
     }

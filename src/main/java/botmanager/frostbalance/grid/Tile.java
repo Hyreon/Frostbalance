@@ -1,7 +1,10 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.grid.biome.BiomeData;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +14,8 @@ public class Tile implements Containable<WorldMap>, Container {
     transient WorldMap map;
 
     ClaimData claimData = new ClaimData(this);
+
+    transient BiomeData biomeData = new BiomeData(this);
 
     /**
      * A list of all objects currently on this tile.
@@ -60,6 +65,7 @@ public class Tile implements Containable<WorldMap>, Container {
     @Override
     public void setParent(WorldMap parent) {
         this.map = parent;
+        this.biomeData = new BiomeData(this);
     }
 
     @Override
@@ -78,4 +84,37 @@ public class Tile implements Containable<WorldMap>, Container {
     public Tile getNeighbor(Hex.Direction direction) {
         return getMap().getTile(getLocation().move(direction));
     }
+
+    private static final int BASE_COLOR = 64;
+
+    public Color getNaiveBiomeColor() {
+        return new Color((int) (biomeData.getHeat() * 255),
+                (int) (biomeData.getElevation() * 255),
+                (int) (biomeData.getHumidity() * 255));
+    }
+
+    public Color getPoliticalColor() {
+        Nation owningNation = getClaimData().getOwningNation();
+        if (owningNation != null && getMap().getHighestLevelClaim() != null) {
+            double intensity = getClaimData().getClaimLevel() / getMap().getHighestLevelClaim().getClaimLevel();
+            Color nationColor = owningNation.getColor();
+            return new Color(
+                    (int) (BASE_COLOR * (1 - intensity) + (nationColor.getRed() * intensity)),
+                    (int) (BASE_COLOR * (1 - intensity) + (nationColor.getGreen() * intensity)),
+                    (int) (BASE_COLOR * (1 - intensity) + (nationColor.getBlue() * intensity))
+            );
+        } else {
+            return new Color(BASE_COLOR, BASE_COLOR, BASE_COLOR);
+        }
+    }
+
+    public Color getPoliticalBorderColor() {
+        Nation owningNation = getClaimData().getOwningNation();
+        if (owningNation != null && getMap().getHighestLevelClaim() != null) {
+            return owningNation.getColor();
+        } else {
+            return new Color(BASE_COLOR * 3 / 4, BASE_COLOR * 3 / 4, BASE_COLOR * 3 / 4);
+        }
+    }
+
 }
