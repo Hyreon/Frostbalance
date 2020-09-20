@@ -88,9 +88,13 @@ public class Tile implements Containable<WorldMap>, Container {
     private static final int BASE_COLOR = 64;
 
     public Color getNaiveBiomeColor() {
-        return new Color((int) (biomeData.getHeat() * 255),
+        return new Color((int) (biomeData.getTemperature() * 255),
                 (int) (biomeData.getElevation() * 255),
                 (int) (biomeData.getHumidity() * 255));
+    }
+
+    public Color getBiomeColor() {
+        return biomeData.getBiome().getColor();
     }
 
     public Color getPoliticalColor() {
@@ -113,7 +117,8 @@ public class Tile implements Containable<WorldMap>, Container {
         if (owningNation != null && getMap().getHighestLevelClaim() != null) {
             return owningNation.getColor();
         } else {
-            return new Color(BASE_COLOR * 3 / 4, BASE_COLOR * 3 / 4, BASE_COLOR * 3 / 4);
+            Color baseColor = getBiomeColor();
+            return new Color(baseColor.getRed() * 3 / 4, baseColor.getGreen() * 3 / 4, baseColor.getBlue() * 3 / 4);
         }
     }
 

@@ -97,7 +97,7 @@ public class MapRenderer {
     private static void renderTile(Graphics2D g, Tile tile, Hex center, double size_factor) {
         g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Hex drawnHex = tile.getLocation().subtract(center);
-        g.setColor(tile.getNaiveBiomeColor());
+        g.setColor(tile.getBiomeColor());
         g.fillPolygon(getHex(drawnHex, size_factor));
     }
 
