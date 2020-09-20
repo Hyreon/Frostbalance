@@ -17,7 +17,7 @@ class UserSettingsMenu(bot: Frostbalance, context: MessageContext) : Menu(bot, c
                 redirectTo(DoubleMenu(bot, context, {
                     context.author.userOptions.zoomSize = it
                 }, {
-                    it in 0.2..5.0
+                    it in 0.02..5.0
                 }, listOf(1.0, 0.8, 0.5), "$emoji $name",
                         "Set the zoom when viewing a `.map`; " +
                                 "smaller numbers mean more tiles at once, bigger numbers mean bigger tiles. " +
