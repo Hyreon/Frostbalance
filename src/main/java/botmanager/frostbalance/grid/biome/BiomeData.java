@@ -6,16 +6,34 @@ import botmanager.frostbalance.grid.coordinate.Hex;
 
 public class BiomeData implements Containable<Tile> {
 
+    private static final double OFFSET_SEVERITY = 3.0;
+
     transient private Tile tile;
 
-    //heat ranges from 0 to 1. it is dependent on x and y.
+    //heat ranges from 0 to 1.
     private transient double temperature = 0;
 
-    //depth ranges from 0 to 1. it is dependent on y and z.
+    //heat offset to make transitions less artificial ranges from -0.1 to 0.1, normalized.
+    private transient double temperatureOffset = 0;
+    private static final double SHADE_MAGNITUDE = 1.0 / 6;
+    private static final double SHADE_SCALE = 1.0;
+
+
+    //depth ranges from 0 to 1.
     private transient double elevation = 0;
 
-    //humidity ranges from 0 to 1. it is dependent on z and x.
+    //elevation offset (for lakes, islands, hills and valleys) ranges from -0.2 to 0.2, normalized.
+    private transient double elevationOffset = 0;
+    private static final double BUMP_MAGNITUDE = 1.0 / 6;
+    private static final double BUMP_SCALE = 1.0;
+
+    //humidity ranges from 0 to 1.
     private transient double baseHumidity = 0;
+
+    //humidity offset to make transitions less artificial ranges from -0.4 to 0.4, normalized.
+    private transient double humidityOffset = 0;
+    private static final double WEATHER_MAGNITUDE = 2.0 / 7;
+    private static final double WEATHER_SCALE = 0.5;
 
     public BiomeData(Tile tile) {
 
@@ -23,50 +41,98 @@ public class BiomeData implements Containable<Tile> {
 
     }
 
-    private static final double TEMPERATURE_SCALE = 3.0; //changes slower
+    private static final double TEMPERATURE_SCALE = 3.50; //changes slower
 
     private double generateHeat() {
         return simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / TEMPERATURE_SCALE,
                 tile.getLocation().drawY() / Hex.Y_SCALE / TEMPERATURE_SCALE,
-                -1, 500);
+                -1);
     }
-
     private static final double ELEVATION_SCALE = 10.0; //changes much slower
 
     private double generateElevation() {
         return simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / ELEVATION_SCALE,
                 tile.getLocation().drawY() / Hex.Y_SCALE / ELEVATION_SCALE,
-                0, -500);
+                0);
     }
 
-    private static final double HUMIDITY_SCALE = 1.0; //changes fastest
+    private static final double HUMIDITY_SCALE = 1.8; //changes fastest
 
     private double generateHumidity() {
         return simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / HUMIDITY_SCALE,
                 tile.getLocation().drawY() / Hex.Y_SCALE / HUMIDITY_SCALE,
-                1, 0);
+                1);
     }
 
 
-    private double simplexTile(double coord1, double coord2, long seed, double offset) {
+    private double generateElevationOffset() {
+        return Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / BUMP_SCALE,
+                tile.getLocation().drawY() / Hex.Y_SCALE / BUMP_SCALE,
+                2) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
+    }
+
+
+    private double generateHeatOffset() {
+        return Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / SHADE_SCALE,
+                tile.getLocation().drawY() / Hex.Y_SCALE / SHADE_SCALE,
+                3) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
+    }
+
+    private double generateHumidityOffset() {
+        return Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / WEATHER_SCALE,
+                tile.getLocation().drawY() / Hex.Y_SCALE / WEATHER_SCALE,
+                4) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
+    }
+
+    private double simplexTile(double coord1, double coord2, long seed) {
         OpenSimplexNoise noise = new OpenSimplexNoise(seed);
         double ZOOM_AMOUNT = 1.0 / 16;
-        return (noise.eval(coord1 * ZOOM_AMOUNT + offset, coord2 * ZOOM_AMOUNT + offset) + 1)
+        return (noise.eval(coord1 * ZOOM_AMOUNT, coord2 * ZOOM_AMOUNT) + 1)
                 / 2.0;
     }
 
-    public double getTemperature() {
+    public double getTemperatureOffset() {
+        return temperatureOffset == 0 ? temperatureOffset = generateHeatOffset() : temperatureOffset;
+    }
+
+    public double getHumidityOffset() {
+        return humidityOffset == 0 ? humidityOffset = generateHumidityOffset() : humidityOffset;
+    }
+
+    public double getBaseTemperature() {
         return temperature == 0 ? temperature = generateHeat() : temperature;
     }
 
-    public double getElevation() {
+    public double getTemperature() {
+        return getBaseTemperature() * (1 - SHADE_MAGNITUDE) + getTemperatureOffset() * SHADE_MAGNITUDE;
+    }
+
+    public double getBaseElevation() {
         return elevation == 0 ? elevation = generateElevation() : elevation;
     }
 
+    public double getElevationOffset() {
+        return elevationOffset == 0 ? elevationOffset = generateElevationOffset() : elevationOffset;
+    }
+
+    public double getElevation() {
+        return getBaseElevation() * (1 - BUMP_MAGNITUDE) + getElevationOffset() * BUMP_MAGNITUDE;
+    }
+
     public double getHumidity() {
-        return (baseHumidity == 0 ? baseHumidity = generateHumidity() : baseHumidity) * 0.7
-                + (0.5 - getTemperature()) * 0.15 //evaporation
-                + (0.5 - getElevation()) * 0.15; //water falloff
+        return ((baseHumidity == 0 ? baseHumidity = generateHumidity() : baseHumidity) * 0.7
+                + (1 - intemperance()) * 0.15 //evaporation
+                - (getElevation()) * 0.15) //water falloff
+                 * (1 - WEATHER_MAGNITUDE)
+                + getHumidityOffset() * WEATHER_MAGNITUDE;
+    }
+
+    /**
+     * Gets how far the temperature is from a moderate 0.5.
+     * @return A value between 1 and 0; 0 is temperate, 1 is intemperate.
+     */
+    private double intemperance() {
+        return Math.abs(getTemperature() * 2 - 1);
     }
 
     @Override
@@ -76,50 +142,51 @@ public class BiomeData implements Containable<Tile> {
 
     public Biome getBiome() {
         if (getElevation() > 0.85) {
-            if (getTemperature() > 0.8) {
+            if (getTemperature() > 0.7) {
                 return Biome.MESA;
             } else if (getTemperature() > 0.3) {
-                return Biome.MOUNTAIN;
+                return Biome.ROCKY;
+            } else if (getHumidity() > 0.5) {
+                return Biome.ALP;
             } else {
-                return Biome.SNOW_MOUNTAIN;
+                return Biome.SNOW_PEAK;
             }
-        } else if (getElevation() > 0.3) {
-            if (getTemperature() < 0.2) {
-                if (getHumidity() < 0.2) {
+        } else if (getElevation() > 0.35) {
+
+            //special cases
+            //if (getBaseElevation() < 0.2) {
+            //    return Biome.ISLAND;
+            //}
+            //if (getBaseElevation() < 0.3) {
+            //    return Biome.BEACH;
+            //}
+
+            if (getTemperature() < 0.3) {
+                if (getHumidity() < 0.25) {
                     return Biome.TUNDRA;
                 } else if (getHumidity() < 0.5) {
                     return Biome.SNOW_FIELD;
-                } else if (getHumidity() < 0.8) {
+                } else if (getHumidity() < 0.75) {
                     return Biome.TAIGA;
                 } else {
                     return Biome.MARSH;
                 }
-            } else if (getTemperature() < 0.5) {
-                if (getHumidity() < 0.2) {
-                    return Biome.DRY_GRASSLANDS;
+            } else if (getTemperature() < 0.7) {
+                if (getHumidity() < 0.25) {
+                    return Biome.TEMPERATE_DESERT;
                 } else if (getHumidity() < 0.5) {
                     return Biome.GRASSLANDS;
-                } else if (getHumidity() < 0.8) {
+                } else if (getHumidity() < 0.75) {
                     return Biome.FOREST;
                 } else {
                     return Biome.SWAMP;
                 }
-            } else if (getTemperature() < 0.8) {
-                if (getHumidity() < 0.2) {
-                    return Biome.DESERT;
-                } if (getHumidity() < 0.5) {
-                    return Biome.GRASSLANDS;
-                } else if (getHumidity() < 0.8) {
-                    return Biome.FOREST;
-                } else {
-                    return Biome.RAINFOREST;
-                }
             } else {
-                if (getHumidity() < 0.2) {
-                    return Biome.ARID_DESERT;
+                if (getHumidity() < 0.25) {
+                    return Biome.DESERT;
                 } else if (getHumidity() < 0.5) {
                     return Biome.PRAIRIE;
-                } else if (getHumidity() < 0.8) {
+                } else if (getHumidity() < 0.75) {
                     return Biome.SAVANNA;
                 } else {
                     return Biome.JUNGLE;
@@ -131,6 +198,9 @@ public class BiomeData implements Containable<Tile> {
             } else if (getHumidity() > 0.8 && getTemperature() > 0.6) {
                 return Biome.STORMY_SEA;
             } else {
+                if (getElevation() > 0.30) {
+                    return Biome.SHALLOW_WATER;
+                }
                 return Biome.SEA;
             }
         }
