@@ -208,6 +208,9 @@ public class MapMenu extends Menu {
         } else {
             description += player.getName() + "'s view of ";
         }
+
+        description += " " + map.getTile(drawLocation()).getBiome() + " ";
+
         description += drawLocation() + "\n" + player.getTile().getMap().getTile(drawLocation()).getClaimData().displayClaims(ClaimData.Format.SIMPLE);
         builder.setDescription(description);
         builder.setImage(MapRenderer.render(map, drawLocation(), zoomFactor));

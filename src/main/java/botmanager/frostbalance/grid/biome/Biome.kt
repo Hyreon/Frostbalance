@@ -5,12 +5,13 @@ import java.awt.Color
 enum class Biome(var color: Color) {
 
     //sea
+    COAST(Color(80, 120, 255)),
     SEA(Color(80, 80, 255)),
     ICE(Color(192, 255, 255)),
     STORMY_SEA(Color(60, 0, 200)),
 
-    //coast
-    SHALLOW_WATER(Color(80, 160, 255)),
+    //special
+    RIVER(Color(80, 160, 255)),
     ISLAND(Color(80, 255, 80)),
     BEACH(Color(255, 255, 80)),
 

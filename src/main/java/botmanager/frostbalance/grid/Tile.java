@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.grid.biome.Biome;
 import botmanager.frostbalance.grid.biome.BiomeData;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
@@ -122,4 +123,7 @@ public class Tile implements Containable<WorldMap>, Container {
         }
     }
 
+    public Biome getBiome() {
+        return biomeData.getBiome();
+    }
 }

@@ -35,6 +35,11 @@ public class BiomeData implements Containable<Tile> {
     private static final double WEATHER_MAGNITUDE = 2.0 / 7;
     private static final double WEATHER_SCALE = 0.5;
 
+    //river property from 0 to 1 indicates how close this is to the river map.
+    private transient double river = 0;
+    private static final double RIVER_SCALE = 5;
+    private static final int NUM_RIVER_SYSTEMS = 1; //all odd numbers guarantee the player spawns on a river!
+
     public BiomeData(Tile tile) {
 
         this.tile = tile;
@@ -84,6 +89,17 @@ public class BiomeData implements Containable<Tile> {
                 4) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
     }
 
+    private double generateRiverMap() {
+        double riverIndex = simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / RIVER_SCALE,
+                tile.getLocation().drawY() / Hex.Y_SCALE / RIVER_SCALE,
+                4);
+        double distanceToClosestRiver = 1;
+        for (int i = 0; i < NUM_RIVER_SYSTEMS; i++) {
+            distanceToClosestRiver = Math.min(Math.abs((i + 0.5) / NUM_RIVER_SYSTEMS - riverIndex) * NUM_RIVER_SYSTEMS, distanceToClosestRiver);
+        }
+        return 1 - distanceToClosestRiver;
+    }
+
     private double simplexTile(double coord1, double coord2, long seed) {
         OpenSimplexNoise noise = new OpenSimplexNoise(seed);
         double ZOOM_AMOUNT = 1.0 / 16;
@@ -127,6 +143,11 @@ public class BiomeData implements Containable<Tile> {
                 + getHumidityOffset() * WEATHER_MAGNITUDE;
     }
 
+    public boolean isRiver() {
+        return (tile.getLocation().minimumDistance(Hex.origin()) > 6) &&
+                (river = river == 0 ? generateRiverMap() : river) >= 1 - 0.05 / RIVER_SCALE;
+    }
+
     /**
      * Gets how far the temperature is from a moderate 0.5.
      * @return A value between 1 and 0; 0 is temperate, 1 is intemperate.
@@ -152,6 +173,8 @@ public class BiomeData implements Containable<Tile> {
                 return Biome.SNOW_PEAK;
             }
         } else if (getElevation() > 0.35) {
+
+            if (isRiver()) return Biome.RIVER;
 
             //special cases
             //if (getBaseElevation() < 0.2) {
@@ -199,7 +222,7 @@ public class BiomeData implements Containable<Tile> {
                 return Biome.STORMY_SEA;
             } else {
                 if (getElevation() > 0.30) {
-                    return Biome.SHALLOW_WATER;
+                    return Biome.COAST;
                 }
                 return Biome.SEA;
             }
