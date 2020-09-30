@@ -16,15 +16,20 @@ class SubscribeCommand(bot: Frostbalance?) : FrostbalanceGuildCommand(bot, array
 ), AuthorityLevel.GENERIC, ContextLevel.PUBLIC_MESSAGE) {
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
 
-        if (!context.guild.allows(context.player)) {
-            return context.sendResponse(context.guild.notAllowed)
-        }
-
         if (context.member.subscribed) {
 
             context.member.renewSubscription()
-            context.sendResponse("${context.member.effectiveName}, your subscription in " + context.guild.name + " has been renewed.")
+            if (context.guild.allows(context.player)) {
+                context.sendResponse("${context.member.effectiveName}, your subscription in " + context.guild.name + " has been renewed.")
+            } else {
+                context.sendResponse("${context.member.effectiveName}, your subscription in " + context.guild.name + " is frozen. Until the borders open or you change allegiance, this subscription will stay exactly where it is.")
+            }
         } else {
+
+            if (!context.guild.allows(context.player)) {
+                return context.sendResponse(context.guild.notAllowed)
+            }
+
             context.member.subscribe()
             val response: MutableList<String?> = ArrayList()
             response.add("${context.member.effectiveName}, you have subscribed to " + context.guild.name + " and will gain influence there for a week.")

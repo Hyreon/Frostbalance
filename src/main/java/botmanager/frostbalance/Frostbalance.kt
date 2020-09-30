@@ -540,7 +540,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val bUser = getUserWrapper(userId)
                     println("User: " + bUser.jdaUser)
                     try {
-                        gameNetworks.forEach { gameNetwork -> bUser.playerIn(gameNetwork).allegiance = getMainAllegiance(bUser.jdaUser!!) }
+                        gameNetworks.forEach { gameNetwork -> bUser.playerIn(gameNetwork).writeAllegiance(getMainAllegiance(bUser.jdaUser!!)) }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

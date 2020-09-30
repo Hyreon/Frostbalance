@@ -20,18 +20,40 @@ class WeeklyInfluenceSource {
             //functional and object-oriented programming go about as well as salt and sugar.
             return member.gainDailyInfluence(it, nextRequestDate - 1) + getWeeklyInfluence(member, daily)
 
-        } ?: return Influence.none()
+        } ?: run {
+            val ya = yieldedAmount
+            yieldedAmount = Influence.none()
+            return ya
+        }
 
     }
 
-    private fun nextRequestAmount(): Influence {
+    //TODO push immediately on border change for all users
+    fun pushWeeklyInfluence(member: MemberWrapper, daily: DailyInfluenceSource, changeYield: Boolean? = null) {
+
+        val cy = changeYield ?: yieldedAmount == Influence.none()
+
+        nextRequestAmount(push = true).takeIf { it > 0 }?.let {
+
+            member.gainDailyInfluence(Influence.none(), nextRequestDate - 1)
+            if (cy) yieldedAmount += it
+            pushWeeklyInfluence(member, daily, cy)
+
+        }
+
+    }
+
+    private fun nextRequestAmount(push: Boolean = false): Influence {
 
         var request = Influence.none()
 
-        if (nextRequestDate <= LocalDate.now().toEpochDay() && !finished) {
+        if (!finished &&
+                (nextRequestDate < LocalDate.now().toEpochDay() ||
+                        (nextRequestDate == LocalDate.now().toEpochDay()
+                                && !push))) {
 
             request += influenceToRequest
-            influenceToRequest = influenceToRequest.subtract(FALLOFF)
+            if (!push) influenceToRequest = influenceToRequest.subtract(FALLOFF)
             if (influenceToRequest > 0) nextRequestDate++
         }
 
@@ -41,7 +63,6 @@ class WeeklyInfluenceSource {
 
     val finished: Boolean
         get() = influenceToRequest <= 0.0
-
 
     companion object {
         @JvmField

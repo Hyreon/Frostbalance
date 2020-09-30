@@ -7,6 +7,7 @@ import botmanager.frostbalance.command.GuildMessageContext
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.menu.input.BooleanMenu
 import botmanager.frostbalance.menu.option.NationOptionMenu
+import botmanager.frostbalance.menu.option.OptionMenu
 import botmanager.frostbalance.menu.response.DynamicMenuResponse
 import botmanager.frostbalance.menu.response.MenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
@@ -55,6 +56,29 @@ class NationSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Menu
 
             override val isValid: Boolean
                 get() = true
+
+        })
+
+        menuResponses.add(object : DynamicMenuResponse({"\uD83D\uDEC3"}, {"Border Exceptions: ${context.guild.guildOptions.borderTreaties.let { if (it!!.isEmpty()) "None" else it } }"}) {
+            override fun reactEvent() {
+
+                redirectTo(object : OptionMenu<Nation>(bot, context, context.gameNetwork.nations.filterNot { it == context.guild.nation }) {
+                    override fun select(option: Nation) {
+                        context.guild.guildOptions.flipTreatyWith(option)
+                        updateMessage()
+                    }
+
+                    override fun updatePickResponseText() {
+                        sublist.forEachIndexed { i, entry -> pickResponses[i].name = if (context.guild.guildOptions.openBordersWith(entry)) {"Cancel exception for "} else {"Make exception for "} +
+                                context.gameNetwork.guildWithAllegiance(entry).toString() }
+                        sublist.forEachIndexed { i, entry -> pickResponses[i].emoji = entry.emoji }
+                    }
+                }, true)
+
+            }
+
+            override val isValid: Boolean
+                get() = context.guild.guildOptions.openBorders == false
 
         })
     }

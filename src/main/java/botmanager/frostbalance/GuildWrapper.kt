@@ -229,13 +229,27 @@ class GuildWrapper(@Transient var gameNetwork: GameNetwork, var id: String) : Co
     }
 
     fun allows(player: Player?): Boolean {
-        return player?.allegiance == nation || guildOptions.openBorders!!
+        return player?.allegiance.let {
+            guildOptions.openBordersWith(it) || it == nation
+        }
     }
 
     val notAllowed: String
-        get() = ":passport_control: $name has closed its borders. You cannot gain influence unless you have allegiance here."
+        get() {
+            val initial = ":passport_control: $name has closed its borders."
+            val exceptions = if (guildOptions.borderTreaties!!.isNotEmpty()) {
+                "You cannot gain influence unless your allegiance is to one of these nations: ${toString()}, ${
+                    guildOptions.borderTreaties!!.joinToString(", ") {
+                        gameNetwork.guildWithAllegiance(it).toString()
+                    }
+                }"
+            } else {
+                "You cannot gain influence unless you have allegiance here."
+            }
+            return "$initial $exceptions"
+        }
 
-    val MutableSet<OldOptionFlag>.legacyNation: Nation?
+    private val MutableSet<OldOptionFlag>.legacyNation: Nation?
         get() = when {
             contains(OldOptionFlag.BLUE) -> {
                 Nation.BLUE

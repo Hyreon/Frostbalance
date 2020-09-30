@@ -42,7 +42,7 @@ public class GetInfluenceCommand extends FrostbalanceCommand {
 
                     Influence remaining = bMember.getInfluenceSource().getInfluenceLeft();
                     if (remaining.getNonZero()) {
-                        if (guild.allows(context.getAuthor().playerIn(context.getGameNetwork()))) {
+                        if (guild.allows(context.getAuthor().playerIn(guild.getGameNetwork()))) {
                             result.append(" (**+").append(String.format("%s", remaining)).append("** from unclaimed daily)");
                         } else {
                             result.append(" (:passport_control: cannot gain influence)");
