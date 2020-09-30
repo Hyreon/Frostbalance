@@ -18,6 +18,11 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     //TODO don't use message caches directly, they become dated. This goes for CommandContext as well!
     //TODO try for better polymorphism with CommandContext and GuildCommandContext, forcing GuildCommandContext where desired.
 
+    private val channel: MessageChannel
+    get() {
+        return message!!.channel
+    }
+
     /**
      * The message this menu is attached to. This can be null if the menu hasn't yet been sent.
      */
@@ -88,18 +93,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         if (smartUpdateCost > 0) return rewriteEmojis()
         if (activeMenu.context.isPublic) {
             if (!isClosed) {
-                val requestInfo = clearIncorrectReactionRequest()
-                var clearEvent = requestInfo.first
-                val startIndex = requestInfo.second
-                activeMenu.menuResponses.subList(startIndex, activeMenu.menuResponses.size).forEach { menuResponse ->
-                    if (menuResponse.isValid) {
-                        //TODO don't try to add reactions if the message has been deleted.
-                        val addReactEvent = originalMenu.message!!.addReaction(menuResponse.emoji)
-                        clearEvent = clearEvent?.flatMap { println("Adding ${menuResponse.emoji.encodeToByteArray()}"); addReactEvent }
-                                ?: run{ println("Brand new add event"); addReactEvent }
-                    }
-                }
-                clearEvent?.queue()
+                nextDeletion(originalMenu.message!!.idLong, activeMenu.menuResponses.filter { mr -> mr.isValid })
             } else {
                 originalMenu.message?.clearReactions()?.queue()
             }
@@ -117,15 +111,56 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         }
     }
 
+    /**
+     * Finds and deletes the next set of emojis that should be deleted.
+     * This consumes a retrieveUsers() every time a valid messageReaction is found,
+     * and a delete for every emote response the bot tries to delete.
+     * When there are no more valid deletion objects, but some valid emotes haven't been placed,
+     * the bot will switch to performing nextAddition().
+     * @param offset Used to avoid repeated getMessage calls; counts the number of blank reaction spots,
+     * which are automatically skipped
+     * @param index Used to get the index of a deletion
+     */
+    private fun nextDeletion(messageId: Long, responses: List<MenuResponse>, index: Int = 0, offset: Int = 0) {
+        message?.reactions?.let {
+            it.getOrNull(index + offset)?.let { mr ->
+                if (responses.size > index && responses[index].emoji == mr.reactionEmote.emoji) { //this emote is in place
+                    mr.retrieveUsers().queue { users ->
+                        println("Users for clearing other: $users")
+                        mr.clearInstanceEvent(null, false, users)?.queue { //delete all but itself
+                            nextDeletion(messageId, responses, index + 1) //check for the next emote response
+                        } ?: nextDeletion(messageId, responses, index + 1)
+                    }
+                } else { //this emote is out of place
+                    mr.retrieveUsers().queue { users ->
+                        println("Users: $users")
+                        mr.clearInstanceEvent(null, true, users)!!.queue { //delete all, even itself
+                            nextDeletion(messageId, responses, index, offset + 1)
+                        }
+                    }
+                }
+            } ?: nextAddition(messageId, responses, index) //no reaction found at this index, so we're past stuff to delete
+        }
+    }
+
+    private fun nextAddition(messageId: Long, responses: List<MenuResponse>, index: Int) {
+        if (responses.size > index) {
+            message?.addReaction(responses[index].emoji)?.queue {
+                nextAddition(messageId, responses, index + 1)
+            }
+        }
+    }
+
     private fun rewriteEmojis() {
         if (originalMenu.message == null) return
         if (activeMenu.context.isPublic) {
-            originalMenu.message!!.clearReactions().queue()
-            if (!isClosed) {
-                for (menuResponse in activeMenu.menuResponses) {
-                    if (menuResponse.isValid) {
-                        //TODO don't try to add reactions if the message has been deleted.
-                        originalMenu.message!!.addReaction(menuResponse.emoji).queue()
+            originalMenu.message!!.clearReactions().queue {
+                if (!isClosed) {
+                    for (menuResponse in activeMenu.menuResponses) {
+                        if (menuResponse.isValid) {
+                            //TODO don't try to add reactions if the message has been deleted.
+                            originalMenu.message!!.addReaction(menuResponse.emoji).queue()
+                        }
                     }
                 }
             }
@@ -176,12 +211,14 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     /**
      * Returns: the action that would clear all incorrect reactions,
      * and the number of correct reactions left after this.
-     */
     private fun clearIncorrectReactionRequest(): Pair<RestAction<Void>?, Int> {
         var clearEvent: RestAction<Void>? = null
         originalMenu.message?.reactions
                 ?.filter { reaction -> !reaction.reactionEmote.isEmoji }
-                ?.forEach { reaction -> clearEvent = reaction.clearInstanceEvent(clearEvent) }
+                ?.forEach { reaction ->
+                    val users = reaction.retrieveUsers().complete()
+                    clearEvent = reaction.clearInstanceEvent(clearEvent)
+                }
         var index = 0
         originalMenu.message?.reactions?.forEach { existingReaction ->
             if (activeMenu.menuResponses
@@ -190,12 +227,12 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
                             ?.let { it.emoji != existingReaction.reactionEmote.emoji } != false) { //skip if it's what it should be
                 clearEvent = existingReaction.clearInstanceEvent(clearEvent)
             } else {
-                clearEvent = existingReaction.clearInstanceEvent(clearEvent, false)
+                clearEvent = existingReaction.clearInstanceEvent(clearEvent)
                 index += 1 //save the first reaction and do nothing to it
             }
         }
         return Pair(clearEvent, index)
-    }
+    }*/
 
     fun close(delete: Boolean) {
         isClosed = true
@@ -318,17 +355,16 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
             return mostBabyishMenu
         }
 
-    private fun MessageReaction.clearInstanceEvent(event: RestAction<Void>?, self: Boolean = true): RestAction<Void>? {
+    private fun MessageReaction.clearInstanceEvent(event: RestAction<Void>?, self: Boolean = true, users: List<User>): RestAction<Void>? {
         var returnEvent = event
-        val users = retrieveUsers().complete()
         users.forEach { user ->
-            if (originalMenu.message!!.isFromGuild && (self || bot.jda.selfUser != user)) {
-                val newEvent = removeReaction(user)
-                returnEvent = returnEvent?.flatMap{ println("Deleting ${this.reactionEmote.emoji} from $user"); newEvent } ?: run {
-                    println("Brand new delete event"); newEvent
+                if (originalMenu.message!!.isFromGuild && (self || bot.jda.selfUser != user)) {
+                    val newEvent = removeReaction(user)
+                    returnEvent = returnEvent?.flatMap{ println("Deleting ${this.reactionEmote.emoji} from $user"); newEvent } ?: run {
+                        println("Brand new delete event"); newEvent
+                    }
                 }
             }
-        }
         return returnEvent
     }
 

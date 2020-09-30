@@ -60,6 +60,13 @@ class NationSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Menu
     }
 
     override val embedBuilder: EmbedBuilder
-        get() = EmbedBuilder()
-                .setTitle("Nation Settings")
+        get() {
+            for (response in menuResponses) {
+                if (response is DynamicMenuResponse) {
+                    response.updateValues()
+                }
+            }
+            return EmbedBuilder()
+                    .setTitle("Nation Settings")
+        }
 }
