@@ -1,5 +1,6 @@
 package botmanager.frostbalance.menu
 
+import botmanager.frostbalance.CooldownException
 import botmanager.frostbalance.Frostbalance
 import net.dv8tion.jda.api.EmbedBuilder
 import botmanager.frostbalance.command.MessageContext
@@ -45,7 +46,11 @@ class AllegianceMenu @JvmOverloads constructor(bot: Frostbalance, context: Messa
 
             menuResponses.add(object : MenuResponse(guild.nation.emoji, guild.name ?: guild.nation.name) {
                 override fun reactEvent() {
-                    actor!!.playerIn(context.gameNetwork).allegiance = guild.nation
+                    try {
+                        actor!!.playerIn(context.gameNetwork).setAllegiance(guild.nation)
+                    } catch (e: CooldownException) {
+                        context.sendResponse(e.message)
+                    }
                     close(false)
                 }
 
