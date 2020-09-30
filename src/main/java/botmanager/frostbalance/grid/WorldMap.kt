@@ -1,23 +1,27 @@
 package botmanager.frostbalance.grid
 
 import botmanager.IOUtils
+import botmanager.frostbalance.Frostbalance
+import botmanager.frostbalance.GameNetwork
 import botmanager.frostbalance.Player
-import botmanager.frostbalance.*
 import botmanager.frostbalance.grid.coordinate.Hex
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.Guild
 import java.io.File
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.math.roundToLong
 
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */
-class WorldMap(@Transient var gameNetwork: GameNetwork) : Container {
+class WorldMap(@Transient var gameNetwork: GameNetwork) : Containable<GameNetwork>, Container {
 
     @Transient
     var highestLevelClaimData: ClaimData? = null
     var loadedTiles: MutableList<Tile> = ArrayList()
+
+    var seed: Long = Random().nextLong()
 
     val players: List<PlayerCharacter>
     get() = {
@@ -139,5 +143,12 @@ class WorldMap(@Transient var gameNetwork: GameNetwork) : Container {
             val gson = gsonBuilder.create()
             IOUtils.write(file, gson.toJson(map))
         }
+    }
+
+    override fun setParent(parent: GameNetwork) {
+        while (seed == 0L) {
+            seed = Random().nextLong()
+        }
+        this.gameNetwork = parent
     }
 }

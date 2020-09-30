@@ -16,7 +16,7 @@ public class BiomeData implements Containable<Tile> {
     //heat offset to make transitions less artificial ranges from -0.1 to 0.1, normalized.
     private transient double temperatureOffset = 0;
     private static final double SHADE_MAGNITUDE = 1.0 / 6;
-    private static final double SHADE_SCALE = 1.0;
+    private static final double SHADE_SCALE = 0.75;
 
 
     //depth ranges from 0 to 1.
@@ -37,7 +37,7 @@ public class BiomeData implements Containable<Tile> {
 
     //river property from 0 to 1 indicates how close this is to the river map.
     private transient double river = 0;
-    private static final double RIVER_SCALE = 5;
+    private static final double RIVER_SCALE = 3;
     private static final int NUM_RIVER_SYSTEMS = 1; //all odd numbers guarantee the player spawns on a river!
 
     public BiomeData(Tile tile) {
@@ -46,7 +46,7 @@ public class BiomeData implements Containable<Tile> {
 
     }
 
-    private static final double TEMPERATURE_SCALE = 3.50; //changes slower
+    private static final double TEMPERATURE_SCALE = 4.0; //changes slower
 
     private double generateHeat() {
         return simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / TEMPERATURE_SCALE,
@@ -61,7 +61,7 @@ public class BiomeData implements Containable<Tile> {
                 0);
     }
 
-    private static final double HUMIDITY_SCALE = 1.8; //changes fastest
+    private static final double HUMIDITY_SCALE = 2.2; //changes fastest
 
     private double generateHumidity() {
         return simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / HUMIDITY_SCALE,
@@ -101,7 +101,7 @@ public class BiomeData implements Containable<Tile> {
     }
 
     private double simplexTile(double coord1, double coord2, long seed) {
-        OpenSimplexNoise noise = new OpenSimplexNoise(seed);
+        OpenSimplexNoise noise = new OpenSimplexNoise(seed + tile.getMap().getSeed());
         double ZOOM_AMOUNT = 1.0 / 16;
         return (noise.eval(coord1 * ZOOM_AMOUNT, coord2 * ZOOM_AMOUNT) + 1)
                 / 2.0;
@@ -136,10 +136,8 @@ public class BiomeData implements Containable<Tile> {
     }
 
     public double getHumidity() {
-        return ((baseHumidity == 0 ? baseHumidity = generateHumidity() : baseHumidity) * 0.7
-                + (1 - intemperance()) * 0.15 //evaporation
-                - (getElevation()) * 0.15) //water falloff
-                 * (1 - WEATHER_MAGNITUDE)
+        return ((baseHumidity == 0 ? baseHumidity = generateHumidity() : baseHumidity)
+                 * (1 - WEATHER_MAGNITUDE))
                 + getHumidityOffset() * WEATHER_MAGNITUDE;
     }
 
@@ -162,7 +160,7 @@ public class BiomeData implements Containable<Tile> {
     }
 
     public Biome getBiome() {
-        if (getElevation() > 0.85) {
+        if (getElevation() > 0.75) {
             if (getTemperature() > 0.7) {
                 return Biome.MESA;
             } else if (getTemperature() > 0.3) {
@@ -185,31 +183,31 @@ public class BiomeData implements Containable<Tile> {
             //}
 
             if (getTemperature() < 0.3) {
-                if (getHumidity() < 0.25) {
+                if (getHumidity() < 9.0 / 32) {
                     return Biome.TUNDRA;
                 } else if (getHumidity() < 0.5) {
                     return Biome.SNOW_FIELD;
-                } else if (getHumidity() < 0.75) {
+                } else if (getHumidity() < 23.0 / 32) {
                     return Biome.TAIGA;
                 } else {
                     return Biome.MARSH;
                 }
             } else if (getTemperature() < 0.7) {
-                if (getHumidity() < 0.25) {
+                if (getHumidity() < 9.0 / 32) {
                     return Biome.TEMPERATE_DESERT;
                 } else if (getHumidity() < 0.5) {
                     return Biome.GRASSLANDS;
-                } else if (getHumidity() < 0.75) {
+                } else if (getHumidity() < 23.0 / 32) {
                     return Biome.FOREST;
                 } else {
                     return Biome.SWAMP;
                 }
             } else {
-                if (getHumidity() < 0.25) {
+                if (getHumidity() < 9.0 / 32) {
                     return Biome.DESERT;
                 } else if (getHumidity() < 0.5) {
                     return Biome.PRAIRIE;
-                } else if (getHumidity() < 0.75) {
+                } else if (getHumidity() < 23.0 / 32) {
                     return Biome.SAVANNA;
                 } else {
                     return Biome.JUNGLE;

@@ -241,25 +241,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         } else Utilities.getCSVValueAtIndex(Utilities.read(file), index)
     }
 
-    private fun setUserCSVAtIndex(guild: Guild?, user: User, index: Int, newValue: String?) {
-        val guildId: String = guild?.id ?: "global"
-        val file = File("data/" + name + "/" + guildId + "/" + user.id + ".csv")
-        val data = Utilities.read(file)
-        val originalValues = data.split(",".toRegex()).toTypedArray()
-        val newValues: Array<String?>
-        if (originalValues.size > index) {
-            newValues = data.split(",".toRegex()).toTypedArray()
-        } else {
-            newValues = arrayOfNulls(index + 1)
-            System.arraycopy(originalValues, 0, newValues, 0, originalValues.size)
-            for (i in originalValues.size until newValues.size) {
-                newValues[i] = ""
-            }
-        }
-        newValues[index] = newValue
-        Utilities.write(file, Utilities.buildCSV(newValues))
-    }
-
     private val adminIds: List<String>
         get() = Utilities.readLines(File("data/$name/staff.csv"))
 
@@ -272,8 +253,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     continue
                 }
                 val rulerId = Utilities.getCSVValueAtIndex(line, 0)
-                var startDay: Long
-                startDay = try {
+                var startDay: Long = try {
                     Utilities.getCSVValueAtIndex(line, 2).toLong()
                 } catch (e: NumberFormatException) {
                     0
@@ -293,16 +273,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 regimes.getOrDefault(guild, ArrayList())!!.add(RegimeData(getGuildWrapper(guild.id), rulerId, startDay, endDay, terminationCondition))
             }
         }
-    }
-
-    /**
-     * Returns if the player is banned from this guild.
-     * @param guild The guild to check
-     * @param user The user to check
-     * @return Whether this user is banned from this guild, or banned globally
-     */
-    private fun isBanned(guild: Guild?, user: User?): Boolean {
-        return isGloballyBanned(user) || isLocallyBanned(guild, user)
     }
 
     /**
@@ -336,15 +306,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             loadRecords(guild)
         }
         return regimes.getOrDefault(guild, ArrayList())
-    }
-
-    private fun updateLastRegime(guild: Guild, regime: RegimeData) {
-        Utilities.removeLine(File("data/" + name + "/" + guild.id + "/history.csv"))
-        Utilities.append(File("data/" + name + "/" + guild.id + "/history.csv"), regime.toCSV())
-    }
-
-    private fun logRegime(guild: Guild, regime: RegimeData) {
-        Utilities.append(File("data/" + name + "/" + guild.id + "/history.csv"), regime.toCSV())
     }
 
     private fun getSettings(guild: Guild): Collection<OldOptionFlag> {
