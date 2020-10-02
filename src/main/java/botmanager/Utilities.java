@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -370,5 +368,33 @@ public class Utilities {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    /**
+     * Returns a random value between 0 and 1 from a set of seeds.
+     * This will yield the same result for the same set of seeds.
+     */
+    public static double randomFromSeed(long... seeds) {
+        long seed = combineSeed(seeds);
+        System.out.println("Seed:" + seed);
+        double output = new Random(seed).nextDouble();
+        System.out.println("Output:" + output);
+        return output;
+    }
+
+    /**
+     * This combines any number of initial seeds and generates a (reasonably) distinct seed based off of
+     * these values.
+     */
+    public static long combineSeed(long... seeds) {
+        long total = 0;
+        for (long seed : seeds) {
+            total = total * 1008001L + seed;
+        }
+        return total;
+    }
+
+    public static long mapToRange(double ranger, long start, long end) {
+        return Math.round((end - start) * ranger) + start;
     }
 }

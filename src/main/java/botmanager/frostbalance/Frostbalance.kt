@@ -17,7 +17,9 @@ import botmanager.frostbalance.grid.Container
 import botmanager.frostbalance.grid.TileObject
 import botmanager.frostbalance.grid.TileObjectAdapter
 import botmanager.frostbalance.grid.WorldMap
+import botmanager.frostbalance.grid.biome.Biome
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.resource.Resource
 import botmanager.generic.BotBase
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.*
@@ -45,6 +47,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
+
+    internal val resources: MutableList<Resource> = mutableListOf(Resource("Bread"))
+    internal val resourceCaches: MutableMap<Biome, List<Pair<Resource, Int>>> = HashMap()
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
@@ -377,6 +382,30 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return newCommands.requireNoNulls()
     }
 
+    fun globalResources(): List<Resource> {
+        return resources
+    }
+
+    private fun resourcesFor(biome: Biome): List<Pair<Resource, Int>> {
+        if (!resourceCaches.containsKey(biome)) {
+            val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
+            val weights = effectiveResources.map {
+                it.pointsIn(biome)
+            }
+            val selectableWeights = weights.mapIndexed { index, value ->
+                value + (weights.subList(0,index).reduceOrNull { acc, i -> acc + i } ?: 0)
+            }
+            resourceCaches[biome] = effectiveResources.zip(selectableWeights)
+        }
+        return resourceCaches[biome] ?: emptyList()
+    }
+
+    fun generateResourceIn(biome: Biome, seed: Long): Resource? {
+        val effectiveResources = resourcesFor(biome)
+        val selector = Utilities.mapToRange(Utilities.randomFromSeed(seed), 0, effectiveResources.last().second.coerceAtLeast(10).toLong())
+        return effectiveResources.firstOrNull { it.second > selector }?.first
+    }
+
     /**
      *
      * @param nation
@@ -680,6 +709,10 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 ?: userWrappers.firstOrNull { user -> println(user.name); user.name == targetName }
     }
 
+    fun resourceWithId(resourceId: String): Resource {
+        return globalResources().first { it.name == resourceId};
+    }
+
     companion object {
         lateinit var bot: Frostbalance
         private const val BAN_MESSAGE = "You have been banned system-wide by a staff member. Either you have violated Discord's TOS or you have been warned before about some violation of Frostbalance rules. If you believe this is in error, get in touch with a staff member."
@@ -722,7 +755,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 LoadLegacyCommand(this),
                 TopClaimsCommand(this),
                 TriangleCommand(this),
-                GarbageCommand(this)
+                GarbageCommand(this),
+                SearchCommand(this)
         ))
         load()
         saverTimer.schedule(object : TimerTask() {

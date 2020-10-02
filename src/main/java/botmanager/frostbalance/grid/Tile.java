@@ -4,6 +4,7 @@ import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.grid.biome.Biome;
 import botmanager.frostbalance.grid.biome.BiomeData;
 import botmanager.frostbalance.grid.coordinate.Hex;
+import botmanager.frostbalance.resource.ResourceData;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ public class Tile implements Containable<WorldMap>, Container {
     transient WorldMap map;
 
     ClaimData claimData = new ClaimData(this);
+
+    ResourceData resourceData = new ResourceData(this);
 
     transient BiomeData biomeData = new BiomeData(this);
 
@@ -59,6 +62,13 @@ public class Tile implements Containable<WorldMap>, Container {
         return claimData;
     }
 
+    public ResourceData getResourceData() {
+        if (resourceData == null) {
+            resourceData = new ResourceData(this);
+        }
+        return resourceData;
+    }
+
     public void removeObject(TileObject tileObject) {
         this.objects.remove(tileObject);
     }
@@ -75,6 +85,7 @@ public class Tile implements Containable<WorldMap>, Container {
             tileObject.setParent(this);
         }
         getClaimData().setParent(this);
+        getResourceData().setParent(this);
         claimData.adopt();
     }
 

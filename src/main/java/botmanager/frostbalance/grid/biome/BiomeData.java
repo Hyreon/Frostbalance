@@ -1,8 +1,10 @@
 package botmanager.frostbalance.grid.biome;
 
+import botmanager.Utilities;
 import botmanager.frostbalance.grid.Containable;
 import botmanager.frostbalance.grid.Tile;
 import botmanager.frostbalance.grid.coordinate.Hex;
+import botmanager.frostbalance.resource.RandomId;
 
 public class BiomeData implements Containable<Tile> {
 
@@ -71,22 +73,22 @@ public class BiomeData implements Containable<Tile> {
 
 
     private double generateElevationOffset() {
-        return Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / BUMP_SCALE,
+        return (Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / BUMP_SCALE,
                 tile.getLocation().drawY() / Hex.Y_SCALE / BUMP_SCALE,
-                2) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
+                2) * 2 - 1, OFFSET_SEVERITY) + 1) / 2;
     }
 
 
     private double generateHeatOffset() {
-        return Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / SHADE_SCALE,
+        return (Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / SHADE_SCALE,
                 tile.getLocation().drawY() / Hex.Y_SCALE / SHADE_SCALE,
-                3) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
+                3) * 2 - 1, OFFSET_SEVERITY) + 1) / 2;
     }
 
     private double generateHumidityOffset() {
-        return Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / WEATHER_SCALE,
+        return (Math.pow(simplexTile(tile.getLocation().drawX() / Hex.X_SCALE / WEATHER_SCALE,
                 tile.getLocation().drawY() / Hex.Y_SCALE / WEATHER_SCALE,
-                4) * 2 - 1, OFFSET_SEVERITY) + 1.0 / 2;
+                4) * 2 - 1, OFFSET_SEVERITY) + 1) / 2;
     }
 
     private double generateRiverMap() {
@@ -100,8 +102,8 @@ public class BiomeData implements Containable<Tile> {
         return 1 - distanceToClosestRiver;
     }
 
-    private double simplexTile(double coord1, double coord2, long seed) {
-        OpenSimplexNoise noise = new OpenSimplexNoise(seed + tile.getMap().getSeed());
+    private double simplexTile(double coord1, double coord2, long generatorSeed) {
+        OpenSimplexNoise noise = new OpenSimplexNoise(Utilities.combineSeed(generatorSeed, tile.getMap().getSeed(), RandomId.TILE_GENERATOR));
         double ZOOM_AMOUNT = 1.0 / 16;
         return (noise.eval(coord1 * ZOOM_AMOUNT, coord2 * ZOOM_AMOUNT) + 1)
                 / 2.0;
@@ -150,7 +152,7 @@ public class BiomeData implements Containable<Tile> {
      * Gets how far the temperature is from a moderate 0.5.
      * @return A value between 1 and 0; 0 is temperate, 1 is intemperate.
      */
-    private double intemperance() {
+    public double intemperance() {
         return Math.abs(getTemperature() * 2 - 1);
     }
 
@@ -160,70 +162,18 @@ public class BiomeData implements Containable<Tile> {
     }
 
     public Biome getBiome() {
-        if (getElevation() > 0.75) {
-            if (getTemperature() > 0.7) {
-                return Biome.MESA;
-            } else if (getTemperature() > 0.3) {
-                return Biome.ROCKY;
-            } else if (getHumidity() > 0.5) {
-                return Biome.ALP;
-            } else {
-                return Biome.SNOW_PEAK;
-            }
-        } else if (getElevation() > 0.35) {
 
-            if (isRiver()) return Biome.RIVER;
+        Biome baseBiome = Biome.Companion.getSMART_MAP()
+                .get(ElevationClass.from(getElevation()))
+                .get(TemperatureClass.from(getTemperature()))
+                .get(HumidityClass.from(getHumidity()));
 
-            //special cases
-            //if (getBaseElevation() < 0.2) {
-            //    return Biome.ISLAND;
-            //}
-            //if (getBaseElevation() < 0.3) {
-            //    return Biome.BEACH;
-            //}
-
-            if (getTemperature() < 0.3) {
-                if (getHumidity() < 9.0 / 32) {
-                    return Biome.TUNDRA;
-                } else if (getHumidity() < 0.5) {
-                    return Biome.SNOW_FIELD;
-                } else if (getHumidity() < 23.0 / 32) {
-                    return Biome.TAIGA;
-                } else {
-                    return Biome.MARSH;
-                }
-            } else if (getTemperature() < 0.7) {
-                if (getHumidity() < 9.0 / 32) {
-                    return Biome.TEMPERATE_DESERT;
-                } else if (getHumidity() < 0.5) {
-                    return Biome.GRASSLANDS;
-                } else if (getHumidity() < 23.0 / 32) {
-                    return Biome.FOREST;
-                } else {
-                    return Biome.SWAMP;
-                }
-            } else {
-                if (getHumidity() < 9.0 / 32) {
-                    return Biome.DESERT;
-                } else if (getHumidity() < 0.5) {
-                    return Biome.PRAIRIE;
-                } else if (getHumidity() < 23.0 / 32) {
-                    return Biome.SAVANNA;
-                } else {
-                    return Biome.JUNGLE;
-                }
-            }
-        } else {
-            if (getTemperature() < 0.2) {
-                return Biome.ICE;
-            } else if (getHumidity() > 0.8 && getTemperature() > 0.6) {
-                return Biome.STORMY_SEA;
-            } else {
-                if (getElevation() > 0.30) {
-                    return Biome.COAST;
-                }
-                return Biome.SEA;
-            }
+        if (isRiver() && baseBiome.getElevation() != ElevationClass.SEA) return Biome.RIVER;
+        if (baseBiome == Biome.SEA && getElevation() > 0.30) {
+            return Biome.COAST;
         }
+
+        return baseBiome;
+
     }
 }
