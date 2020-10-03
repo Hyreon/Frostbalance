@@ -119,7 +119,7 @@ class WorldMap(@Transient var gameNetwork: GameNetwork) : Containable<GameNetwor
                 Frostbalance.bot.getGameNetwork(networkName).adopt()
                 for (tile in worldMap.loadedTiles) {
                     tile.map = worldMap
-                    for (tileData in tile.getObjects()) {
+                    for (tileData in tile.getMobs()) {
                         tileData.tile = tile
                     }
                     tile.getClaimData().tile = tile

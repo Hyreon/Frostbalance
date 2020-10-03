@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PlayerCharacter extends TileObject {
+public class PlayerCharacter extends Mobile {
 
     public static final long MOVEMENT_SPEED = 120000;
 

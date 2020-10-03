@@ -2,7 +2,7 @@ package botmanager.frostbalance.commands.influence;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.HotMap;
+import botmanager.frostbalance.MapToCollection;
 import botmanager.frostbalance.MemberWrapper;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.command.AuthorityLevel;
@@ -21,8 +21,8 @@ import java.util.HashSet;
 
 public class CheckCommand extends FrostbalanceGuildCommand {
 
-    HotMap<TextChannel, Collection<Pair<User, User>>> privateCheckRequests = new HotMap<>();
-    HotMap<TextChannel, Collection<CheckMenu>> checkMenuCache = new HotMap<>();
+    MapToCollection<TextChannel, Collection<Pair<User, User>>> privateCheckRequests = new MapToCollection<>();
+    MapToCollection<TextChannel, Collection<CheckMenu>> checkMenuCache = new MapToCollection<>();
 
     public CheckCommand(Frostbalance bot) {
         super(bot, new String[] {

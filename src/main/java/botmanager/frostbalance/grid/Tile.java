@@ -24,8 +24,10 @@ public class Tile implements Containable<WorldMap>, Container {
     /**
      * A list of all objects currently on this tile.
      */
-    List<TileObject> objects = new ArrayList<>();
+    List<Mobile> objects = new ArrayList<>();
     Hex location;
+
+    BuildingData buildingData;
 
     public Tile(WorldMap map, Hex location) {
         this.map = map;
@@ -36,18 +38,18 @@ public class Tile implements Containable<WorldMap>, Container {
         return location;
     }
 
-    public Tile moveObject(TileObject tileObject, Hex location) {
+    public Tile moveObject(Mobile mob, Hex location) {
         Tile tile = map.getTile(location);
-        objects.remove(tileObject);
-        tile.addObject(tileObject);
+        objects.remove(mob);
+        tile.addObject(mob);
         return tile;
     }
 
-    public void addObject(TileObject tileObject) {
-        objects.add(tileObject);
+    public void addObject(Mobile mob) {
+        objects.add(mob);
     }
 
-    public Collection<TileObject> getObjects() {
+    public Collection<Mobile> getMobs() {
         return objects;
     }
 
@@ -69,6 +71,13 @@ public class Tile implements Containable<WorldMap>, Container {
         return resourceData;
     }
 
+    public BuildingData getBuildingData() {
+        if (buildingData == null) {
+            buildingData = new BuildingData(this);
+        }
+        return buildingData;
+    }
+
     public void removeObject(TileObject tileObject) {
         this.objects.remove(tileObject);
     }
@@ -81,6 +90,9 @@ public class Tile implements Containable<WorldMap>, Container {
 
     @Override
     public void adopt() {
+        while (objects.contains(null)) {
+            objects.remove(null);
+        }
         for (TileObject tileObject: objects) {
             tileObject.setParent(this);
         }

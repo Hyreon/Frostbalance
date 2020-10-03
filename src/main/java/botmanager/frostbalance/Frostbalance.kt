@@ -13,10 +13,7 @@ import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.records.RegimeData
 import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
-import botmanager.frostbalance.grid.Container
-import botmanager.frostbalance.grid.TileObject
-import botmanager.frostbalance.grid.TileObjectAdapter
-import botmanager.frostbalance.grid.WorldMap
+import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.resource.ResourceDepositType
@@ -61,7 +58,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             gameNetworks.add(0, it)
         }.invoke()
 
-    var regimes: Map<Guild?, MutableList<RegimeData>?> = HotMap()
+    var regimes: Map<Guild?, MutableList<RegimeData>?> = MapToCollection()
     private val activeMenus: MutableList<Menu> = ArrayList()
     private val guildIconCache: MutableList<Guild> = ArrayList()
     private val saverTimer = Timer()
@@ -443,7 +440,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun saveGames() {
         for (network in gameNetworks) {
-            writeObject("games/" + network.id, network, Pair(TileObject::class.java, TileObjectAdapter()))
+            writeObject("games/" + network.id, network, Pair(Mobile::class.java, TileObjectAdapter()))
             //TODO if network.isEmpty() remove file
         }
     }
@@ -599,7 +596,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         for (file in File("data/$name/games").listFiles()) {
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
-                gsonBuilder.registerTypeAdapter(TileObject::class.java, TileObjectAdapter())
+                gsonBuilder.registerTypeAdapter(Mobile::class.java, TileObjectAdapter())
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 val gson = gsonBuilder.create()
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
@@ -617,7 +614,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<TileObject>, TileObjectAdapter>) {
+    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<Mobile>, TileObjectAdapter>) {
         val file = File("data/$name/$filename.json")
         val gsonBuilder = GsonBuilder()
         for (typeAdapterPair in typeAdapters) {
@@ -756,7 +753,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 TopClaimsCommand(this),
                 TriangleCommand(this),
                 GarbageCommand(this),
-                SearchCommand(this)
+                SearchCommand(this),
+                BuildGathererCommand(this),
+                WorkCommand(this)
         ))
         load()
         saverTimer.schedule(object : TimerTask() {

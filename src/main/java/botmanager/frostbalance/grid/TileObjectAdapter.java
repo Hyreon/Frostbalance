@@ -19,17 +19,23 @@ public class TileObjectAdapter implements JsonSerializer<TileObject>, JsonDeseri
     public TileObject deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
             throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
-        String type = jsonObject.get("type").getAsString();
-        JsonElement element = jsonObject.get("properties");
-
         try {
-            TileObject tileObject = context.deserialize(element, Class.forName("botmanager.frostbalance.grid." + type));
-            if (tileObject instanceof PlayerCharacter) {
-                PlayerCharacter.cache.add((PlayerCharacter) tileObject);
+            String type = jsonObject.get("type").getAsString();
+            JsonElement element = jsonObject.get("properties");
+
+            try {
+                TileObject tileObject = context.deserialize(element, Class.forName("botmanager.frostbalance.grid." + type));
+                if (tileObject instanceof PlayerCharacter) {
+                    PlayerCharacter.cache.add((PlayerCharacter) tileObject);
+                }
+                return tileObject;
+            } catch (ClassNotFoundException e) {
+                throw new JsonParseException("Unknown element type: " + type, e);
             }
-            return tileObject;
-        } catch (ClassNotFoundException e) {
-            throw new JsonParseException("Unknown element type: " + type, e);
+        } catch (NullPointerException e) {
+            System.err.println("Nullpointer when loading json element: " + json);
+            return null;
         }
+
     }
 }

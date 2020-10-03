@@ -1,9 +1,7 @@
 package botmanager.frostbalance.render;
 
-import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.Tile;
-import botmanager.frostbalance.grid.TileObject;
-import botmanager.frostbalance.grid.WorldMap;
+import botmanager.frostbalance.grid.*;
+import botmanager.frostbalance.grid.building.Gatherer;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -39,7 +37,14 @@ public class MapRenderer {
         //    drawBorders(g, map.getRenderTile(drawHex), center, size_factor);
         //}
         for (Hex drawHex : drawHexes) {
-            renderTileObjects(g, map.getRenderTile(drawHex), center, size_factor);
+            Tile tile = map.getRenderTile(drawHex);
+            for (Mobile mob : tile.getMobs()) {
+                renderObject(g, tile, center, size_factor, mob);
+            }
+            Gatherer activeGatherer = tile.getBuildingData().activeGatherer();
+            if (activeGatherer != null) {
+                renderObject(g, tile, center, size_factor, activeGatherer);
+            }
         }
         g.dispose();
 
@@ -64,33 +69,31 @@ public class MapRenderer {
 
     }
 
-    private static void renderTileObjects(Graphics2D g, Tile tile, Hex center, double size_factor) {
+    private static void renderObject(Graphics2D g, Tile tile, Hex center, double size_factor, Renderable object) {
         Hex drawnHex = tile.getLocation().subtract(center);
-        for (TileObject object : tile.getObjects()) {
-            try {
-                BufferedImage image = object.getImage();
-                if (image == null) continue;
-                if (object instanceof PlayerCharacter) {
-                    PlayerCharacter player = (PlayerCharacter) object;
-                    if (player.getDestination() != player.getLocation()) {
-                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player, size_factor);
-                    }
+        try {
+            BufferedImage image = object.getImage();
+            if (image == null) return;
+            if (object instanceof PlayerCharacter) {
+                PlayerCharacter player = (PlayerCharacter) object;
+                if (player.getDestination() != player.getLocation()) {
+                    renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player, size_factor);
                 }
-                int width = image.getWidth();
-                BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2 = circleBuffer.createGraphics();
-                g2.setClip(new Ellipse2D.Float(0, 0, width, width));
-                g2.drawImage(image, 0, 0, width, width, null);
-                g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
-                        (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
-                        (int) (Hex.X_SCALE * size_factor),
-                        (int) (Hex.Y_SCALE * size_factor),
-                        null);
-                System.out.println("Draw object at " + tile.getLocation());
-            } catch (IOException e) {
-                System.err.println("IOException when trying to render a tile object");
-                e.printStackTrace();
             }
+            int width = image.getWidth();
+            BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = circleBuffer.createGraphics();
+            g2.setClip(new Ellipse2D.Float(0, 0, width, width));
+            g2.drawImage(image, 0, 0, width, width, null);
+            g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
+                    (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
+                    (int) (Hex.X_SCALE * size_factor),
+                    (int) (Hex.Y_SCALE * size_factor),
+                    null);
+            System.out.println("Draw object at " + tile.getLocation());
+        } catch (IOException e) {
+            System.err.println("IOException when trying to render a tile object");
+            e.printStackTrace();
         }
     }
 

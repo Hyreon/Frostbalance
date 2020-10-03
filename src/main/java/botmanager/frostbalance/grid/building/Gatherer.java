@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid.building;
 
 import botmanager.frostbalance.grid.Tile;
+import botmanager.frostbalance.resource.ResourceDeposit;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,8 +9,11 @@ import java.io.InputStream;
 
 public class Gatherer extends Building {
 
-    protected Gatherer(Tile tile) {
+    ResourceDeposit deposit;
+
+    public Gatherer(Tile tile, ResourceDeposit deposit) {
         super(tile);
+        this.deposit = deposit;
     }
 
     @Override
