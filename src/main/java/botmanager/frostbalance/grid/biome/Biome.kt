@@ -16,31 +16,31 @@ enum class Biome(var color: Color, val elevation: ElevationClass, val temperatur
     //sea
     SEA(Color(80, 80, 255), ElevationClass.SEA, TemperatureClass.COOL, HumidityClass.ARID),
     ICE(Color(192, 255, 255), ElevationClass.SEA, TemperatureClass.BOREAL, HumidityClass.ARID),
-    STORMY_SEA(Color(60, 0, 200), ElevationClass.SEA, TemperatureClass.TROPICAL, HumidityClass.HEAVY),
+    STORMY_SEA(Color(60, 0, 200), ElevationClass.SEA, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN),
 
     //mountain
     SNOW_PEAK(Color(220, 200, 240), ElevationClass.MOUNTAINS, TemperatureClass.BOREAL, HumidityClass.ARID), //covers all humidities
     ROCKY(Color(180, 160, 160), ElevationClass.MOUNTAINS, TemperatureClass.COOL, HumidityClass.ARID),
-    ALP(Color(150, 180, 150), ElevationClass.MOUNTAINS, TemperatureClass.COOL, HumidityClass.GOOD),
+    ALP(Color(150, 180, 150), ElevationClass.MOUNTAINS, TemperatureClass.COOL, HumidityClass.GOOD_RAIN),
     MESA(Color(192, 128, 64), ElevationClass.MOUNTAINS, TemperatureClass.TROPICAL, HumidityClass.ARID), //covers all humidities
 
     //cold
     TUNDRA(Color(0xFAFADC), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.ARID),
-    SNOW_FIELD(Color(0xCCD9A4), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.MODEST),
-    TAIGA(Color(0x008080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.GOOD),
-    MARSH(Color(0x606080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.HEAVY),
+    SNOW_FIELD(Color(0xCCD9A4), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.MODEST_RAIN),
+    TAIGA(Color(0x008080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.GOOD_RAIN),
+    MARSH(Color(0x606080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.HEAVY_RAIN),
 
     //moderate
     TEMPERATE_DESERT(Color(0x89A32E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.ARID),
-    GRASSLANDS(Color(0x69932E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.MODEST),
-    FOREST(Color(0x008000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.GOOD),
-    SWAMP(Color(0x606000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.HEAVY),
+    GRASSLANDS(Color(0x69932E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.MODEST_RAIN),
+    FOREST(Color(0x008000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.GOOD_RAIN),
+    SWAMP(Color(0x606000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.HEAVY_RAIN),
 
     //hot
     DESERT(Color(0xF0C896), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.ARID),
-    PRAIRIE(Color(0xA0BE64), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.MODEST),
-    SAVANNA(Color(0x808000), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.GOOD),
-    JUNGLE(Color(0x30A050), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.HEAVY);
+    PRAIRIE(Color(0xA0BE64), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.MODEST_RAIN),
+    SAVANNA(Color(0x808000), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.GOOD_RAIN),
+    JUNGLE(Color(0x30A050), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN);
 
     companion object {
         val SMART_MAP: Map<ElevationClass, Map<TemperatureClass, Map<HumidityClass, Biome>>> = makeSmartMap(values()).let { println(it); it }

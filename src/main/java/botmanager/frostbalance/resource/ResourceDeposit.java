@@ -10,11 +10,11 @@ public class ResourceDeposit {
 
     /**
      * Generates a resource deposit with a level up to the given amount.
-     * @param resource
+     * @param resourceDepositType
      * @param progress
      */
-    public ResourceDeposit(Resource resource, int progress) {
-        this.resourceId = resource.getId();
+    public ResourceDeposit(ResourceDepositType resourceDepositType, int progress) {
+        this.resourceId = resourceDepositType.getId();
         this.level =
                 (int) Utilities.mapToRange(Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL),
                         1, progress);
@@ -24,7 +24,7 @@ public class ResourceDeposit {
         return getResource().name + " " + level;
     }
 
-    public Resource getResource() {
+    public ResourceDepositType getResource() {
         return Frostbalance.bot.resourceWithId(resourceId);
     }
 }

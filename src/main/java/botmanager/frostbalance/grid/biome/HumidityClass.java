@@ -4,10 +4,10 @@ public enum HumidityClass {
 
     NONE(Double.POSITIVE_INFINITY),
 
-    HEAVY(23.0 / 32),
+    HEAVY_RAIN(23.0 / 32),
 
-    GOOD(0.5),
-    MODEST(9.0 / 32),
+    GOOD_RAIN(0.5),
+    MODEST_RAIN(9.0 / 32),
 
     ARID(0.0);
 

@@ -5,20 +5,19 @@ import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.GameNetwork
 import botmanager.frostbalance.Player
 import botmanager.frostbalance.grid.coordinate.Hex
-import botmanager.frostbalance.resource.Resource
+import botmanager.frostbalance.resource.ResourceDepositType
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.Guild
 import java.io.File
 import java.util.*
 import java.util.stream.Collectors
-import kotlin.math.roundToLong
 
 /**
  * A worldmap consists of a set of tiles and all data relevant to them.
  */
 class WorldMap(@Transient var gameNetwork: GameNetwork) : Containable<GameNetwork>, Container {
 
-    val resources: List<Resource>
+    val resourceDepositTypes: List<ResourceDepositType>
         get() = gameNetwork.bot.globalResources()
 
     @Transient

@@ -40,7 +40,7 @@ public class ResourceData implements Containable<Tile> {
 
     public boolean search() {
         //FIXME use the tile and the attempts to seed the result!
-        if (Utilities.randomFromSeed(tile.getLocation().hashCode(), attempts, RandomId.SEARCH_SUCCESS_FAIL) < 0.3) {
+        if (Utilities.randomFromSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.SEARCH_SUCCESS_FAIL) < 0.3) {
             addProgress();
             attempts++;
             return true;
@@ -62,7 +62,7 @@ public class ResourceData implements Containable<Tile> {
     }
 
     private void addResource() {
-        long seed = Utilities.combineSeed(tile.getLocation().hashCode(), attempts, RandomId.NEW_DEPOSIT);
+        long seed = Utilities.combineSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.NEW_DEPOSIT);
         resources.add(
                 new ResourceDeposit(Frostbalance.bot.generateResourceIn(tile.getBiome(), seed), progress)
         );
@@ -92,7 +92,7 @@ public class ResourceData implements Containable<Tile> {
      * @param resourceDepositList
      */
     public static void simp(List<ResourceDeposit> resourceDepositList) {
-        HashMap<Resource, List<ResourceDeposit>> resourceDepositBuckets = new HashMap<>();
+        HashMap<ResourceDepositType, List<ResourceDeposit>> resourceDepositBuckets = new HashMap<>();
         for (int i = 0; i < resourceDepositList.size(); i++) {
             ResourceDeposit deposit = resourceDepositList.get(i);
             if (resourceDepositBuckets.containsKey(deposit.getResource())) {
@@ -104,7 +104,7 @@ public class ResourceData implements Containable<Tile> {
             }
         }
         System.out.println("Buckets assembled: " + resourceDepositBuckets.toString());
-        for (Resource key : resourceDepositBuckets.keySet()) {
+        for (ResourceDepositType key : resourceDepositBuckets.keySet()) {
             int max = -1;
             for (ResourceDeposit resourceDeposit : resourceDepositBuckets.get(key)) {
                 if (resourceDeposit.level <= max) {
