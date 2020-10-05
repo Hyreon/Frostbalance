@@ -16,7 +16,7 @@ import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
 import botmanager.frostbalance.menu.Menu
-import botmanager.frostbalance.resource.ResourceDepositType
+import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.*
@@ -45,8 +45,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
-    internal val resourceDepositTypes: MutableList<ResourceDepositType> = mutableListOf(ResourceDepositType("Bread"))
-    internal val resourceDepositTypeCaches: MutableMap<Biome, List<Pair<ResourceDepositType, Int>>> = HashMap()
+    internal val mapResources: MutableList<MapResource> = mutableListOf(MapResource("Bread"))
+    internal val mapResourceCaches: MutableMap<Biome, List<Pair<MapResource, Int>>> = HashMap()
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
@@ -379,12 +379,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return newCommands.requireNoNulls()
     }
 
-    fun globalResources(): List<ResourceDepositType> {
-        return resourceDepositTypes
+    fun globalResources(): List<MapResource> {
+        return mapResources
     }
 
-    private fun resourcesFor(biome: Biome): List<Pair<ResourceDepositType, Int>> {
-        if (!resourceDepositTypeCaches.containsKey(biome)) {
+    private fun resourcesFor(biome: Biome): List<Pair<MapResource, Int>> {
+        if (!mapResourceCaches.containsKey(biome)) {
             val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
             val weights = effectiveResources.map {
                 it.pointsIn(biome)
@@ -392,12 +392,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             val selectableWeights = weights.mapIndexed { index, value ->
                 value + (weights.subList(0,index).reduceOrNull { acc, i -> acc + i } ?: 0)
             }
-            resourceDepositTypeCaches[biome] = effectiveResources.zip(selectableWeights)
+            mapResourceCaches[biome] = effectiveResources.zip(selectableWeights)
         }
-        return resourceDepositTypeCaches[biome] ?: emptyList()
+        return mapResourceCaches[biome] ?: emptyList()
     }
 
-    fun generateResourceIn(biome: Biome, seed: Long): ResourceDepositType? {
+    fun generateResourceIn(biome: Biome, seed: Long): MapResource? {
         val effectiveResources = resourcesFor(biome)
         val selector = Utilities.mapToRange(Utilities.randomFromSeed(seed), 0, effectiveResources.last().second.coerceAtLeast(10).toLong())
         return effectiveResources.firstOrNull { it.second > selector }?.first
@@ -706,7 +706,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 ?: userWrappers.firstOrNull { user -> println(user.name); user.name == targetName }
     }
 
-    fun resourceWithId(resourceId: String): ResourceDepositType {
+    fun resourceWithId(resourceId: String): MapResource {
         return globalResources().first { it.name == resourceId};
     }
 
@@ -718,7 +718,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     init {
         bot = this
         jda.presence.activity = Activity.of(Activity.ActivityType.DEFAULT, prefix + "help for help!")
-        setCommands(arrayOf(
+        commands = arrayOf(
                 HelpCommand(this),
                 DailyRewardCommand(this),
                 SubscribeCommand(this),
@@ -756,7 +756,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 SearchCommand(this),
                 BuildGathererCommand(this),
                 WorkCommand(this)
-        ))
+        )
         load()
         saverTimer.schedule(object : TimerTask() {
             override fun run() {

@@ -1,5 +1,6 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.frostbalance.grid.building.Building;
 import botmanager.frostbalance.grid.building.Gatherer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,11 @@ public class BuildingData implements Containable<Tile> {
      * A reference to all past and current gatherers on this location.
      */
     List<Gatherer> gatherers = new ArrayList<>();
+
+    @NotNull
+    public List<Building> getBuildings() {
+        return new ArrayList<>(gatherers);
+    };
 
     public BuildingData(Tile tile) {
         this.tile = tile;

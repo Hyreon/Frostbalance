@@ -63,6 +63,9 @@ public class WorkManager {
         }
     }
 
+    /**
+     * Corrects any workers or buildings in an invalid state.
+     */
     public void validateWorkers() {
         List<PlayerCharacter> workingSomewhere = new ArrayList<>();
         for (Building key : workers.keySet()) {

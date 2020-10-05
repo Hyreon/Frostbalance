@@ -10,21 +10,25 @@ public class ResourceDeposit {
 
     /**
      * Generates a resource deposit with a level up to the given amount.
-     * @param resourceDepositType
+     * @param mapResource
      * @param progress
      */
-    public ResourceDeposit(ResourceDepositType resourceDepositType, int progress) {
-        this.resourceId = resourceDepositType.getId();
+    public ResourceDeposit(MapResource mapResource, int progress) {
+        this.resourceId = mapResource.getId();
         this.level =
                 (int) Utilities.mapToRange(Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL),
                         1, progress);
     }
 
     public String toString() {
-        return getResource().name + " " + level;
+        return getDeposit().name + " " + level;
     }
 
-    public ResourceDepositType getResource() {
+    public MapResource getDeposit() {
         return Frostbalance.bot.resourceWithId(resourceId);
+    }
+
+    public ItemStack yield(double quantity) {
+        return new ItemStack(getDeposit().itemType, quantity, level);
     }
 }

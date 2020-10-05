@@ -24,10 +24,12 @@ class BuildGathererMenu(bot: Frostbalance, context: GuildMessageContext) :
         }
 
     override fun select(option: ResourceDeposit) {
-        context.author.playerIn(context.gameNetwork).character.tile.run {
-            buildingData.addGatherer(Gatherer(this, option))
-            close(false)
+        context.author.playerIn(context.gameNetwork).let { player ->
+            player.character.tile.let { tile ->
+                tile.buildingData.addGatherer(Gatherer(tile, player, option))
+            }
         }
+        close(false)
     }
 
 }

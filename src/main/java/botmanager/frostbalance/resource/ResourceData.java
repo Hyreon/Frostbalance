@@ -92,19 +92,19 @@ public class ResourceData implements Containable<Tile> {
      * @param resourceDepositList
      */
     public static void simp(List<ResourceDeposit> resourceDepositList) {
-        HashMap<ResourceDepositType, List<ResourceDeposit>> resourceDepositBuckets = new HashMap<>();
+        HashMap<MapResource, List<ResourceDeposit>> resourceDepositBuckets = new HashMap<>();
         for (int i = 0; i < resourceDepositList.size(); i++) {
             ResourceDeposit deposit = resourceDepositList.get(i);
-            if (resourceDepositBuckets.containsKey(deposit.getResource())) {
-                resourceDepositBuckets.get(deposit.getResource()).add(deposit);
+            if (resourceDepositBuckets.containsKey(deposit.getDeposit())) {
+                resourceDepositBuckets.get(deposit.getDeposit()).add(deposit);
             } else {
                 List<ResourceDeposit> initial = new ArrayList<>();
                 initial.add(deposit);
-                resourceDepositBuckets.put(deposit.getResource(), initial);
+                resourceDepositBuckets.put(deposit.getDeposit(), initial);
             }
         }
         System.out.println("Buckets assembled: " + resourceDepositBuckets.toString());
-        for (ResourceDepositType key : resourceDepositBuckets.keySet()) {
+        for (MapResource key : resourceDepositBuckets.keySet()) {
             int max = -1;
             for (ResourceDeposit resourceDeposit : resourceDepositBuckets.get(key)) {
                 if (resourceDeposit.level <= max) {
