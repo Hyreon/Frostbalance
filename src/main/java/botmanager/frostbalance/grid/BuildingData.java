@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BuildingData implements Containable<Tile> {
+public class BuildingData implements Containable<Tile>, Container {
 
     transient Tile tile;
 
@@ -29,6 +29,13 @@ public class BuildingData implements Containable<Tile> {
     @Override
     public void setParent(Tile parent) {
         this.tile = parent;
+    }
+
+    @Override
+    public void adopt() {
+        for (Building building : getBuildings()) {
+            building.setParent(this.tile); //shrug
+        }
     }
 
     @Nullable

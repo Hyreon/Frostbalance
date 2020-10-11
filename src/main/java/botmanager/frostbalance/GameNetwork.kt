@@ -15,11 +15,17 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
 
     @Transient
-    private val turnTimer = Timer()
+    private var turnTimer = Timer()
 
     init {
+        initializeTurnCycle()
+    }
+
+    fun initializeTurnCycle() {
+        turnTimer = turnTimer ?: Timer() //impossible condition test
         turnTimer.schedule(object : TimerTask() {
             override fun run() {
+                println("Doing turn $turn")
                 worldMap.loadedTiles.forEach {
                     if (it.buildingData.buildings.any { building -> building.doTurn(turn) } ||
                             it.mobs.any { mob -> mob.doTurn(turn) }) { //something changed on the tile
@@ -27,9 +33,10 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
                     }
                 }
                 WorkManager.singleton.validateWorkers()
+                turn++
             }
-        }, 240000, 240000)
-        turn++
+        }, 20000, 20000)
+        println("Scheduled turn timer for $this!")
     }
 
     val nations: Set<Nation>

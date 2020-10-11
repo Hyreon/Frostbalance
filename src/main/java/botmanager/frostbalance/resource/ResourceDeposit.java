@@ -2,8 +2,11 @@ package botmanager.frostbalance.resource;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.grid.Containable;
 
-public class ResourceDeposit {
+public class ResourceDeposit implements Containable<ResourceData> {
+
+    private transient ResourceData data;
 
     String resourceId;
     int level;
@@ -30,5 +33,10 @@ public class ResourceDeposit {
 
     public ItemStack yield(double quantity) {
         return new ItemStack(getDeposit().itemType, quantity, level);
+    }
+
+    @Override
+    public void setParent(ResourceData parent) {
+        this.data = parent;
     }
 }

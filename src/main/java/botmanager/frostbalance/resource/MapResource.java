@@ -23,12 +23,13 @@ public class MapResource {
     Gatherer.Method gatherer;
 
     //TODO replace this debug method with a proper method
-    public MapResource(@NotNull String name) {
+    public MapResource(@NotNull String name, Gatherer.Method method, ItemType itemType) {
         this.name = name;
         for (Biome biome : Biome.values()) {
             points.put(biome, 9);
         }
-        gatherer = Gatherer.Method.PLANTATION;
+        gatherer = method;
+        this.itemType = itemType;
     }
 
     public int pointsIn(Biome biome) {

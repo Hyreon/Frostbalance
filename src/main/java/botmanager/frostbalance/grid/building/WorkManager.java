@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid.building;
 
 import botmanager.frostbalance.MapToCollection;
 import botmanager.frostbalance.grid.PlayerCharacter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -28,10 +29,17 @@ public class WorkManager {
     Map<PlayerCharacter, Building> buildings = new HashMap<>();
     List<PlayerCharacter> allWorkers = new ArrayList<>();
 
-    public void addWorker(Building building, PlayerCharacter worker) {
+    public boolean addWorker(@NotNull Building building, PlayerCharacter worker) {
+        boolean previousWork = false;
+        Building existingWorkplace = getBuilding(worker);
+        if (existingWorkplace != null) {
+            removeWorker(existingWorkplace, worker);
+            previousWork = true;
+        }
         workers.getOrDefault(building, new ArrayList<>()).add(worker);
         buildings.put(worker, building);
         allWorkers.add(worker);
+        return previousWork;
     }
 
     public boolean removeWorker(Building building, PlayerCharacter worker) {

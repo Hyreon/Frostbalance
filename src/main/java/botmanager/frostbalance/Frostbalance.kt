@@ -15,7 +15,9 @@ import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
+import botmanager.frostbalance.grid.building.Gatherer
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.resource.ItemType
 import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
 import com.google.gson.GsonBuilder
@@ -45,8 +47,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
-    internal val mapResources: MutableList<MapResource> = mutableListOf(MapResource("Bread"))
     internal val mapResourceCaches: MutableMap<Biome, List<Pair<MapResource, Int>>> = HashMap()
+    internal val itemResources: MutableList<ItemType> = mutableListOf(ItemType("Lumber", "0x000000"))
+    internal val mapResources: MutableList<MapResource> = mutableListOf(MapResource("Trees", Gatherer.Method.MILL, itemResources.first()))
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
@@ -383,6 +386,10 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return mapResources
     }
 
+    private fun globalItems(): List<ItemType> {
+        return itemResources
+    }
+
     private fun resourcesFor(biome: Biome): List<Pair<MapResource, Int>> {
         if (!mapResourceCaches.containsKey(biome)) {
             val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
@@ -602,6 +609,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
                 gameNetwork.setParent(this)
                 gameNetwork.adopt()
+                gameNetwork.initializeTurnCycle()
                 if (gameNetwork.id != null) { //impossible condition test
                     gameNetworks.add(gameNetwork)
                     if (gameNetwork.id == "main") {
@@ -707,7 +715,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     fun resourceWithId(resourceId: String): MapResource {
-        return globalResources().first { it.name == resourceId};
+        return globalResources().first { it.name == resourceId}
+    }
+
+    fun itemWithId(resourceId: String): ItemType {
+        return globalItems().first { it.name == resourceId }
     }
 
     companion object {
@@ -755,7 +767,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 GarbageCommand(this),
                 SearchCommand(this),
                 BuildGathererCommand(this),
-                WorkCommand(this)
+                WorkCommand(this),
+                InventoryCommand(this)
         )
         load()
         saverTimer.schedule(object : TimerTask() {

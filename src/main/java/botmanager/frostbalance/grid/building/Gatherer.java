@@ -40,10 +40,12 @@ public class Gatherer extends Building {
 
     public boolean turnAction() {
 
+        System.out.println("Doing turn action!");
+
         List<PlayerCharacter> workers = WorkManager.singleton.getWorkers(this);
         double quantity = workers.isEmpty() ? 0 : (1.0 + getLevel()) / workers.size();
         for (PlayerCharacter worker : workers) {
-            worker.inventory.addItem(deposit.yield(quantity));
+            worker.getInventory().addItem(deposit.yield(quantity));
             gainExperience( 1.0 / 360 ); //there are 360 turns in a day
         }
         return false; //never any graphical change

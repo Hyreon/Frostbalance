@@ -19,6 +19,8 @@ public abstract class Building extends TileObject {
     }
 
     public Player getOwner() {
+        System.out.println("ownerId: " + ownerId);
+        System.out.println("tile.getMap(): " + tile.getMap());
         return Frostbalance.bot.getUserWrapper(ownerId).playerIn(tile.getMap().getGameNetwork());
     }
 

@@ -3,12 +3,13 @@ package botmanager.frostbalance.resource;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.grid.Containable;
+import botmanager.frostbalance.grid.Container;
 import botmanager.frostbalance.grid.Tile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class ResourceData implements Containable<Tile> {
+public class ResourceData implements Containable<Tile>, Container {
 
     transient Tile tile;
 
@@ -119,5 +120,12 @@ public class ResourceData implements Containable<Tile> {
 
     public int getProgress() {
         return progress;
+    }
+
+    @Override
+    public void adopt() {
+        for (ResourceDeposit deposit : resources) {
+            deposit.setParent(this);
+        }
     }
 }

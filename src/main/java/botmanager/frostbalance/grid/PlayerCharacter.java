@@ -127,4 +127,10 @@ public class PlayerCharacter extends Mobile {
     public boolean turnAction() {
         return updateMovement();
     }
+
+    public Inventory getInventory() {
+        if (inventory == null) inventory = new Inventory();
+        return inventory;
+    }
+
 }

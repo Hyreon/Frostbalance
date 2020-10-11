@@ -96,9 +96,12 @@ public class Tile implements Containable<WorldMap>, Container {
         for (TileObject tileObject: objects) {
             tileObject.setParent(this);
         }
+        getBuildingData().setParent(this);
         getClaimData().setParent(this);
         getResourceData().setParent(this);
         claimData.adopt();
+        buildingData.adopt();
+        resourceData.adopt();
     }
 
     public boolean isEmpty() {

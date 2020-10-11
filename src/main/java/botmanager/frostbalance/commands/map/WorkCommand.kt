@@ -21,9 +21,11 @@ class WorkCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("wo
 
         if (activeGatherer.owner != context.player) return context.sendResponse("You don't own this gatherer!")
 
-        WorkManager.singleton.addWorker(context.player.character.tile.buildingData.activeGatherer(), context.player.character)
-
-        return context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit}).")
+        return if (WorkManager.singleton.addWorker(activeGatherer, context.player.character)) {
+            context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit}) after ceasing to work at your previous one.")
+        } else {
+            context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit}).")
+        }
 
     }
 
