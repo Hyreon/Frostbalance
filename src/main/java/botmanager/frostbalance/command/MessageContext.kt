@@ -52,7 +52,7 @@ open class MessageContext {
             publicEvent!!.jda
         } else privateEvent!!.jda
 
-    @get:Deprecated("")
+    @get:Deprecated("Use wrapper instead")
     val jdaUser: User
         get() = if (isPublic) {
             publicEvent!!.author

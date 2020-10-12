@@ -45,7 +45,7 @@ class WeeklyInfluenceSource {
 
     companion object {
         @JvmField
-        val FALLOFF = Influence(0.15)
+        val FALLOFF = Influence(0.00)
     }
 
 }

@@ -1,9 +1,13 @@
 package botmanager.frostbalance.grid;
 
+import botmanager.Utilities;
 import botmanager.Utils;
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.Player;
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.Player;
+import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.action.Action;
+import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
@@ -16,6 +20,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -26,6 +32,8 @@ import java.util.logging.Logger;
 public class PlayerCharacter extends TileObject {
 
     public static final long MOVEMENT_SPEED = 120000;
+
+    transient Queue<Action> actionQueue = new PriorityQueue<>();
 
     @Deprecated
     static List<PlayerCharacter> cache = new ArrayList<>();
@@ -69,13 +77,31 @@ public class PlayerCharacter extends TileObject {
     /**
      * @return The user from this id, or null if the user is inaccessible.
      */
-    public User getUser() {
-        User user = Frostbalance.bot.getJDA().getUserById(userId);
-        return user;
+    public UserWrapper getUser() {
+        return Frostbalance.bot.getUserWrapper(userId);
     }
 
     public String getUserId() {
         return userId;
+    }
+
+    public Queue<Action> getActionQueue() {
+        if (actionQueue == null) actionQueue = new PriorityQueue<>();
+        return actionQueue;
+    }
+
+    public void doNextAction() {
+        Action action = getActionQueue().poll();
+        if (action == null) return;
+        try {
+            action.doAction(this);
+        } catch (FrostbalanceException e) {
+            User jdaUser = getUser().getJdaUser();
+            if (jdaUser != null) {
+                Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
+                        String.join("\n", e.displayCauses()));
+            }
+        }
     }
 
     /**
@@ -138,7 +164,7 @@ public class PlayerCharacter extends TileObject {
     public InputStream getRender() {
         try {
             if (getUser() != null) { //user is accessible
-                URL url = new URL(getUser().getEffectiveAvatarUrl());
+                URL url = new URL(getUser().getJdaUser().getEffectiveAvatarUrl());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("User-Agent", "");
                 return connection.getInputStream();
@@ -154,7 +180,7 @@ public class PlayerCharacter extends TileObject {
         }
     }
 
-    private Player getPlayer() {
+    public Player getPlayer() {
         return Frostbalance.bot.getUserWrapper(userId).playerIn(getMap().getGameNetwork());
     }
 

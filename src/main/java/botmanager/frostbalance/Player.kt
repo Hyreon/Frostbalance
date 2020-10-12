@@ -27,14 +27,14 @@ class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : C
 
     /**
      * Gets this player as though it were a member of the guild it has its allegiance to.
-     * @return null if the guild doesn't exist, or if the user isn't in the guild.
+     * @return the member. This will throw an exception if the right guild couldn't be found.
      */
-    val member: MemberWrapper?
-        get() = gameNetwork.guildWithAllegiance(allegiance)?.let { userWrapper.memberIn(it) }
+    val member: MemberWrapper
+        get() = gameNetwork.guildWithAllegiance(allegiance)!!.let { userWrapper.memberIn(it) }
 
 
     val name: String
-        get() = member?.effectiveName ?: userWrapper.name
+        get() = member.effectiveName ?: userWrapper.name
 
     val isLeader: Boolean
         get() = gameNetwork.associatedGuilds.any { guild -> guild.leaderId == userWrapper.id }

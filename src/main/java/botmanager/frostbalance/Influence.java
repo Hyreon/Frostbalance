@@ -45,6 +45,15 @@ public class Influence {
         return new Influence(0);
     }
 
+    /**
+     * Gives a very large amount of influence. Can be used as an arbitrary upper bound.
+     * Will be expanded as necessary.
+     * @return
+     */
+    public static Influence large() {
+        return new Influence(Integer.MAX_VALUE / 2 + 1);
+    }
+
     public double getValue() {
         return thousandths / 1000.0;
     }
