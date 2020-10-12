@@ -3,6 +3,10 @@ package botmanager.frostbalance.grid;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
+import botmanager.Utilities;
+import botmanager.frostbalance.UserWrapper;
+import botmanager.frostbalance.action.Action;
+import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.resource.Inventory;
 import net.dv8tion.jda.api.entities.User;
@@ -12,12 +16,15 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerCharacter extends Mobile {
 
     public Inventory inventory;
+    transient Queue<Action> actionQueue = new PriorityQueue<>();
 
     /**
      * The user this character is tied to.
@@ -37,13 +44,31 @@ public class PlayerCharacter extends Mobile {
     /**
      * @return The user from this id, or null if the user is inaccessible.
      */
-    public User getUser() {
-        User user = Frostbalance.bot.getJDA().getUserById(userId);
-        return user;
+    public UserWrapper getUser() {
+        return Frostbalance.bot.getUserWrapper(userId);
     }
 
     public String getUserId() {
         return userId;
+    }
+
+    public Queue<Action> getActionQueue() {
+        if (actionQueue == null) actionQueue = new PriorityQueue<>();
+        return actionQueue;
+    }
+
+    public void doNextAction() {
+        Action action = getActionQueue().poll();
+        if (action == null) return;
+        try {
+            action.doAction(this);
+        } catch (FrostbalanceException e) {
+            User jdaUser = getUser().getJdaUser();
+            if (jdaUser != null) {
+                Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
+                        String.join("\n", e.displayCauses()));
+            }
+        }
     }
 
     /**
@@ -95,7 +120,7 @@ public class PlayerCharacter extends Mobile {
     public InputStream getRender() {
         try {
             if (getUser() != null) { //user is accessible
-                URL url = new URL(getUser().getEffectiveAvatarUrl());
+                URL url = new URL(getUser().getJdaUser().getEffectiveAvatarUrl());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("User-Agent", "");
                 return connection.getInputStream();
@@ -111,7 +136,7 @@ public class PlayerCharacter extends Mobile {
         }
     }
 
-    private Player getPlayer() {
+    public Player getPlayer() {
         return Frostbalance.bot.getUserWrapper(userId).playerIn(getMap().getGameNetwork());
     }
 
