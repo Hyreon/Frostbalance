@@ -4,11 +4,38 @@ import botmanager.frostbalance.flags.NetworkFlag
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.Container
 import botmanager.frostbalance.grid.WorldMap
+import java.util.*
+import kotlin.collections.HashSet
 
 class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance>, Container {
 
+    private var turn: Int = 0
     var worldMap: WorldMap = WorldMap(this)
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
+
+    @Transient
+    private var turnTimer = Timer()
+
+    init {
+        initializeTurnCycle()
+    }
+
+    fun initializeTurnCycle() {
+        turnTimer = turnTimer ?: Timer() //impossible condition test
+        turnTimer.schedule(object : TimerTask() {
+            override fun run() {
+                println("Doing turn $turn")
+                worldMap.loadedTiles.forEach {
+                    if (
+                            it.objects.any { mob -> mob.doTurn(turn) }) { //something changed on the tile
+                        //TODO update observers of this tile
+                    }
+                }
+                turn++
+            }
+        }, 20000, 20000)
+        println("Scheduled turn timer for $this!")
+    }
 
     val nations: Set<Nation>
         get() = associatedGuilds.map { guild -> guild.nation }.toHashSet()

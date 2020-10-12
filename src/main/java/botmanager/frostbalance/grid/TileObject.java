@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid;
 
 import botmanager.Utilities;
 import botmanager.frostbalance.grid.coordinate.Hex;
+import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -12,6 +13,7 @@ public abstract class TileObject extends TileData {
 
     transient private BufferedImage cachedImage;
     transient private long cachedImageDate;
+    transient private Object lastActiveTurn;
 
     protected TileObject(Tile tile) {
         super(tile);
@@ -62,4 +64,16 @@ public abstract class TileObject extends TileData {
         return tile.getMap();
     }
 
+    /**
+     * The defined behavior for what an object should do when the turn timer goes down.
+     * @return whether or not anything changed as a result of this action.
+     */
+    public abstract boolean turnAction();
+
+    public boolean doTurn(@NotNull Object turn) {
+        if (this.lastActiveTurn != turn) {
+            lastActiveTurn = turn;
+            return turnAction();
+        } else return false;
+    }
 }

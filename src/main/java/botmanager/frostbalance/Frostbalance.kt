@@ -485,6 +485,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val bGuild = getGuildIfPresent(guildId) ?: GuildWrapper(gameNetwork, guild)
                     gameNetwork.addGuild(bGuild)
                     gameNetwork.adopt()
+                    gameNetwork.initializeTurnCycle()
                     bGuild.loadLegacy(
                             getSettings(guild) as MutableSet<OldOptionFlag>,
                             getRecords(guild)!!,
