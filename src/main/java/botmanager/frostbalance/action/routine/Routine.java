@@ -4,7 +4,6 @@ import botmanager.frostbalance.action.Action;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.TileObject;
 
 import java.util.Queue;
 
@@ -13,10 +12,10 @@ public abstract class Routine implements QueueStep {
     PlayerCharacter mobile;
 
     public Action pollAction() {
-        return peekAtAllActions(mobile).poll();
+        return peekAtAllActions().poll();
     }
 
-    public abstract Queue<Action> peekAtAllActions(TileObject character);
+    public abstract Queue<? extends Action> peekAtAllActions();
 
     @Override
     public int moveCost() {

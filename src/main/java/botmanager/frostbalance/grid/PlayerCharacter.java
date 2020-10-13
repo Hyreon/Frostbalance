@@ -120,15 +120,18 @@ public class PlayerCharacter extends TileObject {
     public Hex getDestination() {
         System.out.println("Getting destination");
         Hex destination = getLocation();
-        ActionQueue simulation = actionQueue.simulator();
+        ActionQueue simulation = getActionQueue().simulator();
         while (!simulation.isEmpty()) {
             //FIXME get the destination without freezing!!
             QueueStep step = simulation.pollBase();
             if (step instanceof MoveAction) {
+                System.out.println("Moving once");
                 destination = destination.move(((MoveAction) step).getDirection());
             } else if (step instanceof MoveToRoutine) {
+                System.out.println("Moving to destination");
                 destination = ((MoveToRoutine) step).getDestination();
             } else if (step instanceof RepeatRoutine && ((RepeatRoutine) step).getAction() instanceof MoveAction) {
+                System.out.println("Moving n times: " + ((RepeatRoutine) step).getAmount());
                 destination = destination.move(((MoveAction) ((RepeatRoutine) step).getAction()).getDirection(), ((RepeatRoutine) step).getAmount());
             }
         }

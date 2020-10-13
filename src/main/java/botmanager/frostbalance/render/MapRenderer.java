@@ -1,6 +1,7 @@
 package botmanager.frostbalance.render;
 
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.Tile;
 import botmanager.frostbalance.grid.TileObject;
@@ -17,7 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 
 //TODO make the map renderer more sane.
 public class MapRenderer {
@@ -74,9 +75,7 @@ public class MapRenderer {
                 if (image == null) continue;
                 if (object instanceof PlayerCharacter) {
                     PlayerCharacter player = (PlayerCharacter) object;
-                    if (player.getDestination() != player.getLocation()) {
-                        renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player, size_factor);
-                    }
+                    renderMovementLine(g, player.getLocation().subtract(center), player, size_factor);
                 }
                 int width = image.getWidth();
                 BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
@@ -139,27 +138,46 @@ public class MapRenderer {
      * The values put in here must already be offset, using the center as the origin.
      * @param g
      * @param location
-     * @param destination
      * @param size_factor
      */
-    private static void renderMovementLine(Graphics2D g, Hex location, Hex destination, PlayerCharacter playerCharacter, double size_factor) {
-        g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
+    private static void renderMovementLine(Graphics2D g, Hex location, PlayerCharacter playerCharacter, double size_factor) {
+        g.setStroke(new BasicStroke(0.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Color color;
         if (playerCharacter.getNation() != null) {
             color = playerCharacter.getNation().getColor();
         } else color = Color.GRAY;
         g.setColor(new Color(Math.max(128, color.getRed()), Math.max(128, color.getGreen()), Math.max(128, color.getBlue())));
         Hex offset = Hex.origin();
-        System.out.println("Movement line: " + destination.subtract(location));
-        Iterator<Hex.Direction> instructions = destination.subtract(location).crawlDirections();
-        while (instructions.hasNext()) {
-            Hex.Direction nextDirection = instructions.next();
-            g.drawLine((int)(location.add(offset).drawX() * size_factor) + DEFAULT_WIDTH/2,
-                    (int)(location.add(offset).drawY() * size_factor) + DEFAULT_HEIGHT/2,
-                    (int)(location.add(offset.move(nextDirection)).drawX() * size_factor) + DEFAULT_WIDTH/2,
-                    (int)(location.add(offset.move(nextDirection)).drawY() * size_factor) + DEFAULT_HEIGHT/2);
+        ActionQueue simulation = playerCharacter.getActionQueue().simulator();
+        List<Hex.Direction> instructions = simulation.moves();
+        for (Hex.Direction nextDirection : instructions) {
+            //g.drawLine((int)(location.add(offset).drawX() * size_factor) + DEFAULT_WIDTH/2,
+            //        (int)(location.add(offset).drawY() * size_factor) + DEFAULT_HEIGHT/2,
+            //        (int)(location.add(offset.move(nextDirection)).drawX() * size_factor) + DEFAULT_WIDTH/2,
+            //        (int)(location.add(offset.move(nextDirection)).drawY() * size_factor) + DEFAULT_HEIGHT/2);
+            g.fillPolygon(getMovementArrow(location.add(offset), nextDirection, size_factor));
             offset = offset.move(nextDirection);
         }
+    }
+
+    private static Polygon getMovementArrow(Hex location, Hex.Direction direction, double size_factor) {
+
+        final double TRIANGLE_SIZE = 4 * Math.sqrt(2);
+
+        Polygon triangle = new Polygon();
+        double angle = direction.angle();
+        int baseX = (int)((location.drawX() + Hex.X_SCALE/2 * Math.cos(angle)) * size_factor);
+        int baseY = (int)((location.drawY() + Hex.Y_SCALE/2 * Math.sin(angle)) * size_factor);
+        triangle.addPoint((int) (baseX + TRIANGLE_SIZE * Math.cos(angle) + DEFAULT_WIDTH/2),
+                (int) (baseY + TRIANGLE_SIZE * Math.sin(angle) + DEFAULT_HEIGHT/2));
+        triangle.addPoint(
+                (int) (baseX + TRIANGLE_SIZE * Math.cos(angle + Math.PI/2) + DEFAULT_WIDTH/2),
+                (int) (baseY + TRIANGLE_SIZE * Math.sin(angle + Math.PI/2) + DEFAULT_HEIGHT/2));
+        triangle.addPoint(
+                (int) (baseX + TRIANGLE_SIZE * Math.cos(angle - Math.PI/2) + DEFAULT_WIDTH/2),
+                (int) (baseY + TRIANGLE_SIZE * Math.sin(angle - Math.PI/2) + DEFAULT_HEIGHT/2));
+        return triangle;
+
     }
 
     private static Polygon getHex(Hex hex, double size_factor) {

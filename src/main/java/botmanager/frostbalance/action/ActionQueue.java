@@ -1,11 +1,17 @@
 package botmanager.frostbalance.action;
 
+import botmanager.frostbalance.action.routine.MoveToRoutine;
+import botmanager.frostbalance.action.routine.RepeatRoutine;
 import botmanager.frostbalance.action.routine.Routine;
+import botmanager.frostbalance.grid.coordinate.Hex;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
-public class ActionQueue extends ArrayBlockingQueue<QueueStep> {
+public class ActionQueue extends LinkedBlockingQueue<QueueStep> {
 
     public ActionQueue() {
         super(11);
@@ -44,7 +50,29 @@ public class ActionQueue extends ArrayBlockingQueue<QueueStep> {
             QueueStep step = iterator.next();
             simulation.add(step.simulate());
         }
-        simulation.addAll(this);
         return simulation;
+    }
+
+    /**
+     * Destroys the current simulation (without firing anything) to get a list of moves.
+     * @return A list of moves.
+     */
+    public List<Hex.Direction> moves() {
+        List<Hex.Direction> directionChanges = new ArrayList<>();
+        while (!isEmpty()) {
+            QueueStep queueStep = pollBase();
+            if (queueStep instanceof MoveAction) {
+                directionChanges.add(((MoveAction) queueStep).getDirection());
+            } else if (queueStep instanceof MoveToRoutine) {
+                directionChanges.addAll(((MoveToRoutine) queueStep).peekAtAllActions().stream().map(MoveAction::getDirection).collect(Collectors.toList()));
+            } else if (queueStep instanceof RepeatRoutine && ((RepeatRoutine) queueStep).getAction() instanceof MoveAction) {
+                for (int i = 0; i < ((RepeatRoutine) queueStep).getAmount(); i++) {
+                    directionChanges.add(((MoveAction) ((RepeatRoutine) queueStep).getAction()).getDirection());
+                }
+            } else {
+                remove(queueStep);
+            }
+        }
+        return directionChanges;
     }
 }

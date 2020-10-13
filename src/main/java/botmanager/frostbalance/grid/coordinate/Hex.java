@@ -252,12 +252,21 @@ public class Hex {
     public enum Direction {
         NORTH(1), NORTHWEST(0), SOUTHWEST(5), SOUTH(4), SOUTHEAST(3), NORTHEAST(2);
 
-        int anglePart;
+        final int anglePart;
 
         Direction(int anglePart) {
             this.anglePart = anglePart;
         }
 
+        public double angle() {
+            return (anglePart - 2.5) * 2 * Math.PI / 6.0;
+        }
+
+        /**
+         * Gets a point on the edge opposite of this one.
+         * @param secondPoint
+         * @return An edge on a point opposite of this one
+         */
         public double xEdge(boolean secondPoint) {
             double anglePortion = anglePart;
             if (secondPoint) anglePortion += 1;

@@ -5,7 +5,6 @@ import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.action.MoveAction;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.TileObject;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
 import java.util.Iterator;
@@ -34,18 +33,17 @@ public class MoveToRoutine extends Routine {
 
     /**
      * Guesses what the actions of this routine will be based on the state of the mobile.
-     * @param character The character to do the routine on
      * @return True if the routine completed; false if actions were already queued
      */
-    public Queue<Action> peekAtAllActions(TileObject character) {
+    public Queue<MoveAction> peekAtAllActions() {
 
-        Queue<Action> actions = new PriorityQueue<>();
+        Queue<MoveAction> actions = new PriorityQueue<>();
 
-        Hex location = character.getLocation();
+        Hex location = mobile.getLocation();
 
-        if (!character.getActionQueue().isEmpty()) {
+        if (!mobile.getActionQueue().isEmpty()) {
             //TODO add simulation
-            ActionQueue queue = character.getActionQueue().simulator();
+            ActionQueue queue = mobile.getActionQueue().simulator();
             while (!queue.isEmpty()) {
                 Action action = queue.poll();
                 if (action instanceof MoveAction) {

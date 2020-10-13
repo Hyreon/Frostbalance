@@ -2,7 +2,6 @@ package botmanager.frostbalance.action.routine;
 
 import botmanager.frostbalance.action.Action;
 import botmanager.frostbalance.action.QueueStep;
-import botmanager.frostbalance.grid.TileObject;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -21,12 +20,12 @@ public class RepeatRoutine extends Routine {
 
     public Action pollAction() {
         amount--;
-        if (amount >= 0) return null;
+        if (amount <= 0) return null;
         else return action;
     }
 
     @Override
-    public Queue<Action> peekAtAllActions(TileObject character) {
+    public Queue<Action> peekAtAllActions() {
 
         Queue<Action> queue = new PriorityQueue<>();
 

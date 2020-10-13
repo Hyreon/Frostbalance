@@ -13,6 +13,8 @@ import botmanager.frostbalance.render.MapRenderer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
+
 public class MapMenu extends Menu {
 
     private WorldMap map;
@@ -136,7 +138,7 @@ public class MapMenu extends Menu {
             @Override
             public void hookEvent(@NotNull MessageContext hookContext) {
                 String[] args = hookContext.getMessage().getContentRaw().split(" ");
-                Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase());
+                Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase(Locale.ROOT));
                 int amount = Integer.parseInt(args[1]);
                 move(direction, amount);
                 updateMessage();
@@ -146,12 +148,13 @@ public class MapMenu extends Menu {
             public boolean isValid(@NotNull MessageContext hookContext) {
                 String[] directionNames = new String[Hex.Direction.values().length];
                 for (int i = 0; i < Hex.Direction.values().length; i++) {
-                    directionNames[i] = "(" + Hex.Direction.values()[i].name().toLowerCase() + ")";
+                    directionNames[i] = "(" + Hex.Direction.values()[i].name().toUpperCase() + ")";
                 }
                 String pattern = "(" + String.join("|", directionNames) + ") [0-9]{1,3}";
                 System.out.println(pattern);
-                System.out.println(hookContext.getMessage().getContentRaw());
-                return hookContext.getMessage().getContentRaw().matches(pattern);
+                String content = hookContext.getMessage().getContentRaw().toUpperCase();
+                System.out.println(content);
+                return content.matches(pattern);
             }
         });
 
