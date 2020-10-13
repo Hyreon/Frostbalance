@@ -2,6 +2,7 @@ package botmanager.frostbalance
 
 import botmanager.frostbalance.grid.Containable
 import botmanager.frostbalance.grid.PlayerCharacter
+import java.time.LocalDate
 
 class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : Containable<UserWrapper> {
 
@@ -10,12 +11,27 @@ class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : C
 
     var allegiance //guild this player has allegiance to
             : Nation? = null
-        set(value) {
-            field = value
+    private set
+
+    @Transient
+    var lastAllegianceChange: LocalDate = LocalDate.EPOCH
+
+    @Throws(CooldownException::class)
+    fun setAllegiance(nation: Nation) {
+        if (lastAllegianceChange < LocalDate.now()) {
+            allegiance = nation
             gameNetwork.worldMap.loadedTiles
                     .filter { tile -> tile.claimData.hasClaim(this) }
                     .forEach { tile -> tile.claimData.updateCacheTime() }
+            lastAllegianceChange = LocalDate.now()
+        } else {
+            throw CooldownException("You can't switch allegiance more than once a day.")
         }
+    }
+
+    fun writeAllegiance(it: Nation?) {
+        allegiance = it
+    }
 
     var locallyBanned: Boolean = false
 
@@ -41,6 +57,7 @@ class Player(var networkId: String, @Transient var userWrapper: UserWrapper) : C
 
     override fun setParent(parent: UserWrapper) {
         this.userWrapper = parent
+        lastAllegianceChange = LocalDate.EPOCH
     }
 
 

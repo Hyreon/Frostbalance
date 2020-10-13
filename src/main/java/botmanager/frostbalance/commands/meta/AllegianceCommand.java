@@ -11,7 +11,8 @@ public class AllegianceCommand extends FrostbalanceGuildCommand {
 
     public AllegianceCommand(Frostbalance bot) {
         super(bot, new String[] {
-                "allegiance"
+                "allegiance",
+                "nation"
         }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 

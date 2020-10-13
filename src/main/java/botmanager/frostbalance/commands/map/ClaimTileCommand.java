@@ -1,5 +1,6 @@
 package botmanager.frostbalance.commands.map;
 
+import botmanager.frostbalance.CooldownException;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
 import botmanager.frostbalance.Nation;
@@ -89,8 +90,12 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
                         @Override
                         public void reactEvent() {
-                            context.getPlayer().setAllegiance(nation);
-                            context.sendResponse("Your allegiance has been moved to this server. Try making a claim again.");
+                            try {
+                                context.getPlayer().setAllegiance(nation);
+                                context.sendResponse("Your allegiance has been moved to this server. Try making a claim again.");
+                            } catch (CooldownException e) {
+                                context.sendResponse(e.getMessage());
+                            }
                             close(true);
                         }
                     });

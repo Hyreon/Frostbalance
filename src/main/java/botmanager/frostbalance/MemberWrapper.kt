@@ -45,6 +45,11 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     private val userId: String
         get() = userWrapper.id
 
+    private val isIllegal: Boolean
+        get() {
+            return !guildWrapper.allows(player)
+        }
+
     /**
      * @return The amount of influence that was NOT spent on the member wrapper.
      */
@@ -77,21 +82,25 @@ class MemberWrapper(@Transient var userWrapper: UserWrapper, var guildId: String
     }
 
     private fun updateSubscription(silent: Boolean = false, bonus: Influence = Influence.none()): Influence {
-        subscription?.getWeeklyInfluence(this, dailyInfluence)?.takeIf { it > 0 }?.let { gain ->
-            (gain + bonus).let {
-                val sub = subscription!!
-                val content = mutableListOf("You have gained $it influence in ${guildWrapper.lastKnownName} from your subscription.")
-                if (sub.finished) {
-                    if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
-                        content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
-                    } else {
-                        content.add("Your subscription ended today. Gain influence again with `.subscribe`.")
+        if (isIllegal) {
+            subscription?.pushWeeklyInfluence(this, dailyInfluence)
+        } else {
+            subscription?.getWeeklyInfluence(this, dailyInfluence)?.takeIf { it > 0 }?.let { gain ->
+                (gain + bonus).let {
+                    val sub = subscription!!
+                    val content = mutableListOf("You have gained $it influence in ${guildWrapper.lastKnownName} from your subscription.")
+                    if (sub.finished) {
+                        if (sub.nextRequestDate < LocalDate.now().toEpochDay()) {
+                            content.add("Your subscription ended on ${LocalDate.ofEpochDay(sub.nextRequestDate)}. Gain influence again with `.subscribe`.")
+                        } else {
+                            content.add("Your subscription ended today. Gain influence again with `.subscribe`.")
+                        }
                     }
+                    if (!silent) {
+                        userWrapper.sendNotification(guildWrapper, StringUtil.join(content, "\n"))
+                    }
+                    return it
                 }
-                if (!silent) {
-                    userWrapper.sendNotification(guildWrapper, StringUtil.join(content, "\n"))
-                }
-                return it
             }
         }
         return Influence.none()
