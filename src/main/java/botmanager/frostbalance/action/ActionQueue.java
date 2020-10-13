@@ -30,6 +30,8 @@ public class ActionQueue extends LinkedBlockingQueue<QueueStep> {
             } else {
                 return nextAction;
             }
+        } else if (nextStep == null) {
+            return null;
         } else {
             throw new IllegalStateException("Unknown queue step! Only routines and actions are supported");
         }

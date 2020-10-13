@@ -6,10 +6,6 @@ public interface QueueStep {
 
     int moveCost();
 
-    /**
-     *
-     * @param playerCharacter The character executing the action
-     */
     void doAction() throws FrostbalanceException;
 
     QueueStep simulate();

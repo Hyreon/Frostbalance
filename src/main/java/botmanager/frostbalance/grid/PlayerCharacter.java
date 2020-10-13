@@ -82,10 +82,12 @@ public class PlayerCharacter extends TileObject {
 
     public boolean doNextAction() {
         QueueStep action = getActionQueue().poll();
+        System.out.println("Doing next action for " + getName());
         while (action != null && moves >= action.moveCost()) {
             try {
                 moves -= action.moveCost();
                 action.doAction();
+                System.out.println("Did " + action.getClass().getSimpleName());
             } catch (FrostbalanceException e) {
                 User jdaUser = getUser().getJdaUser();
                 if (jdaUser != null) {
