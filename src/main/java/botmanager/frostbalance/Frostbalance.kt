@@ -616,6 +616,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
                 gameNetwork.setParent(this)
                 gameNetwork.adopt()
+                gameNetwork.initializeTurnCycle();
                 if (gameNetwork.id != null) { //impossible condition test
                     gameNetworks.add(gameNetwork)
                     if (gameNetwork.id == "main") {
