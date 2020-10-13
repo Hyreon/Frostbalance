@@ -6,7 +6,11 @@ import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.UserWrapper;
-import botmanager.frostbalance.action.Action;
+import botmanager.frostbalance.action.ActionQueue;
+import botmanager.frostbalance.action.MoveAction;
+import botmanager.frostbalance.action.QueueStep;
+import botmanager.frostbalance.action.routine.MoveToRoutine;
+import botmanager.frostbalance.action.routine.RepeatRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import net.dv8tion.jda.api.entities.Guild;
@@ -20,23 +24,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerCharacter extends TileObject {
 
-    public static final long MOVEMENT_SPEED = 120000;
-
-    transient Queue<Action> actionQueue = new PriorityQueue<>();
+    transient ActionQueue actionQueue = new ActionQueue();
 
     @Deprecated
     static List<PlayerCharacter> cache = new ArrayList<>();
+    private transient double moves = 0.0;
 
     @Deprecated
     public static PlayerCharacter get(String userId, WorldMap map) {
@@ -57,17 +54,10 @@ public class PlayerCharacter extends TileObject {
         return get(user.getId(), WorldMap.get(guild));
     }
 
-    transient private ScheduledFuture<?> scheduledFuture = null;
-
     /**
      * The user this character is tied to.
      */
     String userId;
-
-    /**
-     * The queued destination that the player is currently approaching via the fastest known route.
-     */
-    Hex destination;
 
     public PlayerCharacter(String userId, WorldMap map) {
         super(map.getTile(Hex.origin()));
@@ -85,23 +75,27 @@ public class PlayerCharacter extends TileObject {
         return userId;
     }
 
-    public Queue<Action> getActionQueue() {
-        if (actionQueue == null) actionQueue = new PriorityQueue<>();
+    public ActionQueue getActionQueue() {
+        if (actionQueue == null) actionQueue = new ActionQueue();
         return actionQueue;
     }
 
-    public void doNextAction() {
-        Action action = getActionQueue().poll();
-        if (action == null) return;
-        try {
-            action.doAction(this);
-        } catch (FrostbalanceException e) {
-            User jdaUser = getUser().getJdaUser();
-            if (jdaUser != null) {
-                Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
-                        String.join("\n", e.displayCauses()));
+    public boolean doNextAction() {
+        QueueStep action = getActionQueue().poll();
+        while (action != null && moves >= action.moveCost()) {
+            try {
+                moves -= action.moveCost();
+                action.doAction();
+            } catch (FrostbalanceException e) {
+                User jdaUser = getUser().getJdaUser();
+                if (jdaUser != null) {
+                    Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
+                            String.join("\n", e.displayCauses()));
+                }
             }
+            action = getActionQueue().poll();
         }
+        return true;
     }
 
     /**
@@ -115,48 +109,29 @@ public class PlayerCharacter extends TileObject {
 
 
     public void setDestination(Hex destination) {
-        this.destination = destination;
-        updateMovement();
+        getActionQueue().add(new MoveToRoutine(this, destination));
     }
 
     public void adjustDestination(Hex.Direction direction, int amount) {
-        destination = getDestination().move(direction, amount);
-        updateMovement();
+        getActionQueue().add(new RepeatRoutine(new MoveAction(this, direction), amount));
     }
 
-    /**
-     * Moves towards the destination in one second.
-     */
-    private void updateMovement() {
-
-        if (scheduledFuture != null && !scheduledFuture.isDone()) return;
-
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-        Runnable task = () -> {
-
-            if (!getLocation().equals(getDestination())) {
-
-                Hex directions = destination.subtract(getLocation());
-                Hex.Direction nextStep = directions.crawlDirection();
-                setLocation(getLocation().move(nextStep));
-                System.out.printf("%s now at %s\n", getName(), getLocation());
-                //TODO reschedule this event.
-
-            } else {
-                System.out.println("It is finished");
-                executor.shutdown();
-            }
-
-        };
-
-        scheduledFuture = executor.scheduleAtFixedRate(task, MOVEMENT_SPEED, MOVEMENT_SPEED, TimeUnit.MILLISECONDS);
-
-    }
-
+    //TODO improve simulation so that this getDestination method doesn't directly reference the action or routines for movement.
     public Hex getDestination() {
-        if (destination == null) destination = getLocation();
-        if (!destination.equals(getLocation())) updateMovement();
+        System.out.println("Getting destination");
+        Hex destination = getLocation();
+        ActionQueue simulation = actionQueue.simulator();
+        while (!simulation.isEmpty()) {
+            //FIXME get the destination without freezing!!
+            QueueStep step = simulation.pollBase();
+            if (step instanceof MoveAction) {
+                destination = destination.move(((MoveAction) step).getDirection());
+            } else if (step instanceof MoveToRoutine) {
+                destination = ((MoveToRoutine) step).getDestination();
+            } else if (step instanceof RepeatRoutine && ((RepeatRoutine) step).getAction() instanceof MoveAction) {
+                destination = destination.move(((MoveAction) ((RepeatRoutine) step).getAction()).getDirection(), ((RepeatRoutine) step).getAmount());
+            }
+        }
         return destination;
     }
 
@@ -186,6 +161,12 @@ public class PlayerCharacter extends TileObject {
 
     public String getName() {
         return getPlayer().getName();
+    }
+
+    @Override
+    public boolean turnAction() {
+        moves += 1.0; //register that a turn has passed, and more movement is available.
+        return doNextAction();
     }
 
     public String getTravelTime() {

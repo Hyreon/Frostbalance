@@ -10,17 +10,28 @@ public class MoveAction extends Action {
 
     Hex.Direction direction;
 
-    public MoveAction(Hex.Direction direction) {
+    public MoveAction(PlayerCharacter character, Hex.Direction direction) {
+        super(character);
         this.direction = direction;
     }
 
     @Override
-    public void doAction(PlayerCharacter playerCharacter) throws FrostbalanceException {
+    public int moveCost() {
+        return 1;
+    }
+
+    @Override
+    public void doAction() throws FrostbalanceException {
 
         new ValidationTests().throwIfAny(
-            new PassableTileValidator(playerCharacter.getTile().getNeighbor(direction))
+                new PassableTileValidator(playerCharacter.getTile().getNeighbor(direction))
         );
 
         playerCharacter.setLocation(playerCharacter.getLocation().move(direction));
+
+    }
+
+    public Hex.Direction getDirection() {
+        return direction;
     }
 }

@@ -17,14 +17,20 @@ public class ClaimAction extends Action {
     Nation inNameOf;
     Hex location;
 
-    public ClaimAction(Influence amount, Nation nation, Hex location) {
+    public ClaimAction(PlayerCharacter character, Influence amount, Nation nation, Hex location) {
+        super(character);
         this.amountToClaim = amount;
         this.inNameOf = nation;
         this.location = location;
     }
 
     @Override
-    public void doAction(PlayerCharacter playerCharacter) throws FrostbalanceException {
+    public int moveCost() {
+        return 0;
+    }
+
+    @Override
+    public void doAction() throws FrostbalanceException {
 
         GuildWrapper guild = playerCharacter.getMap().getGameNetwork().guildWithAllegiance(inNameOf);
         MemberWrapper member = playerCharacter.getUser().memberIn(guild);

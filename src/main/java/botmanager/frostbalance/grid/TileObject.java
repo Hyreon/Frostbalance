@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.Utilities;
+import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +15,7 @@ public abstract class TileObject extends TileData {
     transient private BufferedImage cachedImage;
     transient private long cachedImageDate;
     transient private Object lastActiveTurn;
+    private ActionQueue actionQueue;
 
     protected TileObject(Tile tile) {
         super(tile);
@@ -75,5 +77,13 @@ public abstract class TileObject extends TileData {
             lastActiveTurn = turn;
             return turnAction();
         } else return false;
+    }
+
+    public ActionQueue getActionQueue() {
+        return actionQueue;
+    }
+
+    public void setActionQueue(ActionQueue actionQueue) {
+        this.actionQueue = actionQueue;
     }
 }

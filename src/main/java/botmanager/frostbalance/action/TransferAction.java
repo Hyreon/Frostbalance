@@ -15,7 +15,8 @@ public class TransferAction extends Action {
     Influence transferAmount;
     Hex location;
 
-    public TransferAction(UserWrapper user, Nation inNameOf, Influence transferAmount, Hex location) {
+    public TransferAction(PlayerCharacter character, UserWrapper user, Nation inNameOf, Influence transferAmount, Hex location) {
+        super(character);
         this.targetId = user.getId();
         this.inNameOf = inNameOf;
         this.transferAmount = transferAmount;
@@ -23,7 +24,12 @@ public class TransferAction extends Action {
     }
 
     @Override
-    public void doAction(PlayerCharacter playerCharacter) throws FrostbalanceException {
+    public int moveCost() {
+        return 0;
+    }
+
+    @Override
+    public void doAction() throws FrostbalanceException {
 
         GuildWrapper guild = playerCharacter.getMap().getGameNetwork().guildWithAllegiance(inNameOf);
         assert guild != null;

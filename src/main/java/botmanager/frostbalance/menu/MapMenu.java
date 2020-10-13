@@ -33,18 +33,11 @@ public class MapMenu extends Menu {
         this.player = context.getPlayer().getCharacter();
         this.zoomFactor = context.getAuthor().getUserOptions().getZoomSize();
 
-        menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.NORTH));
-        menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.NORTHEAST));
-        menuResponses.add(new MapMoveResponse("↘️", "Southeast", Hex.Direction.SOUTHEAST));
-        menuResponses.add(new MapMoveResponse("⬇️", "South", Hex.Direction.SOUTH));
-        menuResponses.add(new MapMoveResponse("↙️", "Southwest", Hex.Direction.SOUTHWEST));
-        menuResponses.add(new MapMoveResponse("↖️", "Northwest", Hex.Direction.NORTHWEST));
-
         menuResponses.add(new MenuResponse("⏫", "Zoom out") {
 
             @Override
             public void reactEvent() {
-                zoomFactor /= 1.25;
+                zoomFactor /= 1.75;
                 updateMessage();
             }
 
@@ -59,7 +52,7 @@ public class MapMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                zoomFactor *= 1.25;
+                zoomFactor *= 1.75;
                 updateMessage();
             }
 
@@ -138,7 +131,7 @@ public class MapMenu extends Menu {
             }
         });
 
-        hook(new SimpleTextHook(this, "Or type DIRECTION AMOUNT to move") {
+        hook(new SimpleTextHook(this, "Or type <DIRECTION> <AMOUNT> to move; eg NORTH 1") {
 
             @Override
             public void hookEvent(@NotNull MessageContext hookContext) {
