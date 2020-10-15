@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ActionQueue extends LinkedBlockingQueue<QueueStep> {
 
     public ActionQueue() {
-        super(11);
+        super();
     }
 
     @Override

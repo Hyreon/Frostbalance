@@ -9,6 +9,8 @@ import kotlin.collections.HashSet
 
 class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance>, Container {
 
+    private val TURN_LENGTH = 120000L
+
     private var turn: Int = 0
     var worldMap: WorldMap = WorldMap(this)
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
@@ -33,7 +35,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
                 }
                 turn++
             }
-        }, 20000, 20000)
+        }, TURN_LENGTH, TURN_LENGTH)
         println("Scheduled turn timer for $this!")
     }
 
