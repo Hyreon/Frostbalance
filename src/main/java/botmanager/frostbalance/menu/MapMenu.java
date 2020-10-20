@@ -36,7 +36,7 @@ public class MapMenu extends Menu {
         this.player = context.getPlayer().getCharacter();
         this.zoomFactor = context.getAuthor().getUserOptions().getZoomSize();
 
-        menuResponses.add(new MenuResponse("\uD83D\uDCCD", "Set destination as waypoint") {
+        menuResponses.add(new MenuResponse("\uD83D\uDCCD", "Create waypoint") {
 
             @Override
             public void reactEvent() {
