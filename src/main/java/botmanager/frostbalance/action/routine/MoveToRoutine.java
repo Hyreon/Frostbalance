@@ -52,7 +52,7 @@ public class MoveToRoutine extends Routine {
 
     @Override
     public MoveAction peekAction() {
-
+        //TODO find the root cause of an exception that can occur here
         if (destination.equals(queue.getCharacter().getLocation())) {
             return null;
         } else {

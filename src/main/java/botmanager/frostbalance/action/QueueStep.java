@@ -10,4 +10,8 @@ public interface QueueStep extends Containable<ActionQueue> {
     void doAction() throws FrostbalanceException;
 
     QueueStep simulate();
+
+    default QueueStep refreshed() {
+        return this;
+    }
 }

@@ -3,6 +3,7 @@ package botmanager.frostbalance.menu.settings
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.menu.input.BooleanMenu
 import botmanager.frostbalance.menu.input.DoubleMenu
 import botmanager.frostbalance.menu.response.DynamicMenuResponse
 import net.dv8tion.jda.api.EmbedBuilder
@@ -22,6 +23,25 @@ class UserSettingsMenu(bot: Frostbalance, context: MessageContext) : Menu(bot, c
                         "Set the zoom when viewing a `.map`; " +
                                 "smaller numbers mean more tiles at once, bigger numbers mean bigger tiles. " +
                                 "You can't have a number smaller than 0.2 or bigger than 5."),
+                        true)
+
+            }
+
+            override val isValid: Boolean
+                get() = true
+
+        })
+
+        menuResponses.add(object : DynamicMenuResponse({"♾️"}, {"Re-queue actions when complete: ${context.author.userOptions.loopActions}"}) {
+            override fun reactEvent() {
+
+                redirectTo(BooleanMenu(bot, context, {
+                    context.author.userOptions.loopActions = true
+                }, {
+                    context.author.userOptions.loopActions = false
+                }, "$emoji $name",
+                        "When enabled, your character will automatically re-do whatever it was told to do " +
+                                "before. You can use this to set up patrol routes, or to walk forever."),
                         true)
 
             }

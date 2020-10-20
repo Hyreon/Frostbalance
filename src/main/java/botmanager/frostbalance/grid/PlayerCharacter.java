@@ -7,10 +7,8 @@ import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.action.ActionQueue;
-import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.action.routine.MoveToRoutine;
-import botmanager.frostbalance.action.routine.RepeatRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import net.dv8tion.jda.api.entities.Guild;
@@ -23,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,9 +78,10 @@ public class PlayerCharacter extends TileObject implements Container {
     }
 
     public boolean doNextAction() {
+        System.out.println("Doing actions for " + getName());
+        List<QueueStep> stepsPerformed = new LinkedList<>();
         QueueStep action = getActionQueue().poll();
-        System.out.println("Doing next action for " + getName());
-        while (action != null && moves >= action.moveCost()) {
+        while (action != null && moves >= action.moveCost() && !stepsPerformed.contains(action)) {
             try {
                 moves -= action.moveCost();
                 action.doAction();
@@ -92,6 +92,10 @@ public class PlayerCharacter extends TileObject implements Container {
                     Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
                             String.join("\n", e.displayCauses()));
                 }
+            }
+            if (getPlayer().getUserWrapper().getUserOptions().getLoopActions()) {
+                getActionQueue().add(action.refreshed());
+                stepsPerformed.add(action);
             }
             action = getActionQueue().poll();
         }
@@ -117,28 +121,9 @@ public class PlayerCharacter extends TileObject implements Container {
         actionQueue.add(new MoveToRoutine(getActionQueue(), direction, amount));
     }
 
-    //TODO improve simulation so that this getDestination method doesn't directly reference the action or routines for movement.
     public Hex getDestination() {
-        System.out.println("Getting destination");
-        Hex destination = getLocation();
-        ActionQueue simulation = getActionQueue().simulation();
-        while (!simulation.isEmpty()) {
-            //FIXME get the destination without freezing!!
-            System.out.println("Polling base");
-            QueueStep step = simulation.pollBase();
-            if (step instanceof MoveAction) {
-                System.out.println("Moving once");
-                destination = destination.move(((MoveAction) step).getDirection());
-            } else if (step instanceof MoveToRoutine) {
-                System.out.println("Moving to destination");
-                destination = ((MoveToRoutine) step).getDestination();
-            } else if (step instanceof RepeatRoutine && ((RepeatRoutine) step).getAction() instanceof MoveAction) {
-                System.out.println("Moving n times: " + ((RepeatRoutine) step).getAmount());
-                destination = destination.move(((MoveAction) ((RepeatRoutine) step).getAction()).getDirection(), ((RepeatRoutine) step).getAmount());
-            }
-        }
-        System.out.println("Got destination");
-        return destination;
+        List<Hex> waypoints = getActionQueue().simulation().waypoints();
+        return waypoints.get(waypoints.size() - 1); //last waypoint
     }
 
     @Override
@@ -182,5 +167,6 @@ public class PlayerCharacter extends TileObject implements Container {
     @Override
     public void adopt() {
         actionQueue.setParent(this);
+        actionQueue.adopt();
     }
 }

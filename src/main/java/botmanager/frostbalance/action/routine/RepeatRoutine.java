@@ -9,11 +9,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class RepeatRoutine<A extends Action> extends Routine {
 
     A action;
+    private final int initialAmount;
     int amount;
 
     public RepeatRoutine(A action, int amount) {
 
         this.action = action;
+        this.initialAmount = amount;
         this.amount = amount;
 
     }
@@ -36,6 +38,22 @@ public class RepeatRoutine<A extends Action> extends Routine {
         return queue;
     }
 
+    /**
+     * Simulates the repeat routine as if it were fresh.
+     * As simulations are more well-defined we will probably change
+     * the definition of this.
+     * @return A clone of this repeat routine, as it was originally created.
+     */
+    @Override
+    public QueueStep refreshed() {
+        amount = initialAmount;
+        return this;
+    }
+
+    /**
+     * Simulates the repeat routine from where it currently is.
+     * @return A clone of this repeat routine, as it was originally created.
+     */
     @Override
     public QueueStep simulate() {
         return new RepeatRoutine<>(this.action, this.amount);
