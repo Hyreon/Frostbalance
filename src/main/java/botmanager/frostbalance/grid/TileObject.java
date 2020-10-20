@@ -15,7 +15,7 @@ public abstract class TileObject extends TileData {
     transient private BufferedImage cachedImage;
     transient private long cachedImageDate;
     transient private Object lastActiveTurn;
-    private ActionQueue actionQueue;
+    protected ActionQueue actionQueue;
 
     protected TileObject(Tile tile) {
         super(tile);

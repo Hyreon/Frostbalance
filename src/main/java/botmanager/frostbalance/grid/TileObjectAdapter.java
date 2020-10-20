@@ -23,11 +23,7 @@ public class TileObjectAdapter implements JsonSerializer<TileObject>, JsonDeseri
         JsonElement element = jsonObject.get("properties");
 
         try {
-            TileObject tileObject = context.deserialize(element, Class.forName("botmanager.frostbalance.grid." + type));
-            if (tileObject instanceof PlayerCharacter) {
-                PlayerCharacter.cache.add((PlayerCharacter) tileObject);
-            }
-            return tileObject;
+            return context.deserialize(element, Class.forName("botmanager.frostbalance.grid." + type));
         } catch (ClassNotFoundException e) {
             throw new JsonParseException("Unknown element type: " + type, e);
         }

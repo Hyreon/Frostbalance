@@ -1,17 +1,17 @@
 package botmanager.frostbalance.action.routine;
 
-import botmanager.frostbalance.action.Action;
+import botmanager.frostbalance.action.actions.Action;
 import botmanager.frostbalance.action.QueueStep;
 
-import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class RepeatRoutine extends Routine {
+public class RepeatRoutine<A extends Action> extends Routine {
 
-    Action action;
+    A action;
     int amount;
 
-    public RepeatRoutine(Action action, int amount) {
+    public RepeatRoutine(A action, int amount) {
 
         this.action = action;
         this.amount = amount;
@@ -25,9 +25,9 @@ public class RepeatRoutine extends Routine {
     }
 
     @Override
-    public Queue<Action> peekAtAllActions() {
+    public Queue<A> peekAtAllActions() {
 
-        Queue<Action> queue = new PriorityQueue<>();
+        Queue<A> queue = new LinkedBlockingQueue<>();
 
         for (int i = 0; i < amount; i++) {
             queue.add(action);
@@ -38,7 +38,7 @@ public class RepeatRoutine extends Routine {
 
     @Override
     public QueueStep simulate() {
-        return new RepeatRoutine(this.action, this.amount);
+        return new RepeatRoutine<>(this.action, this.amount);
     }
 
     public Action getAction() {
@@ -48,4 +48,5 @@ public class RepeatRoutine extends Routine {
     public int getAmount() {
         return amount;
     }
+
 }

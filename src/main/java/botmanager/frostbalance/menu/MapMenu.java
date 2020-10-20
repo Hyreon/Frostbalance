@@ -1,6 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.action.actions.DummyAction;
 import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.grid.ClaimData;
@@ -27,13 +28,42 @@ public class MapMenu extends Menu {
     private Hex cameraLocation;
 
     private CameraBehavior cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
-    private double zoomFactor = 1.0;
+    private double zoomFactor;
 
     public MapMenu(Frostbalance bot, GuildMessageContext context) {
         super(bot, context);
         this.map = context.getGameNetwork().getWorldMap();
         this.player = context.getPlayer().getCharacter();
         this.zoomFactor = context.getAuthor().getUserOptions().getZoomSize();
+
+        menuResponses.add(new MenuResponse("\uD83D\uDCCD", "Set destination as waypoint") {
+
+            @Override
+            public void reactEvent() {
+                player.getActionQueue().add(new DummyAction(player));
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return true;
+            }
+
+        });
+
+        menuResponses.add(new MenuResponse("⏪", "Undo last action") {
+
+            @Override
+            public void reactEvent() {
+                player.getActionQueue().removeLast();
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return !player.getActionQueue().isEmpty();
+            }
+        });
 
         menuResponses.add(new MenuResponse("⏫", "Zoom out") {
 

@@ -1,4 +1,4 @@
-package botmanager.frostbalance.action;
+package botmanager.frostbalance.action.actions;
 
 import botmanager.frostbalance.GuildWrapper;
 import botmanager.frostbalance.Influence;
@@ -32,15 +32,15 @@ public class ClaimAction extends Action {
     @Override
     public void doAction() throws FrostbalanceException {
 
-        GuildWrapper guild = playerCharacter.getMap().getGameNetwork().guildWithAllegiance(inNameOf);
-        MemberWrapper member = playerCharacter.getUser().memberIn(guild);
+        GuildWrapper guild = queue.getCharacter().getMap().getGameNetwork().guildWithAllegiance(inNameOf);
+        MemberWrapper member = queue.getCharacter().getUser().memberIn(guild);
 
         new ValidationTests().throwIfAny(
-                new LocationValidator(playerCharacter, location),
+                new LocationValidator(queue.getCharacter(), location),
                 new InfluenceMinimumValidator(member, amountToClaim)
         );
 
-        playerCharacter.getTile().getClaimData().addClaim(member, amountToClaim);
+        queue.getCharacter().getTile().getClaimData().addClaim(member, amountToClaim);
 
     }
 }

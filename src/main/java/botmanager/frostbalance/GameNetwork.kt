@@ -9,8 +9,6 @@ import kotlin.collections.HashSet
 
 class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance>, Container {
 
-    private val TURN_LENGTH = 120000L
-
     private var turn: Int = 0
     var worldMap: WorldMap = WorldMap(this)
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
@@ -107,6 +105,10 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
 
     fun isEmpty(): Boolean {
         return worldMap.isEmpty() && associatedGuilds.isEmpty()
+    }
+
+    private companion object {
+        private const val TURN_LENGTH = 120000L
     }
 
 }

@@ -227,7 +227,7 @@ public class Hex {
         else throw new IllegalStateException("Origin hex asked to crawl!");
     }
 
-    public Iterator<Direction> crawlDirections() {
+    public List<Direction> crawlDirections() {
         List<Direction> directions = new ArrayList<>();
         Hex instructionHex = new Hex(this.x, this.y, this.z);
         while (!instructionHex.equals(origin())) {
@@ -235,7 +235,7 @@ public class Hex {
             instructionHex = instructionHex.move(instructionHex.crawlDirection(), -1);
             System.out.println(instructionHex);
         }
-        return directions.iterator();
+        return directions;
     }
 
     public static Hex origin() {

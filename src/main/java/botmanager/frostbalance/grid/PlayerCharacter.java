@@ -7,7 +7,7 @@ import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.action.ActionQueue;
-import botmanager.frostbalance.action.MoveAction;
+import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.action.routine.MoveToRoutine;
 import botmanager.frostbalance.action.routine.RepeatRoutine;
@@ -27,9 +27,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class PlayerCharacter extends TileObject {
-
-    transient ActionQueue actionQueue = new ActionQueue();
+public class PlayerCharacter extends TileObject implements Container {
 
     @Deprecated
     static List<PlayerCharacter> cache = new ArrayList<>();
@@ -76,7 +74,7 @@ public class PlayerCharacter extends TileObject {
     }
 
     public ActionQueue getActionQueue() {
-        if (actionQueue == null) actionQueue = new ActionQueue();
+        if (actionQueue == null) actionQueue = new ActionQueue(this);
         return actionQueue;
     }
 
@@ -97,6 +95,7 @@ public class PlayerCharacter extends TileObject {
             }
             action = getActionQueue().poll();
         }
+        if (action == null) { moves = 0.0; }
         return true;
     }
 
@@ -115,16 +114,17 @@ public class PlayerCharacter extends TileObject {
     }
 
     public void adjustDestination(Hex.Direction direction, int amount) {
-        getActionQueue().add(new RepeatRoutine(new MoveAction(this, direction), amount));
+        actionQueue.add(new MoveToRoutine(getActionQueue(), direction, amount));
     }
 
     //TODO improve simulation so that this getDestination method doesn't directly reference the action or routines for movement.
     public Hex getDestination() {
         System.out.println("Getting destination");
         Hex destination = getLocation();
-        ActionQueue simulation = getActionQueue().simulator();
+        ActionQueue simulation = getActionQueue().simulation();
         while (!simulation.isEmpty()) {
             //FIXME get the destination without freezing!!
+            System.out.println("Polling base");
             QueueStep step = simulation.pollBase();
             if (step instanceof MoveAction) {
                 System.out.println("Moving once");
@@ -137,6 +137,7 @@ public class PlayerCharacter extends TileObject {
                 destination = destination.move(((MoveAction) ((RepeatRoutine) step).getAction()).getDirection(), ((RepeatRoutine) step).getAmount());
             }
         }
+        System.out.println("Got destination");
         return destination;
     }
 
@@ -176,5 +177,10 @@ public class PlayerCharacter extends TileObject {
 
     public String getTravelTime() {
         return getLocation().minimumDistance(getDestination()) * 2 + " minutes";
+    }
+
+    @Override
+    public void adopt() {
+        actionQueue.setParent(this);
     }
 }

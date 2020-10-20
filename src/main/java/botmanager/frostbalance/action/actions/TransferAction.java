@@ -1,4 +1,4 @@
-package botmanager.frostbalance.action;
+package botmanager.frostbalance.action.actions;
 
 import botmanager.frostbalance.*;
 import botmanager.frostbalance.checks.FrostbalanceException;
@@ -31,17 +31,17 @@ public class TransferAction extends Action {
     @Override
     public void doAction() throws FrostbalanceException {
 
-        GuildWrapper guild = playerCharacter.getMap().getGameNetwork().guildWithAllegiance(inNameOf);
+        GuildWrapper guild = queue.getCharacter().getMap().getGameNetwork().guildWithAllegiance(inNameOf);
         assert guild != null;
-        MemberWrapper member = playerCharacter.getUser().memberIn(guild);
-        Claim claim = playerCharacter.getMap().getTile(location).getClaimData().getClaim(member);
+        MemberWrapper member = queue.getCharacter().getUser().memberIn(guild);
+        Claim claim = queue.getCharacter().getMap().getTile(location).getClaimData().getClaim(member);
         assert claim != null;
 
         new ValidationTests().throwIfAny(
                 new InfluenceMinimumValidator(claim, transferAmount)
         );
 
-        playerCharacter.getTile().getClaimData().transferToClaim(member, Frostbalance.bot.getMemberWrapper(targetId, guild.getId()).getPlayer(), transferAmount);
+        queue.getCharacter().getTile().getClaimData().transferToClaim(member, Frostbalance.bot.getMemberWrapper(targetId, guild.getId()).getPlayer(), transferAmount);
 
     }
 }

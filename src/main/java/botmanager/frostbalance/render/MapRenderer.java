@@ -148,7 +148,7 @@ public class MapRenderer {
         } else color = Color.GRAY;
         g.setColor(new Color(Math.max(128, color.getRed()), Math.max(128, color.getGreen()), Math.max(128, color.getBlue())));
         Hex offset = Hex.origin();
-        ActionQueue simulation = playerCharacter.getActionQueue().simulator();
+        ActionQueue simulation = playerCharacter.getActionQueue().simulation();
         List<Hex.Direction> instructions = simulation.moves();
         for (Hex.Direction nextDirection : instructions) {
             //g.drawLine((int)(location.add(offset).drawX() * size_factor) + DEFAULT_WIDTH/2,

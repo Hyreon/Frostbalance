@@ -1,8 +1,9 @@
 package botmanager.frostbalance.action;
 
 import botmanager.frostbalance.checks.FrostbalanceException;
+import botmanager.frostbalance.grid.Containable;
 
-public interface QueueStep {
+public interface QueueStep extends Containable<ActionQueue> {
 
     int moveCost();
 

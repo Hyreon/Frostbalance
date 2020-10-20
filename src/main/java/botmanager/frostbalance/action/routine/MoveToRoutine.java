@@ -1,15 +1,13 @@
 package botmanager.frostbalance.action.routine;
 
-import botmanager.frostbalance.action.Action;
 import botmanager.frostbalance.action.ActionQueue;
-import botmanager.frostbalance.action.MoveAction;
+import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
-import java.util.Iterator;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MoveToRoutine extends Routine {
 
@@ -20,51 +18,80 @@ public class MoveToRoutine extends Routine {
      * @param destination The destination for the moveToRoutine
      */
     public MoveToRoutine(PlayerCharacter mobile, Hex destination) {
-        this.mobile = mobile;
+        setParent(mobile.getActionQueue());
         this.destination = destination;
+    }
+
+    public MoveToRoutine(ActionQueue queue, Hex destination) {
+        setParent(queue);
+        this.destination = destination;
+    }
+
+    public MoveToRoutine(ActionQueue queue, Hex.Direction direction, int amount) {
+        setParent(queue);
+        MoveToRoutine previousRoutine = (MoveToRoutine) queue.displace(this.getClass());
+        Hex previousDestination;
+        if (previousRoutine == null) {
+            System.out.println("Adding after last destination!");
+            List<Hex> waypoints = queue.simulation().waypoints();
+            previousDestination = waypoints.get(waypoints.size() - 1); //last waypoint
+        } else {
+            System.out.println("Replacing last destination!");
+            previousDestination = previousRoutine.getDestination();
+        }
+        destination = previousDestination.move(direction, amount);
     }
 
     @Override
     public MoveAction pollAction() {
 
-        return new MoveAction(mobile, destination.subtract(mobile.getLocation()).crawlDirection());
+        return peekAction();
 
+    }
+
+
+    @Override
+    public MoveAction peekAction() {
+
+        if (destination.equals(queue.getCharacter().getLocation())) {
+            return null;
+        } else {
+            return new MoveAction(queue.getCharacter(), destination.subtract(queue.getCharacter().getLocation()).crawlDirection());
+        }
+
+    }
+
+    public Queue<MoveAction> peekAtAllActions() {
+        return peekAtAllActions(queue.indexOf(this));
     }
 
     /**
      * Guesses what the actions of this routine will be based on the state of the mobile.
      * @return True if the routine completed; false if actions were already queued
      */
-    public Queue<MoveAction> peekAtAllActions() {
+    public Queue<MoveAction> peekAtAllActions(int simulationStep) {
 
-        Queue<MoveAction> actions = new PriorityQueue<>();
+        Queue<MoveAction> moveActions = new LinkedBlockingQueue<>();
 
-        Hex location = mobile.getLocation();
-
-        if (!mobile.getActionQueue().isEmpty()) {
-            //TODO add simulation
-            ActionQueue queue = mobile.getActionQueue().simulator();
-            while (!queue.isEmpty()) {
-                Action action = queue.poll();
-                if (action instanceof MoveAction) {
-                    location = location.move(((MoveAction) action).getDirection());
-                }
-            }
+        ActionQueue simulation = queue.simulation(simulationStep);
+        List<Hex> locations = simulation.waypoints();
+        Hex startLocation;
+        if (locations.isEmpty()) {
+            startLocation = queue.getCharacter().getLocation();
+        } else {
+            startLocation = locations.get(locations.size() - 1); //last location
         }
 
-        if (!location.equals(destination)) {
-
-            Hex directions = destination.subtract(location);
-            Iterator<Hex.Direction> steps = directions.crawlDirections();
-            while (steps.hasNext()) {
-                Hex.Direction direction = steps.next();
-                actions.add(new MoveAction(mobile, direction));
-            }
-
+        for (Hex.Direction nextDirection : getDestination().subtract(startLocation).crawlDirections()) {
+            moveActions.add(new MoveAction(queue.getCharacter(), nextDirection));
         }
 
-        return actions;
+        return moveActions;
 
+    }
+
+    public List<Hex.Direction> directionsFrom(Hex location) {
+        return new LinkedList<>(getDestination().subtract(location).crawlDirections());
     }
 
     public Hex getDestination() {
@@ -73,6 +100,6 @@ public class MoveToRoutine extends Routine {
 
     @Override
     public QueueStep simulate() {
-        return new MoveToRoutine(this.mobile, this.destination);
+        return new MoveToRoutine(this.queue, this.destination);
     }
 }

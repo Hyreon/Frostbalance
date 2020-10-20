@@ -1,4 +1,4 @@
-package botmanager.frostbalance.action;
+package botmanager.frostbalance.action.actions;
 
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.checks.PassableTileValidator;
@@ -24,10 +24,10 @@ public class MoveAction extends Action {
     public void doAction() throws FrostbalanceException {
 
         new ValidationTests().throwIfAny(
-                new PassableTileValidator(playerCharacter.getTile().getNeighbor(direction))
+                new PassableTileValidator(queue.getCharacter().getTile().getNeighbor(direction))
         );
 
-        playerCharacter.setLocation(playerCharacter.getLocation().move(direction));
+        queue.getCharacter().setLocation(queue.getCharacter().getLocation().move(direction));
 
     }
 
