@@ -8,6 +8,7 @@ import botmanager.frostbalance.Player;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.action.QueueStep;
+import botmanager.frostbalance.action.actions.Action;
 import botmanager.frostbalance.action.routine.MoveToRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
@@ -80,26 +81,35 @@ public class PlayerCharacter extends TileObject implements Container {
     public boolean doNextAction() {
         System.out.println("Doing actions for " + getName());
         List<QueueStep> stepsPerformed = new LinkedList<>();
-        QueueStep action = getActionQueue().poll();
-        while (action != null && moves >= action.moveCost() && !stepsPerformed.contains(action)) {
-            try {
-                moves -= action.moveCost();
-                action.doAction();
-                System.out.println("Did " + action.getClass().getSimpleName());
-            } catch (FrostbalanceException e) {
-                User jdaUser = getUser().getJdaUser();
-                if (jdaUser != null) {
-                    Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
-                            String.join("\n", e.displayCauses()));
+        for(;;) {
+            QueueStep base = getActionQueue().peekBase();
+            Action action = getActionQueue().poll();
+            if (action != null //is supposed to do something
+                    && moves >= action.moveCost() //character has the energy to do the thing
+                    && (action.moveCost() > 0 || !stepsPerformed.contains(base))) { //not a repeat of a zero-cost task (no infinite loops); beats both bad Routines and ActionQueues
+                try {
+                    moves -= action.moveCost();
+                    action.doAction();
+                    System.out.println("Did " + action.getClass().getSimpleName());
+                } catch (FrostbalanceException e) {
+                    User jdaUser = getUser().getJdaUser();
+                    if (jdaUser != null) {
+                        Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
+                                String.join("\n", e.displayCauses()));
+                    }
                 }
+                if (getPlayer().getUserWrapper().getUserOptions().getLoopActions() && base != null) {
+                    stepsPerformed.add(base);
+                }
+            } else {
+                for (QueueStep step : stepsPerformed) {
+                    if (step.equals(getActionQueue().peekBase())) continue; //shh, still in progress
+                    getActionQueue().add(step.refreshed());
+                }
+                if (action == null) { moves = 0.0; }
+                break;
             }
-            if (getPlayer().getUserWrapper().getUserOptions().getLoopActions()) {
-                getActionQueue().add(action.refreshed());
-                stepsPerformed.add(action);
-            }
-            action = getActionQueue().poll();
         }
-        if (action == null) { moves = 0.0; }
         return true;
     }
 

@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 //TODO make the map renderer more sane.
@@ -69,29 +70,35 @@ public class MapRenderer {
 
     private static void renderTileObjects(Graphics2D g, Tile tile, Hex center, double size_factor) {
         Hex drawnHex = tile.getLocation().subtract(center);
-        for (TileObject object : tile.getObjects()) {
-            try {
-                BufferedImage image = object.getImage();
-                if (image == null) continue;
-                if (object instanceof PlayerCharacter) {
-                    PlayerCharacter player = (PlayerCharacter) object;
-                    renderMovementLine(g, player.getLocation().subtract(center), player, size_factor);
+        try {
+            for (TileObject object : tile.getObjects()) {
+                try {
+                    BufferedImage image = object.getImage();
+                    if (image == null) continue;
+                    if (object instanceof PlayerCharacter) {
+                        PlayerCharacter player = (PlayerCharacter) object;
+                        renderMovementLine(g, player.getLocation().subtract(center), player, size_factor);
+                    }
+                    int width = image.getWidth();
+                    BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g2 = circleBuffer.createGraphics();
+                    g2.setClip(new Ellipse2D.Float(0, 0, width, width));
+                    g2.drawImage(image, 0, 0, width, width, null);
+                    g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
+                            (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
+                            (int) (Hex.X_SCALE * size_factor),
+                            (int) (Hex.Y_SCALE * size_factor),
+                            null);
+                    System.out.println("Draw object at " + tile.getLocation());
+                } catch (IOException e) {
+                    System.err.println("IOException when trying to render a tile object");
+                    e.printStackTrace();
                 }
-                int width = image.getWidth();
-                BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2 = circleBuffer.createGraphics();
-                g2.setClip(new Ellipse2D.Float(0, 0, width, width));
-                g2.drawImage(image, 0, 0, width, width, null);
-                g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
-                        (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
-                        (int) (Hex.X_SCALE * size_factor),
-                        (int) (Hex.Y_SCALE * size_factor),
-                        null);
-                System.out.println("Draw object at " + tile.getLocation());
-            } catch (IOException e) {
-                System.err.println("IOException when trying to render a tile object");
-                e.printStackTrace();
             }
+        } catch (ConcurrentModificationException e) {
+            //TODO avoid "ghost" players by re-drawing everything
+            //do this when you decide to make this whole mess somewhat sane
+            renderTileObjects(g, tile, center, size_factor);
         }
     }
 

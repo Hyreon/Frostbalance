@@ -108,7 +108,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
     }
 
     private companion object {
-        private const val TURN_LENGTH = 120000L
+        private const val TURN_LENGTH = 60000L
     }
 
 }
