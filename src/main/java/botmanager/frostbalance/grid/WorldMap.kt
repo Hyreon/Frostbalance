@@ -1,6 +1,6 @@
 package botmanager.frostbalance.grid
 
-import botmanager.IOUtils
+import botmanager.utils.IOUtils
 import botmanager.frostbalance.Player
 import botmanager.frostbalance.*
 import botmanager.frostbalance.grid.coordinate.Hex

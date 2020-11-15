@@ -1,7 +1,7 @@
 package botmanager.frostbalance.grid;
 
-import botmanager.Utilities;
-import botmanager.Utils;
+import botmanager.utils.JDAUtils;
+import botmanager.utils.Utils;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
@@ -94,7 +94,7 @@ public class PlayerCharacter extends TileObject implements Container {
                 } catch (FrostbalanceException e) {
                     User jdaUser = getUser().getJdaUser();
                     if (jdaUser != null) {
-                        Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
+                        JDAUtils.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
                                 String.join("\n", e.displayCauses()));
                     }
                 }

@@ -1,8 +1,8 @@
 package botmanager.frostbalance
 
-import botmanager.IOUtils
+import botmanager.utils.IOUtils
 import botmanager.Utilities
-import botmanager.Utils
+import botmanager.utils.Utils
 import botmanager.frostbalance.GuildWrapper.Companion.wrapper
 import botmanager.frostbalance.action.ActionQueue
 import botmanager.frostbalance.action.ActionQueueAdapter
