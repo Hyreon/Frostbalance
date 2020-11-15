@@ -139,7 +139,7 @@ public class PlayerCharacter extends TileObject implements Container {
     @Override
     public InputStream getRender() {
         try {
-            if (getUser() != null) { //user is accessible
+            if (getUser() != null && getUser().getJdaUser() != null) { //user is accessible
                 URL url = new URL(getUser().getJdaUser().getEffectiveAvatarUrl());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("User-Agent", "");
@@ -176,7 +176,7 @@ public class PlayerCharacter extends TileObject implements Container {
 
     @Override
     public void adopt() {
-        actionQueue.setParent(this);
+        getActionQueue().setParent(this);
         actionQueue.adopt();
     }
 }
