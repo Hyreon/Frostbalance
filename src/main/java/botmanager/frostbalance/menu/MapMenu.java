@@ -1,6 +1,7 @@
 package botmanager.frostbalance.menu;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.action.actions.DummyAction;
 import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.command.MessageContext;
 import botmanager.frostbalance.grid.ClaimData;
@@ -12,6 +13,8 @@ import botmanager.frostbalance.menu.response.SimpleTextHook;
 import botmanager.frostbalance.render.MapRenderer;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 
 public class MapMenu extends Menu {
 
@@ -25,7 +28,7 @@ public class MapMenu extends Menu {
     private Hex cameraLocation;
 
     private CameraBehavior cameraBehavior = CameraBehavior.SNAP_TO_PLAYER;
-    private double zoomFactor = 1.0;
+    private double zoomFactor;
 
     public MapMenu(Frostbalance bot, GuildMessageContext context) {
         super(bot, context);
@@ -33,18 +36,40 @@ public class MapMenu extends Menu {
         this.player = context.getPlayer().getCharacter();
         this.zoomFactor = context.getAuthor().getUserOptions().getZoomSize();
 
-        menuResponses.add(new MapMoveResponse("⬆️", "North", Hex.Direction.NORTH));
-        menuResponses.add(new MapMoveResponse("↗️", "Northeast", Hex.Direction.NORTHEAST));
-        menuResponses.add(new MapMoveResponse("↘️", "Southeast", Hex.Direction.SOUTHEAST));
-        menuResponses.add(new MapMoveResponse("⬇️", "South", Hex.Direction.SOUTH));
-        menuResponses.add(new MapMoveResponse("↙️", "Southwest", Hex.Direction.SOUTHWEST));
-        menuResponses.add(new MapMoveResponse("↖️", "Northwest", Hex.Direction.NORTHWEST));
+        menuResponses.add(new MenuResponse("\uD83D\uDCCD", "Create waypoint") {
+
+            @Override
+            public void reactEvent() {
+                player.getActionQueue().add(new DummyAction(player));
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return true;
+            }
+
+        });
+
+        menuResponses.add(new MenuResponse("⏪", "Undo last action") {
+
+            @Override
+            public void reactEvent() {
+                player.getActionQueue().removeLast();
+                updateMessage();
+            }
+
+            @Override
+            public boolean isValid() {
+                return !player.getActionQueue().isEmpty();
+            }
+        });
 
         menuResponses.add(new MenuResponse("⏫", "Zoom out") {
 
             @Override
             public void reactEvent() {
-                zoomFactor /= 1.25;
+                zoomFactor /= 1.75;
                 updateMessage();
             }
 
@@ -59,7 +84,7 @@ public class MapMenu extends Menu {
 
             @Override
             public void reactEvent() {
-                zoomFactor *= 1.25;
+                zoomFactor *= 1.75;
                 updateMessage();
             }
 
@@ -138,12 +163,12 @@ public class MapMenu extends Menu {
             }
         });
 
-        hook(new SimpleTextHook(this, "Or type DIRECTION AMOUNT to move") {
+        hook(new SimpleTextHook(this, "Or type <DIRECTION> <AMOUNT> to move; eg NORTH 1") {
 
             @Override
             public void hookEvent(@NotNull MessageContext hookContext) {
                 String[] args = hookContext.getMessage().getContentRaw().split(" ");
-                Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase());
+                Hex.Direction direction = Hex.Direction.valueOf(Hex.Direction.class, args[0].toUpperCase(Locale.ROOT));
                 int amount = Integer.parseInt(args[1]);
                 move(direction, amount);
                 updateMessage();
@@ -153,12 +178,13 @@ public class MapMenu extends Menu {
             public boolean isValid(@NotNull MessageContext hookContext) {
                 String[] directionNames = new String[Hex.Direction.values().length];
                 for (int i = 0; i < Hex.Direction.values().length; i++) {
-                    directionNames[i] = "(" + Hex.Direction.values()[i].name().toLowerCase() + ")";
+                    directionNames[i] = "(" + Hex.Direction.values()[i].name().toUpperCase() + ")";
                 }
                 String pattern = "(" + String.join("|", directionNames) + ") [0-9]{1,3}";
                 System.out.println(pattern);
-                System.out.println(hookContext.getMessage().getContentRaw());
-                return hookContext.getMessage().getContentRaw().matches(pattern);
+                String content = hookContext.getMessage().getContentRaw().toUpperCase();
+                System.out.println(content);
+                return content.matches(pattern);
             }
         });
 

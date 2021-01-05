@@ -1,4 +1,4 @@
-package botmanager.frostbalance.action;
+package botmanager.frostbalance.action.actions;
 
 import botmanager.frostbalance.*;
 import botmanager.frostbalance.checks.FrostbalanceException;
@@ -15,7 +15,8 @@ public class TransferAction extends Action {
     Influence transferAmount;
     Hex location;
 
-    public TransferAction(UserWrapper user, Nation inNameOf, Influence transferAmount, Hex location) {
+    public TransferAction(PlayerCharacter character, UserWrapper user, Nation inNameOf, Influence transferAmount, Hex location) {
+        super(character);
         this.targetId = user.getId();
         this.inNameOf = inNameOf;
         this.transferAmount = transferAmount;
@@ -23,19 +24,24 @@ public class TransferAction extends Action {
     }
 
     @Override
-    public void doAction(PlayerCharacter playerCharacter) throws FrostbalanceException {
+    public int moveCost() {
+        return 0;
+    }
 
-        GuildWrapper guild = playerCharacter.getMap().getGameNetwork().guildWithAllegiance(inNameOf);
+    @Override
+    public void doAction() throws FrostbalanceException {
+
+        GuildWrapper guild = queue.getCharacter().getMap().getGameNetwork().guildWithAllegiance(inNameOf);
         assert guild != null;
-        MemberWrapper member = playerCharacter.getUser().memberIn(guild);
-        Claim claim = playerCharacter.getMap().getTile(location).getClaimData().getClaim(member);
+        MemberWrapper member = queue.getCharacter().getUser().memberIn(guild);
+        Claim claim = queue.getCharacter().getMap().getTile(location).getClaimData().getClaim(member);
         assert claim != null;
 
         new ValidationTests().throwIfAny(
                 new InfluenceMinimumValidator(claim, transferAmount)
         );
 
-        playerCharacter.getTile().getClaimData().transferToClaim(member, Frostbalance.bot.getMemberWrapper(targetId, guild.getId()).getPlayer(), transferAmount);
+        queue.getCharacter().getTile().getClaimData().transferToClaim(member, Frostbalance.bot.getMemberWrapper(targetId, guild.getId()).getPlayer(), transferAmount);
 
     }
 }

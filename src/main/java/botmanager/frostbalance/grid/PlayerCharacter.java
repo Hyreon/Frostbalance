@@ -5,7 +5,10 @@ import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
 import botmanager.Utilities;
 import botmanager.frostbalance.UserWrapper;
-import botmanager.frostbalance.action.Action;
+import botmanager.frostbalance.action.ActionQueue;
+import botmanager.frostbalance.action.QueueStep;
+import botmanager.frostbalance.action.actions.Action;
+import botmanager.frostbalance.action.routine.MoveToRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.resource.Inventory;
@@ -25,16 +28,12 @@ public class PlayerCharacter extends Mobile {
 
     public Inventory inventory;
     transient Queue<Action> actionQueue = new PriorityQueue<>();
+    private transient double moves = 0.0;
 
     /**
      * The user this character is tied to.
      */
     String userId;
-
-    /**
-     * The queued destination that the player is currently approaching via the fastest known route.
-     */
-    Hex destination;
 
     public PlayerCharacter(String userId, WorldMap map) {
         super(map.getTile(Hex.origin()));
@@ -52,23 +51,44 @@ public class PlayerCharacter extends Mobile {
         return userId;
     }
 
-    public Queue<Action> getActionQueue() {
-        if (actionQueue == null) actionQueue = new PriorityQueue<>();
+    public ActionQueue getActionQueue() {
+        if (actionQueue == null) actionQueue = new ActionQueue(this);
         return actionQueue;
     }
 
-    public void doNextAction() {
-        Action action = getActionQueue().poll();
-        if (action == null) return;
-        try {
-            action.doAction(this);
-        } catch (FrostbalanceException e) {
-            User jdaUser = getUser().getJdaUser();
-            if (jdaUser != null) {
-                Utilities.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
-                        String.join("\n", e.displayCauses()));
+    public boolean doNextAction() {
+        System.out.println("Doing actions for " + getName());
+        List<QueueStep> stepsPerformed = new LinkedList<>();
+        for(;;) {
+            QueueStep base = getActionQueue().peekBase();
+            Action action = getActionQueue().poll();
+            if (action != null //is supposed to do something
+                    && moves >= action.moveCost() //character has the energy to do the thing
+                    && (action.moveCost() > 0 || !stepsPerformed.contains(base))) { //not a repeat of a zero-cost task (no infinite loops); beats both bad Routines and ActionQueues
+                try {
+                    moves -= action.moveCost();
+                    action.doAction();
+                    System.out.println("Did " + action.getClass().getSimpleName());
+                } catch (FrostbalanceException e) {
+                    User jdaUser = getUser().getJdaUser();
+                    if (jdaUser != null) {
+                        JDAUtils.sendPrivateMessage(getUser().getJdaUser(), "Could not perform " + action.getClass().getSimpleName() + ":\n" +
+                                String.join("\n", e.displayCauses()));
+                    }
+                }
+                if (getPlayer().getUserWrapper().getUserOptions().getLoopActions() && base != null) {
+                    stepsPerformed.add(base);
+                }
+            } else {
+                for (QueueStep step : stepsPerformed) {
+                    if (step.equals(getActionQueue().peekBase())) continue; //shh, still in progress
+                    getActionQueue().add(step.refreshed());
+                }
+                if (action == null) { moves = 0.0; }
+                break;
             }
         }
+        return true;
     }
 
     /**
@@ -82,44 +102,22 @@ public class PlayerCharacter extends Mobile {
 
 
     public void setDestination(Hex destination) {
-        this.destination = destination;
-        updateMovement();
+        getActionQueue().add(new MoveToRoutine(this, destination));
     }
 
     public void adjustDestination(Hex.Direction direction, int amount) {
-        destination = getDestination().move(direction, amount);
-        updateMovement();
-    }
-
-    /**
-     * Moves towards the destination in one second.
-     */
-    private boolean updateMovement() {
-
-        if (!getLocation().equals(getDestination())) {
-
-            Hex directions = destination.subtract(getLocation());
-            Hex.Direction nextStep = directions.crawlDirection();
-            setLocation(getLocation().move(nextStep));
-            System.out.printf("%s now at %s\n", getName(), getLocation());
-            return true;
-
-        }
-
-        return false;
-
+        actionQueue.add(new MoveToRoutine(getActionQueue(), direction, amount));
     }
 
     public Hex getDestination() {
-        if (destination == null) destination = getLocation();
-        if (!destination.equals(getLocation())) updateMovement();
-        return destination;
+        List<Hex> waypoints = getActionQueue().simulation().waypoints();
+        return waypoints.get(waypoints.size() - 1); //last waypoint
     }
 
     @Override
     public InputStream getRender() {
         try {
-            if (getUser() != null) { //user is accessible
+            if (getUser() != null && getUser().getJdaUser() != null) { //user is accessible
                 URL url = new URL(getUser().getJdaUser().getEffectiveAvatarUrl());
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("User-Agent", "");
@@ -144,18 +142,19 @@ public class PlayerCharacter extends Mobile {
         return getPlayer().getName();
     }
 
+    @Override
+    public boolean turnAction() {
+        moves += 1.0; //register that a turn has passed, and more movement is available.
+        return doNextAction();
+    }
+
     public String getTravelTime() {
         return getLocation().minimumDistance(getDestination()) * 4 + " minutes";
     }
 
     @Override
-    public boolean turnAction() {
-        return updateMovement();
+    public void adopt() {
+        getActionQueue().setParent(this);
+        actionQueue.adopt();
     }
-
-    public Inventory getInventory() {
-        if (inventory == null) inventory = new Inventory();
-        return inventory;
-    }
-
 }

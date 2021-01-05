@@ -4,6 +4,10 @@ import botmanager.utils.IOUtils
 import botmanager.utils.Utils
 import botmanager.Utilities
 import botmanager.frostbalance.GuildWrapper.Companion.wrapper
+import botmanager.frostbalance.action.ActionQueue
+import botmanager.frostbalance.action.ActionQueueAdapter
+import botmanager.frostbalance.action.QueueStep
+import botmanager.frostbalance.action.QueueStepAdapter
 import botmanager.frostbalance.command.FrostbalanceCommand
 import botmanager.frostbalance.command.MessageContext
 import botmanager.frostbalance.commands.admin.*
@@ -23,6 +27,7 @@ import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonSerializer
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent
@@ -449,6 +454,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private fun saveGames() {
         for (network in gameNetworks) {
             writeObject("games/" + network.id, network, Pair(Mobile::class.java, TileObjectAdapter()))
+            writeObject("games/" + network.id, network, Pair(
+                    QueueStep::class.java, QueueStepAdapter()), Pair(Mobile::class.java, TileObjectAdapter()))
             //TODO if network.isEmpty() remove file
         }
     }
@@ -480,6 +487,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     val bGuild = getGuildIfPresent(guildId) ?: GuildWrapper(gameNetwork, guild)
                     gameNetwork.addGuild(bGuild)
                     gameNetwork.adopt()
+                    gameNetwork.initializeTurnCycle()
                     bGuild.loadLegacy(
                             getSettings(guild) as MutableSet<OldOptionFlag>,
                             getRecords(guild)!!,
@@ -616,7 +624,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
                 gsonBuilder.registerTypeAdapter(Mobile::class.java, TileObjectAdapter())
+                gsonBuilder.registerTypeAdapter(QueueStep::class.java, QueueStepAdapter())
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
+                gsonBuilder.registerTypeAdapter(ActionQueue::class.java, ActionQueueAdapter())
                 val gson = gsonBuilder.create()
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
                 gameNetwork.setParent(this)
@@ -634,7 +644,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
-    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<Mobile>, TileObjectAdapter>) {
+    private fun writeObject(filename: String, `object`: Any?, vararg typeAdapters: Pair<Class<out Any>, JsonSerializer<out Any>>) {
         val file = File("data/$name/$filename.json")
         val gsonBuilder = GsonBuilder()
         for (typeAdapterPair in typeAdapters) {

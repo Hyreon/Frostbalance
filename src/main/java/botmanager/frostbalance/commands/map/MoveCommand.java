@@ -7,6 +7,7 @@ import botmanager.frostbalance.command.FrostbalanceGuildCommand;
 import botmanager.frostbalance.command.GuildMessageContext;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.grid.PlayerCharacter;
+import botmanager.frostbalance.menu.input.ConfirmationMenu;
 
 public class MoveCommand extends FrostbalanceGuildCommand {
 
@@ -33,9 +34,21 @@ public class MoveCommand extends FrostbalanceGuildCommand {
             return;
         }
 
-        character.setDestination(destination);
-        context.sendResponse(context.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
-        + character.getTravelTime() + ".");
+        if (character.getActionQueue().isEmpty()) {
+            System.out.println("Empty queue, setting destination");
+            character.setDestination(destination);
+            System.out.println("Destination sent, displaying travel time");
+            context.sendResponse(context.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
+                    + character.getTravelTime() + ".");
+        } else {
+            new ConfirmationMenu(getBot(), context, () -> {
+                character.getActionQueue().clear();
+                character.setDestination(destination);
+                context.sendResponse(context.getMember().getEffectiveName() + " is now headed towards " + destination + ", and will arrive in "
+                        + character.getTravelTime() + ".");
+            }, "This will reset your previously planned actions.").send();
+        }
+
 
     }
 

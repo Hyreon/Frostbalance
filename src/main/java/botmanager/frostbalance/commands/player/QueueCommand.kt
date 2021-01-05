@@ -8,7 +8,7 @@ import botmanager.frostbalance.command.GuildMessageContext
 
 class QueueCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("queue"), AuthorityLevel.GENERIC, ContextLevel.ANY) {
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return ".queue <MOVE/CLAIM/TRANSFER> ..."
+        return ".queue <MOVE/CLAIM/TRANSFER> ... - queues an action after you have reached your current destination."
     }
 
     override fun executeWithGuild(context: GuildMessageContext?, vararg params: String?) {

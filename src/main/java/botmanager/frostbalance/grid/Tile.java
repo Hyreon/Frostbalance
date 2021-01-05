@@ -95,6 +95,7 @@ public class Tile implements Containable<WorldMap>, Container {
         }
         for (TileObject tileObject: objects) {
             tileObject.setParent(this);
+            if (tileObject instanceof Container) ((Container) tileObject).adopt();
         }
         getBuildingData().setParent(this);
         getClaimData().setParent(this);

@@ -35,7 +35,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
                 WorkManager.singleton.validateWorkers()
                 turn++
             }
-        }, 20000, 20000)
+        }, TURN_LENGTH, TURN_LENGTH)
         println("Scheduled turn timer for $this!")
     }
 
@@ -108,6 +108,10 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
 
     fun isEmpty(): Boolean {
         return worldMap.isEmpty() && associatedGuilds.isEmpty()
+    }
+
+    private companion object {
+        private const val TURN_LENGTH = 60000L
     }
 
 }
