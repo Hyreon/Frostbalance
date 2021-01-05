@@ -26,13 +26,13 @@ enum class Biome(var color: Color, val elevation: ElevationClass, val temperatur
 
     //cold
     TUNDRA(Color(0xFAFADC), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.ARID),
-    SNOW_FIELD(Color(0xCCD9A4), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.MODEST_RAIN),
+    SNOW_PLAINS(Color(0xCCD9A4), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.MODEST_RAIN),
     TAIGA(Color(0x008080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.GOOD_RAIN),
     MARSH(Color(0x606080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.HEAVY_RAIN),
 
     //moderate
     TEMPERATE_DESERT(Color(0x89A32E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.ARID),
-    GRASSLANDS(Color(0x69932E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.MODEST_RAIN),
+    STEPPE(Color(0x69932E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.MODEST_RAIN),
     FOREST(Color(0x008000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.GOOD_RAIN),
     SWAMP(Color(0x606000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.HEAVY_RAIN),
 

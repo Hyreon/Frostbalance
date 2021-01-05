@@ -17,9 +17,12 @@ import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
 import botmanager.frostbalance.grid.building.Gatherer
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.resource.ItemStack
 import botmanager.frostbalance.resource.ItemType
 import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
+import botmanager.utils.Utils
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
@@ -122,8 +125,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         val urlString = event.newIconUrl
         val guildFlags = getSettings(event.guild)
         if (urlString == null) {
-            val iconNameToUse: String
-            iconNameToUse = if (!guildFlags.contains(OldOptionFlag.MAIN)) {
+            val iconNameToUse: String = if (!guildFlags.contains(OldOptionFlag.MAIN)) {
                 "icon_tweak/snowflake.png"
             } else if (guildFlags.contains(OldOptionFlag.RED)) {
                 "icon_tweak/snowflake_r.png"
@@ -575,6 +577,17 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 }
             } catch (e: NumberFormatException) {
             }
+        }
+    }
+
+    private fun loadResources() {
+        val gsonBuilder = GsonBuilder()
+        gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
+        val gson = gsonBuilder.create()
+        val file = File("res/generator/deposits.json")
+        if (file.exists()) {
+            //won't work; needs to read array, not direct item stack.
+            val itemStack = gson.fromJson(IOUtils.read(file), ItemStack::class.java)
         }
     }
 
