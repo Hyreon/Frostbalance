@@ -1,6 +1,6 @@
 package botmanager.frostbalance.grid
 
-import botmanager.IOUtils
+import botmanager.utils.IOUtils
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.GameNetwork
 import botmanager.frostbalance.Player

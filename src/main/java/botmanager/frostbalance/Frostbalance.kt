@@ -1,8 +1,8 @@
 package botmanager.frostbalance
 
-import botmanager.IOUtils
+import botmanager.utils.IOUtils
+import botmanager.utils.Utils
 import botmanager.Utilities
-import botmanager.Utils
 import botmanager.frostbalance.GuildWrapper.Companion.wrapper
 import botmanager.frostbalance.command.FrostbalanceCommand
 import botmanager.frostbalance.command.MessageContext
@@ -21,7 +21,6 @@ import botmanager.frostbalance.resource.ItemStack
 import botmanager.frostbalance.resource.ItemType
 import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
-import botmanager.utils.Utils
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.*
