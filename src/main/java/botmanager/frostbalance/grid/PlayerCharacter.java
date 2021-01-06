@@ -3,7 +3,6 @@ package botmanager.frostbalance.grid;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.Player;
-import botmanager.Utilities;
 import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.action.QueueStep;
@@ -12,6 +11,7 @@ import botmanager.frostbalance.action.routine.MoveToRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.resource.Inventory;
+import botmanager.utils.JDAUtils;
 import net.dv8tion.jda.api.entities.User;
 
 import java.io.IOException;
@@ -19,15 +19,15 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PlayerCharacter extends Mobile {
 
     public Inventory inventory;
-    transient Queue<Action> actionQueue = new PriorityQueue<>();
+    transient ActionQueue actionQueue = new ActionQueue();
     private transient double moves = 0.0;
 
     /**
@@ -152,7 +152,11 @@ public class PlayerCharacter extends Mobile {
         return getLocation().minimumDistance(getDestination()) * 4 + " minutes";
     }
 
-    @Override
+    public Inventory getInventory() {
+        if (inventory == null) inventory = new Inventory();
+        return inventory;
+    }
+
     public void adopt() {
         getActionQueue().setParent(this);
         actionQueue.adopt();

@@ -44,7 +44,22 @@ public class BuildingData implements Containable<Tile>, Container {
         else return gatherers.get(0);
     }
 
-    public void addGatherer(@NotNull Gatherer gatherer) {
-        gatherers.add(gatherer);
+    /**
+     * Adds a new gatherer. This gatherer is *not* added to the history if a functionally identical one exists.
+     * @param gatherer
+     * @return Whether the new gatherer was added (true) or simply redirected to an existing one (false).
+     */
+    public boolean addGatherer(@NotNull Gatherer gatherer) {
+        for (int i = 0; i < gatherers.size(); i++) {
+            Gatherer existingGatherer = gatherers.get(i);
+            if (existingGatherer.ownerId.equals(gatherer.ownerId)
+                    && existingGatherer.getDeposit().equals(gatherer.getDeposit())) {
+                gatherers.remove(existingGatherer);
+                gatherers.add(0, existingGatherer);
+                return false;
+            }
+        }
+        gatherers.add(0,gatherer); //this gatherer gets precedence, as it is newer
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 package botmanager.frostbalance.render;
 
+import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.*;
 import botmanager.frostbalance.grid.building.Gatherer;
 import botmanager.frostbalance.grid.coordinate.Hex;
@@ -14,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 
 //TODO make the map renderer more sane.
@@ -78,7 +78,7 @@ public class MapRenderer {
             if (object instanceof PlayerCharacter) {
                 PlayerCharacter player = (PlayerCharacter) object;
                 if (player.getDestination() != player.getLocation()) {
-                    renderMovementLine(g, player.getLocation().subtract(center), player.getDestination().subtract(center), player, size_factor);
+                    renderMovementLine(g, player.getLocation().subtract(center), player, size_factor);
                 }
             }
             int width = image.getWidth();

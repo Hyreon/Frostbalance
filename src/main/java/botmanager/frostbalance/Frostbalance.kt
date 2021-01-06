@@ -410,10 +410,10 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return mapResourceCaches[biome] ?: emptyList()
     }
 
-    fun generateResourceIn(biome: Biome, seed: Long): MapResource? {
+    fun generateResourceIn(biome: Biome, seed: Long): MapResource {
         val effectiveResources = resourcesFor(biome)
         val selector = Utilities.mapToRange(Utilities.randomFromSeed(seed), 0, effectiveResources.last().second.coerceAtLeast(10).toLong())
-        return effectiveResources.firstOrNull { it.second > selector }?.first
+        return effectiveResources.first { it.second > selector }.first
     }
 
     /**

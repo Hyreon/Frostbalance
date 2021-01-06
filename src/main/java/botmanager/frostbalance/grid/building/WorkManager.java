@@ -62,7 +62,7 @@ public class WorkManager {
     }
 
     public List<PlayerCharacter> getWorkers(Building building) {
-        return workers.get(building);
+        return workers.computeIfAbsent(building, k -> new ArrayList<>());
     }
 
     public void shutdown(Building building) {

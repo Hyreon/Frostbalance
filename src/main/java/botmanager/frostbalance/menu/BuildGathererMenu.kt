@@ -10,14 +10,28 @@ import net.dv8tion.jda.api.EmbedBuilder
 class BuildGathererMenu(bot: Frostbalance, context: GuildMessageContext) :
         OptionMenu<ResourceDeposit>(bot, context, context.player.character.tile.resourceData.priorityOrderDeposits()) {
 
+    var success = false
+    var newGatherer = false
+
     override val embedBuilder: EmbedBuilder
         get() {
+            val baseEmbedBuilder = super.embedBuilder
             if (isClosed) {
-                return EmbedBuilder()
-                        .setTitle("Build Successful")
-                        .setDescription("You've build a gatherer on your tile.")
+                return if (success) {
+                    if (newGatherer)
+                        baseEmbedBuilder
+                                .setTitle("Build Successful")
+                                .setDescription("You've built a gatherer on your tile.")
+                    else
+                        baseEmbedBuilder
+                                .setTitle("Repair Successful")
+                                .setDescription("You've reinstated your previous gatherer on your tile.")
+                } else {
+                    baseEmbedBuilder
+                            .setTitle("Build Canceled")
+                }
             } else {
-                return EmbedBuilder()
+                return baseEmbedBuilder
                         .setTitle("Build Gatherer")
                         .setDescription("Select a resource below to build a gatherer for.")
             }
@@ -26,9 +40,10 @@ class BuildGathererMenu(bot: Frostbalance, context: GuildMessageContext) :
     override fun select(option: ResourceDeposit) {
         context.author.playerIn(context.gameNetwork).let { player ->
             player.character.tile.let { tile ->
-                tile.buildingData.addGatherer(Gatherer(tile, player, option))
+                newGatherer = tile.buildingData.addGatherer(Gatherer(tile, player, option))
             }
         }
+        success = true
         close(false)
     }
 

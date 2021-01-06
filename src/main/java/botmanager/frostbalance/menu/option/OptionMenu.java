@@ -50,7 +50,7 @@ public abstract class OptionMenu<T> extends ListMenu<T> {
     }
 
     @Override
-    public EmbedBuilder getEmbedBuilder() {
+    public @NotNull EmbedBuilder getEmbedBuilder() {
         if (isClosed()) {
             return super.getEmbedBuilder();
         } else {

@@ -3,6 +3,7 @@ package botmanager.frostbalance.resource;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.grid.Containable;
+import botmanager.frostbalance.grid.coordinate.Hex;
 
 public class ResourceDeposit implements Containable<ResourceData> {
 
@@ -12,14 +13,14 @@ public class ResourceDeposit implements Containable<ResourceData> {
     int level;
 
     /**
-     * Generates a resource deposit with a level up to the given amount.
+     * Generates a resource deposit with a level up to the given amount. Reseeded based on progress and tile location.
      * @param mapResource
      * @param progress
      */
-    public ResourceDeposit(MapResource mapResource, int progress) {
+    public ResourceDeposit(MapResource mapResource, Hex location, int progress) {
         this.resourceId = mapResource.getId();
         this.level =
-                (int) Utilities.mapToRange(Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL),
+                (int) Utilities.mapToRange(Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL, location.getXnoZ(), location.getYnoZ(), progress),
                         1, progress);
     }
 

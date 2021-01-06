@@ -58,7 +58,7 @@ public class Gatherer extends Building {
     }
 
     private double getLevel() {
-        return Utilities.triangulateWithRemainder(experience);
+        return Math.floor(Utilities.triangulateWithRemainder(experience));
     }
 
     public enum Method {
