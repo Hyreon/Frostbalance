@@ -36,16 +36,22 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
      * @param strength
      */
     private fun addClaim(player: Player, nation: Nation, strength: Influence): Claim {
+        val actual = tile.location == player.character.location
         updateCacheTime()
         for (claim in claims) {
             if (claim.overlaps(this, player, nation)) {
-                claim.add(strength)
+                if (actual)
+                    claim.add(strength)
+                else
+                    claim.addPromise(strength)
                 return claim
             }
         }
-        if (tile.location == player.character.location)
+        if (actual) {
             return Claim(player.character, nation, strength)
-        else throw IllegalStateException("Attempting to claim a tile for ${player.name} that they aren't on!")
+        } else { //can't make actual claims, only promises, if the player isn't in the right spot
+            return Claim(this, player, nation, strength, false)
+        }
     }
 
     fun addClaim(member: MemberWrapper, strength: Influence): Claim {
@@ -84,18 +90,26 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
 
     /**
      * Reduce the strength of a claim.
-     * Any player can do this to their own claims at no cost, but with no refund.
-     * @return
+     * Any player can do this to their own claims at no cost.
+     * This will only refund promised territory, and not actual territory.
+     * @return A pair containing the refundable amount reduced, and the non-refundable amount reduced.
      */
-    fun reduceClaim(player: Player?, nation: Nation?, amount: Influence?): Influence {
+    fun reduceClaim(player: Player, nation: Nation, amount: Influence): Pair<Influence, Influence> {
         updateCacheTime()
-        val claim = getClaim(player, nation) ?: return Influence(0)
-        val reduceAmount = claim.reduce(amount, false)
+        val claim = getClaim(player, nation) ?: return Pair(Influence(0), Influence(0))
+        val refundAmount = claim.revokePromise(amount)
+        val reduceAmount = claim.reduce(amount - refundAmount, false)
         if (!claim.investedStrength.nonZero) {
             claims.remove(claim)
         }
+        if (refundAmount > 0) {
+            player.gameNetwork.guildWithAllegiance(nation)?.let { guild ->
+                player.userWrapper.memberIn(guild).let { member ->
+                member.adjustInfluence(refundAmount)
+            } }
+        }
         getTile().getMap().updateHighestLevelClaim()
-        return reduceAmount
+        return Pair(refundAmount, reduceAmount)
     }
 
     fun evict(claim: Claim) {
