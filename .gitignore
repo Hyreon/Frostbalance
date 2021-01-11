@@ -30,3 +30,4 @@ data/
 gradle/wrapper
 gradlew
 gradlew.bat
+out/production/resources/icon_tweak/*

@@ -30,7 +30,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonSerializer
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
-import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.guild.update.GuildUpdateIconEvent
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent
@@ -86,6 +86,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     override fun shutdown() {
+        super.shutdown();
         saveUsers()
         saveGames()
     }
@@ -215,7 +216,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         activeMenus.remove(menu)
     }
 
-    override fun onGuildMemberLeave(event: GuildMemberLeaveEvent) {
+    override fun onGuildMemberRemove(event: GuildMemberRemoveEvent) {
         println("PLAYER LEAVING: " + event.user.id)
         if (event.guild.wrapper.leaderId == event.user.id) {
             println("Leader left, making a note here")
