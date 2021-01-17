@@ -11,6 +11,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class MoveToRoutine extends Routine {
 
+    /**
+     * All intermediate waypoints.
+     * These are skipped if a faster route is found that avoids them.
+     */
+    List<Hex> waypoints;
+
     Hex destination;
 
     /**

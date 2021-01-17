@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -370,5 +371,27 @@ public class Utilities {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    /**
+     * Draws a string centered at x, y.
+     * Note that this is currently bugged and will display too far to the right.
+     * @param g
+     * @param text
+     * @param x
+     * @param y
+     * @param font
+     */
+    public static void drawCenteredString(Graphics g, String text, int x, int y, Font font) {
+        // Get the FontMetrics
+        FontMetrics metrics = g.getFontMetrics(font);
+        // Determine the X coordinate for the text
+        int drawX = x + metrics.stringWidth(text) / 2;
+        // Determine the Y coordinate for the text (note we add the ascent, as in java 2d 0 is top of the screen)
+        int drawY = y + (metrics.getHeight()) / 2 + metrics.getAscent();
+        // Set the font
+        g.setFont(font);
+        // Draw the String
+        g.drawString(text, drawX, drawY);
     }
 }

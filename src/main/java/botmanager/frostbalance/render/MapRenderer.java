@@ -1,6 +1,7 @@
 package botmanager.frostbalance.render;
 
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.Player;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.Tile;
@@ -28,22 +29,27 @@ public class MapRenderer {
     private static final int DEFAULT_WIDTH = 400;
     private static final int BCOLOR = 64;
 
-    public static String render(WorldMap map, Hex center, double size_factor) {
+    public static String render(Player player, WorldMap map, Hex center, double sizeFactor) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         //RenderingHints rh = new RenderingHints(
         //        RenderingHints.KEY_TEXT_ANTIALIASING,
         //        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         //g.setRenderingHints(rh);
-        Collection<Hex> drawHexes = center.getHexesToDrawAround(DEFAULT_WIDTH / size_factor, DEFAULT_HEIGHT / size_factor);
+        Collection<Hex> drawHexes = center.getHexesToDrawAround(DEFAULT_WIDTH / sizeFactor, DEFAULT_HEIGHT / sizeFactor);
         for (Hex drawHex : drawHexes) {
-            renderTile(g, map.getRenderTile(drawHex), center, size_factor);
+            renderTile(g, map.getRenderTile(drawHex), center, sizeFactor);
         }
         for (Hex drawHex : drawHexes) {
-            drawBorders(g, map.getRenderTile(drawHex), center, size_factor);
+            drawBorders(g, map.getRenderTile(drawHex), center, sizeFactor);
+        }
+        if (player.getUserWrapper().getUserOptions().getDrawCoords()) {
+            for (Hex drawHex : drawHexes) {
+                renderTileCoordinates(g, player, map.getRenderTile(drawHex), center, sizeFactor);
+            }
         }
         for (Hex drawHex : drawHexes) {
-            renderTileObjects(g, map.getRenderTile(drawHex), center, size_factor);
+            renderTileObjects(g, map.getRenderTile(drawHex), center, sizeFactor);
         }
         g.dispose();
 
@@ -68,7 +74,23 @@ public class MapRenderer {
 
     }
 
-    private static void renderTileObjects(Graphics2D g, Tile tile, Hex center, double size_factor) {
+    private static void renderTileCoordinates(Graphics2D g, Player renderer, Tile tile, Hex center, double sizeFactor) {
+        int capacity = (int) (1.0 / (sizeFactor));
+
+        Hex drawnHex = tile.getLocation().subtract(center);
+
+        if (capacity > 0 && (
+                drawnHex.getX() % capacity != 0 ||
+                drawnHex.getY() % capacity != 0 ||
+                drawnHex.getZ() % capacity != 0)) return;
+
+        g.setColor(Color.BLACK);
+        g.drawString(tile.getLocation().getCoordinates(renderer.getUserWrapper().getUserOptions().getCoordSys()),
+                (int) ((drawnHex.drawX())*sizeFactor + DEFAULT_WIDTH/2),
+                (int) ((drawnHex.drawY())*sizeFactor + DEFAULT_HEIGHT/2));
+    }
+
+    private static void renderTileObjects(Graphics2D g, Tile tile, Hex center, double sizeFactor) {
         Hex drawnHex = tile.getLocation().subtract(center);
         try {
             for (TileObject object : tile.getObjects()) {
@@ -77,17 +99,17 @@ public class MapRenderer {
                     if (image == null) continue;
                     if (object instanceof PlayerCharacter) {
                         PlayerCharacter player = (PlayerCharacter) object;
-                        renderMovementLine(g, player.getLocation().subtract(center), player, size_factor);
+                        renderMovementLine(g, player.getLocation().subtract(center), player, sizeFactor);
                     }
                     int width = image.getWidth();
                     BufferedImage circleBuffer = new BufferedImage(width, width, BufferedImage.TYPE_INT_ARGB);
                     Graphics2D g2 = circleBuffer.createGraphics();
                     g2.setClip(new Ellipse2D.Float(0, 0, width, width));
                     g2.drawImage(image, 0, 0, width, width, null);
-                    g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
-                            (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
-                            (int) (Hex.X_SCALE * size_factor),
-                            (int) (Hex.Y_SCALE * size_factor),
+                    g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*sizeFactor + DEFAULT_WIDTH/2),
+                            (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*sizeFactor + DEFAULT_HEIGHT/2),
+                            (int) (Hex.X_SCALE * sizeFactor),
+                            (int) (Hex.Y_SCALE * sizeFactor),
                             null);
                     System.out.println("Draw object at " + tile.getLocation());
                 } catch (IOException e) {
@@ -98,7 +120,7 @@ public class MapRenderer {
         } catch (ConcurrentModificationException e) {
             //TODO avoid "ghost" players by re-drawing everything
             //do this when you decide to make this whole mess somewhat sane
-            renderTileObjects(g, tile, center, size_factor);
+            renderTileObjects(g, tile, center, sizeFactor);
         }
     }
 

@@ -4,5 +4,6 @@ package botmanager.frostbalance.grid
  * @param <T> The type of object that can contain it
 </T> */
 interface Containable<T> {
+
     fun setParent(parent: T)
 }
