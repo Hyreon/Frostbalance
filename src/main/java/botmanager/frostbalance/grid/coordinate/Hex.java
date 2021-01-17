@@ -196,6 +196,30 @@ public class Hex {
 
     public long getZ() { return z; }
 
+    /**
+     * Returns the value of X on the offset system.
+     * @return The value of y minus the value of x
+     */
+    public long getOffsetX() {
+        return getY() - getX();
+    }
+
+    /**
+     * Returns the value of Y on the offset system.
+     * @return The negative value of Z, after canceling out y and x
+     */
+    public long getOffsetY() {
+        return -getZ() + Math.floorDiv(getY() + getX(), 2);
+    }
+
+    /**
+     * Display these coordinates on the 'approximation' coordinate system.
+     */
+    public String getOffsetCoordinates() {
+        return "(" + getOffsetX() + ", " + getOffsetY() + ")";
+    }
+
+
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof Hex)) return false;
@@ -211,7 +235,22 @@ public class Hex {
         return Objects.hash(getX(), getY(), getZ());
     }
 
+    public String getCoordinates(CoordSys coordSys) {
+        switch (coordSys) {
+            case APPROXIMATION:
+                return getOffsetCoordinates();
+            default:
+                return toString();
+        }
+    }
 
+    /**
+     * Display the internal coordinates, ie the 'navigator' coordinate system.
+     * These coordinates are picked to encourage players to go northeast, northwest and
+     * south. The directional coordinate system also makes for easy navigation between two
+     * points, especially from spawn.
+     * @return A string containing the X, Y and Z coordinates of this hex
+     */
     @Override
     public String toString() {
         return "(" + getX() + "," + getY() + "," + getZ() + ")";
@@ -248,6 +287,10 @@ public class Hex {
 
     public long getYnoZ() {
         return y - z;
+	}
+	
+    public enum CoordSys {
+        NAVIGATOR, APPROXIMATION;
     }
 
     public enum Coordinate {

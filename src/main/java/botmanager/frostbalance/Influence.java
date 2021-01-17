@@ -133,7 +133,11 @@ public class Influence {
     }
 
     @NotNull
-    public Influence plus(@Nullable Influence request) {
-        return add(request);
+    public Influence plus(@Nullable Influence amount) {
+        return add(amount);
+    }
+
+    public Influence minus(@NotNull Influence amount) {
+        return subtract(amount);
     }
 }

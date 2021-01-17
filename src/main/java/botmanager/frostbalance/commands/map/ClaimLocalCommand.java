@@ -7,16 +7,16 @@ import botmanager.frostbalance.Nation;
 import botmanager.frostbalance.command.*;
 import botmanager.frostbalance.grid.ClaimData;
 import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.menu.AllegianceMenu;
 import botmanager.frostbalance.menu.input.ConfirmationMenu;
 import botmanager.frostbalance.menu.response.MenuResponse;
 
-public class ClaimTileCommand extends FrostbalanceGuildCommand {
+public class ClaimLocalCommand extends FrostbalanceGuildCommand {
 
-    public ClaimTileCommand(Frostbalance bot) {
+    public ClaimLocalCommand(Frostbalance bot) {
         super(bot, new String[] {
-                "claimtile"
+                "claimhere",
+                "c"
         }, AuthorityLevel.GENERIC, ContextLevel.ANY);
     }
 
@@ -26,7 +26,6 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
         ArgumentStream arguments = new ArgumentStream(params);
 
         Influence amount;
-        Hex location;
         Influence balance = context.getMember().getInfluence();
         PlayerCharacter character = context.getPlayer().getCharacter();
         Nation allegiance = context.getPlayer().getAllegiance();
@@ -37,31 +36,27 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
         }
 
         try {
-            location = arguments.nextCoordinate();
-            if (location == null) {
+
+            arguments.exhaust(1);
+            try {
+                amount = arguments.nextInfluence(true);
+                if (amount == null) {
+                    amount = Influence.none();
+                }
+            } catch (NumberFormatException e) {
                 context.sendResponse(getInfo(context));
                 return;
             }
-        } catch (IllegalArgumentException e) {
-            context.sendResponse(getInfo(context));
-            return;
-        }
 
-        try {
-            amount = arguments.nextInfluence(true);
-            if (amount == null) {
-                amount = Influence.none();
+            if (balance.compareTo(amount) < 0) {
+                context.sendResponse("You don't have enough influence to make this claim. You will instead use all your influence.");
+                amount = balance;
+            } else if (amount.getValue() <= 0) {
+                context.sendResponse("You can't make a claim with that little influence!");
+                return;
             }
         } catch (NumberFormatException e) {
-            context.sendResponse(getInfo(context));
-            return;
-        }
-
-        if (balance.compareTo(amount) < 0) {
-            context.sendResponse("You don't have enough influence to make this claim. You will instead use all your influence.");
-            amount = balance;
-        } else if (amount.getValue() <= 0) {
-            context.sendResponse("You can't make a claim with that little influence!");
+            context.sendResponse("Proper format: " + getInfo(context));
             return;
         }
 
@@ -77,9 +72,9 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
             new ConfirmationMenu(getBot(), context, () -> {
                 context.getMember().adjustInfluence(finalAmount.negate());
-                context.getGameNetwork().getWorldMap().getTile(location).getClaimData().addClaim(context.getMember(), finalAmount);
+                character.getTile().getClaimData().addClaim(context.getMember(), finalAmount);
 
-                context.sendResponse("You have promised " + String.format("%s", finalAmount) + " to this nations' claim on this tile; walk over the tile to make the claim.\n" +
+                context.sendResponse("You have added " + String.format("%s", finalAmount) + " to this nations' claim on this tile.\n" +
                         character.getTile().getClaimData().displayClaims(ClaimData.Format.COMPETITIVE));
             }, "Your allegiance isn't to the nation " + context.getGuild().getName() +
                     ", so you this claim won't be active. Are you sure? " +
@@ -118,6 +113,6 @@ public class ClaimTileCommand extends FrostbalanceGuildCommand {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + getBot().getPrefix() + "claimtile LOCATION AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
+        return "**" + getBot().getPrefix() + "__c__laimhere AMOUNT** - claim the map tile you are on, for your nation, spending influence to do so";
     }
 }

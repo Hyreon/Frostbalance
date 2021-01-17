@@ -1,5 +1,6 @@
 package botmanager.frostbalance.render;
 
+import botmanager.frostbalance.Player;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.*;
 import botmanager.frostbalance.grid.building.Gatherer;
@@ -23,20 +24,25 @@ public class MapRenderer {
     private static final int DEFAULT_HEIGHT = 300;
     private static final int DEFAULT_WIDTH = 400;
 
-    public static String render(WorldMap map, Hex center, double size_factor) {
+    public static String render(Player player, WorldMap map, Hex center, double sizeFactor) {
         BufferedImage image = new BufferedImage(DEFAULT_WIDTH, DEFAULT_HEIGHT, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         //RenderingHints rh = new RenderingHints(
         //        RenderingHints.KEY_TEXT_ANTIALIASING,
         //        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         //g.setRenderingHints(rh);
-        Collection<Hex> drawHexes = center.getHexesToDrawAround(DEFAULT_WIDTH / size_factor, DEFAULT_HEIGHT / size_factor);
+        Collection<Hex> drawHexes = center.getHexesToDrawAround(DEFAULT_WIDTH / sizeFactor, DEFAULT_HEIGHT / sizeFactor);
         for (Hex drawHex : drawHexes) {
-            renderTile(g, map.getRenderTile(drawHex), center, size_factor);
+            renderTile(g, map.getRenderTile(drawHex), center, sizeFactor);
         }
         //for (Hex drawHex : drawHexes) {
         //    drawBorders(g, map.getRenderTile(drawHex), center, size_factor);
         //}
+        if (player.getUserWrapper().getUserOptions().getDrawCoords()) {
+            for (Hex drawHex : drawHexes) {
+                renderTileCoordinates(g, player, map.getRenderTile(drawHex), center, sizeFactor);
+            }
+        }
         for (Hex drawHex : drawHexes) {
             Tile tile = map.getRenderTile(drawHex);
             for (Mobile mob : tile.getMobs()) {
@@ -46,7 +52,7 @@ public class MapRenderer {
             if (activeGatherer != null) {
                 renderObject(g, tile, center, size_factor, activeGatherer);
             }
-        }
+		}
         g.dispose();
 
         try {
@@ -95,7 +101,22 @@ public class MapRenderer {
         } catch (IOException e) {
             System.err.println("IOException when trying to render a tile object");
             e.printStackTrace();
-        }
+	}
+	
+    private static void renderTileCoordinates(Graphics2D g, Player renderer, Tile tile, Hex center, double sizeFactor) {
+        int capacity = (int) (1.0 / (sizeFactor));
+
+        Hex drawnHex = tile.getLocation().subtract(center);
+
+        if (capacity > 0 && (
+                drawnHex.getX() % capacity != 0 ||
+                drawnHex.getY() % capacity != 0 ||
+                drawnHex.getZ() % capacity != 0)) return;
+
+        g.setColor(Color.BLACK);
+        g.drawString(tile.getLocation().getCoordinates(renderer.getUserWrapper().getUserOptions().getCoordSys()),
+                (int) ((drawnHex.drawX())*sizeFactor + DEFAULT_WIDTH/2),
+                (int) ((drawnHex.drawY())*sizeFactor + DEFAULT_HEIGHT/2));
     }
 
     private static void renderTile(Graphics2D g, Tile tile, Hex center, double size_factor) {

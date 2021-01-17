@@ -20,15 +20,16 @@ class UnclaimCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf(
         }
 
         ConfirmationMenu(bot, context, {
-            val reduceAmount = claimData.reduceClaim(context.player, context.player.allegiance, grantAmount)
-            context.sendResponse("You have deleted $reduceAmount territory units at ${claimData.tile.location}.")
+            val amountPair = claimData.reduceClaim(context.player, context.guild.nation, grantAmount)
+            context.sendPrivateResponse("You have been refunded ${amountPair.first} influence because you had not finalized that much.")
+            context.sendResponse("You have deleted ${amountPair.first + amountPair.second} territory units at ${claimData.tile.location}.")
         }, "You are about to delete $grantAmount worth of influence. Are you sure?")
                 .send()
 
     }
 
-    override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return "**.unclaim LOCATION AMOUNT** - Unclaim a tile"
+    override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String {
+        return "**.unclaim LOCATION AMOUNT** - Unclaim a tile."
     }
 
 }

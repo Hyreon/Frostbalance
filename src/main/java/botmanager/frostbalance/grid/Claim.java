@@ -2,8 +2,9 @@ package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Influence;
-import botmanager.frostbalance.Player;
 import botmanager.frostbalance.Nation;
+import botmanager.frostbalance.Player;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A claim on a tile.
@@ -17,6 +18,7 @@ public class Claim implements Containable<ClaimData> {
     String userId;
     Nation nation;
 
+    private Influence promised;
     private Influence strength;
     Influence evictionStrength = new Influence(0);
 
@@ -25,6 +27,18 @@ public class Claim implements Containable<ClaimData> {
         this.userId = player.getUserWrapper().getId();
         this.nation = nation;
         this.strength = strength;
+        claimData.addClaim(this);
+    }
+
+    Claim(ClaimData tileClaimData, Player player, Nation nation, Influence strength, boolean actual) {
+        this.claimData = tileClaimData;
+        this.userId = player.getUserWrapper().getId();
+        this.nation = nation;
+        if (actual) {
+            this.strength = strength;
+        } else {
+            this.promised = strength;
+        }
         claimData.addClaim(this);
     }
 
@@ -66,19 +80,19 @@ public class Claim implements Containable<ClaimData> {
     /**
      * Reduce the strength of a claim.
      * Any player can do this to their own claims at no cost, but with no refund.
-     * @param usable Whether or not the influence returned is usable (if so, then eviction strength
+     * @param refunded Whether or not the influence returned is refunded (if so, then eviction strength
      *               is not modified); does NOT take into account what nation it comes from or to.
      * @return The amount of influence actually reduced; this might be lower if there wasn't enough influence
      * to transfer.
      */
-    public Influence reduce(Influence amount, boolean usable) {
-        if (usable) {
+    public Influence reduce(Influence amount, boolean refunded) {
+        if (refunded) {
             amount = new Influence(Math.min(strength.subtract(evictionStrength).getThousandths(), amount.getThousandths()));
         } else {
             amount = new Influence(Math.min(strength.getThousandths(), amount.getThousandths()));
         }
         strength = strength.subtract(amount);
-        if (!usable) {
+        if (!refunded) {
             evictionStrength = evictionStrength.subtract(amount);
             if (evictionStrength.isNegative()) evictionStrength = Influence.none();
         }
@@ -154,5 +168,25 @@ public class Claim implements Containable<ClaimData> {
     @Override
     public void setParent(ClaimData parent) {
         claimData = parent;
+    }
+
+    public void addPromise(@NotNull Influence strength) {
+        promised = promised.add(strength);
+    }
+
+    /**
+     * Undo the promise part of a claim, the part that becomes active when a player walks over it.
+     * @param amount The amount of promised territory that is being revoked from this claim
+     * @return The amount actually revoked
+     */
+    @NotNull
+    public Influence revokePromise(Influence amount) {
+        Influence totalRevoked = amount;
+        promised.subtract(amount);
+        if (promised.isNegative()) {
+            totalRevoked = amount.add(promised); //10 - 4 = 6, for 10 revoked with -4 left
+            promised = Influence.none();
+        }
+        return totalRevoked;
     }
 }

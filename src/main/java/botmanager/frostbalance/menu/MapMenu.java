@@ -217,7 +217,7 @@ public class MapMenu extends Menu {
     }
 
     @Override
-    public EmbedBuilder getEmbedBuilder() {
+    public @NotNull EmbedBuilder getEmbedBuilder() {
 
         EmbedBuilder builder = new EmbedBuilder();
         if (map.getGameNetwork().isMain()) {
@@ -229,7 +229,7 @@ public class MapMenu extends Menu {
         if (cameraBehavior == CameraBehavior.SNAP_TO_PLAYER) {
             description += player.getName() + " at ";
             if (!drawLocation().equals(player.getLocation())) {
-                description += player.getLocation() + " ➤ ";
+                description += player.getLocation().getCoordinates(player.getUser().getUserOptions().getCoordSys()) + " ➤ ";
             }
         } else {
             description += player.getName() + "'s view of ";
@@ -237,9 +237,12 @@ public class MapMenu extends Menu {
 
         description += " " + map.getTile(drawLocation()).getBiome() + " ";
 
-        description += drawLocation() + "\n" + player.getTile().getMap().getTile(drawLocation()).getClaimData().displayClaims(ClaimData.Format.SIMPLE);
+        description +=
+                drawLocation().getCoordinates(player.getUser().getUserOptions().getCoordSys()) +
+                "\n" +
+                player.getTile().getMap().getTile(drawLocation()).getClaimData().displayClaims(ClaimData.Format.SIMPLE);
         builder.setDescription(description);
-        builder.setImage(MapRenderer.render(map, drawLocation(), zoomFactor));
+        builder.setImage(MapRenderer.render(player.getPlayer(), map, drawLocation(), zoomFactor));
 
         return builder;
     }
