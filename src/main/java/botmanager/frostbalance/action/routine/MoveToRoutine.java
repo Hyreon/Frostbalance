@@ -1,12 +1,16 @@
 package botmanager.frostbalance.action.routine;
 
+import botmanager.Utilities;
 import botmanager.frostbalance.action.ActionQueue;
-import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.action.QueueStep;
+import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MoveToRoutine extends Routine {
@@ -15,7 +19,7 @@ public class MoveToRoutine extends Routine {
      * All intermediate waypoints.
      * These are skipped if a faster route is found that avoids them.
      */
-    List<Hex> waypoints;
+    List<Hex> softWaypoints = new ArrayList<>();
 
     Hex destination;
 
@@ -43,9 +47,30 @@ public class MoveToRoutine extends Routine {
             previousDestination = waypoints.get(waypoints.size() - 1); //last waypoint
         } else {
             System.out.println("Replacing last destination!");
+            softWaypoints = previousRoutine.getSoftWaypoints();
             previousDestination = previousRoutine.getDestination();
+            softWaypoints.add(previousDestination);
         }
         destination = previousDestination.move(direction, amount);
+        updateWaypoints();
+    }
+
+    private void updateWaypoints() {
+        Hex startLocation = queue.getCharacter().getLocation();
+        List<Long> distances = new ArrayList<>();
+        Hex lastLocation = startLocation;
+        for (Hex hex : softWaypoints) {
+            distances.add(lastLocation.minimumDistance(hex));
+            lastLocation = hex;
+        }
+        while (!distances.isEmpty() && startLocation.minimumDistance(getDestination()) < Utilities.addNumericalList(distances)) {
+            System.out.println("Removing soft waypoint at " + softWaypoints.remove(softWaypoints.size() - 1).toString());
+            distances.remove(distances.size() - 1);
+        }
+    }
+
+    private List<Hex> getSoftWaypoints() {
+        return new ArrayList<>(softWaypoints);
     }
 
     @Override

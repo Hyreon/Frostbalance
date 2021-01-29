@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 /**
  *
@@ -394,4 +395,12 @@ public class Utilities {
         // Draw the String
         g.drawString(text, drawX, drawY);
     }
+    public static long addNumericalList(List<Long> distances) {
+        long distance = 0;
+        for (long subDistance : distances) {
+            distance += subDistance;
+        }
+        return distance;
+    }
+
 }
