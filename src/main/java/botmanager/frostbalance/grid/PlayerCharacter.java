@@ -59,13 +59,16 @@ public class PlayerCharacter extends Mobile {
     public boolean doNextAction() {
         System.out.println("Doing actions for " + getName());
         List<QueueStep> stepsPerformed = new LinkedList<>();
+        int spentMoves = 0;
         for(;;) {
             QueueStep base = getActionQueue().peekBase();
             Action action = getActionQueue().poll();
             if (action != null //is supposed to do something
                     && moves >= action.moveCost() //character has the energy to do the thing
+                    && spentMoves < 1 //character hasn't already moved the 1-tile limit
                     && (action.moveCost() > 0 || !stepsPerformed.contains(base))) { //not a repeat of a zero-cost task (no infinite loops); beats both bad Routines and ActionQueues
                 try {
+                    spentMoves += action.moveCost();
                     moves -= action.moveCost();
                     action.doAction();
                     System.out.println("Did " + action.getClass().getSimpleName());
@@ -88,6 +91,7 @@ public class PlayerCharacter extends Mobile {
                 break;
             }
         }
+        if (spentMoves >= 1) moves = 0.0; //reset available moves if a move was successful
         return true;
     }
 

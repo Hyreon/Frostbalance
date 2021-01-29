@@ -46,11 +46,11 @@ public class MapRenderer {
         for (Hex drawHex : drawHexes) {
             Tile tile = map.getRenderTile(drawHex);
             for (Mobile mob : tile.getMobs()) {
-                renderObject(g, tile, center, size_factor, mob);
+                renderObject(g, tile, center, sizeFactor, mob);
             }
             Gatherer activeGatherer = tile.getBuildingData().activeGatherer();
             if (activeGatherer != null) {
-                renderObject(g, tile, center, size_factor, activeGatherer);
+                renderObject(g, tile, center, sizeFactor, activeGatherer);
             }
 		}
         g.dispose();
@@ -92,8 +92,8 @@ public class MapRenderer {
             Graphics2D g2 = circleBuffer.createGraphics();
             g2.setClip(new Ellipse2D.Float(0, 0, width, width));
             g2.drawImage(image, 0, 0, width, width, null);
-            g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE/2)*size_factor + DEFAULT_WIDTH/2),
-                    (int) ((drawnHex.drawY() - Hex.Y_SCALE/2)*size_factor + DEFAULT_HEIGHT/2),
+            g.drawImage(circleBuffer, (int) ((drawnHex.drawX() - Hex.X_SCALE / 2) * size_factor + DEFAULT_WIDTH / 2),
+                    (int) ((drawnHex.drawY() - Hex.Y_SCALE / 2) * size_factor + DEFAULT_HEIGHT / 2),
                     (int) (Hex.X_SCALE * size_factor),
                     (int) (Hex.Y_SCALE * size_factor),
                     null);
@@ -101,7 +101,8 @@ public class MapRenderer {
         } catch (IOException e) {
             System.err.println("IOException when trying to render a tile object");
             e.printStackTrace();
-	}
+        }
+    }
 	
     private static void renderTileCoordinates(Graphics2D g, Player renderer, Tile tile, Hex center, double sizeFactor) {
         int capacity = (int) (1.0 / (sizeFactor));
