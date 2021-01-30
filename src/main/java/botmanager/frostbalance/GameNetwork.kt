@@ -9,7 +9,7 @@ import kotlin.collections.HashSet
 
 class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containable<Frostbalance>, Container {
 
-    private var turn: Int = 0
+    private var turn: Long = 0
     var worldMap: WorldMap = WorldMap(this)
     var associatedGuilds: MutableSet<GuildWrapper> = HashSet()
 

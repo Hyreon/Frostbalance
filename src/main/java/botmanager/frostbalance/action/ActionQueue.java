@@ -119,7 +119,7 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
         System.out.println("Mapping to moveset");
         List<Hex.Direction> directionChanges = new ArrayList<>();
         Hex lastWaypoint = playerCharacter.getLocation();
-        for (Hex waypoint : waypoints()) {
+        for (Hex waypoint : waypoints(true)) {
             directionChanges.addAll(waypoint.subtract(lastWaypoint).crawlDirections());
             lastWaypoint = waypoint;
         }
@@ -132,7 +132,7 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
      * Should only ever be run on a simulation.
      * @return
      */
-    public List<Hex> waypoints() {
+    public List<Hex> waypoints(boolean includeSoft) {
         LinkedList<Hex> locations = new LinkedList<>();
         locations.add(playerCharacter.getLocation());
         while (!isEmpty()) {
@@ -140,6 +140,10 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
             if (queueStep instanceof MoveAction) {
                 locations.add(locations.getLast().move(((MoveAction) queueStep).getDirection()));
             } else if (queueStep instanceof MoveToRoutine) {
+                if (includeSoft) {
+                    System.out.println("Getting soft waypoints for " + queueStep);
+                    locations.addAll(((MoveToRoutine) queueStep).getSoftWaypoints());
+                }
                 locations.add(((MoveToRoutine) queueStep).getDestination());
             } else if (queueStep instanceof RepeatRoutine && ((RepeatRoutine) queueStep).getAction() instanceof MoveAction) {
                 locations.add(locations.getLast().move(((MoveAction) ((RepeatRoutine) queueStep).getAction()).getDirection(), ((RepeatRoutine) queueStep).getAmount()));
