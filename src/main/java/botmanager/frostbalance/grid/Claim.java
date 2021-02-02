@@ -37,6 +37,7 @@ public class Claim implements Containable<ClaimData> {
         if (actual) {
             this.strength = strength;
         } else {
+            this.strength = Influence.none();
             this.promised = strength;
         }
         claimData.addClaim(this);
@@ -112,6 +113,7 @@ public class Claim implements Containable<ClaimData> {
     }
 
     public Influence getStrength() {
+        if (strength == null) strength = Influence.none();
         return isActive() ? strength.subtract(evictionStrength) : Influence.none();
     }
 
