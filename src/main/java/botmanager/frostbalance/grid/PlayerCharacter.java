@@ -114,7 +114,7 @@ public class PlayerCharacter extends Mobile {
     }
 
     public Hex getDestination() {
-        List<Hex> waypoints = getActionQueue().simulation().waypoints();
+        List<Hex> waypoints = getActionQueue().simulation().waypoints(false);
         return waypoints.get(waypoints.size() - 1); //last waypoint
     }
 

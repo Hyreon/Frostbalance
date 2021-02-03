@@ -4,6 +4,10 @@ import botmanager.frostbalance.Player;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.*;
 import botmanager.frostbalance.grid.building.Gatherer;
+import botmanager.frostbalance.grid.PlayerCharacter;
+import botmanager.frostbalance.grid.Tile;
+import botmanager.frostbalance.grid.TileObject;
+import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -60,7 +64,6 @@ public class MapRenderer {
             String link;
             try {
                 String resultJson = net.dv8tion.imup.Uploader.upload(new File("maprender.png"));
-                System.out.println(resultJson);
                 JsonObject obj = JsonParser.parseString(resultJson).getAsJsonObject();
                 link = obj.get("data").getAsJsonObject().get("link").getAsString();
             } catch (WebException e) {
@@ -172,9 +175,15 @@ public class MapRenderer {
             color = playerCharacter.getNation().getColor();
         } else color = Color.GRAY;
         g.setColor(new Color(Math.max(128, color.getRed()), Math.max(128, color.getGreen()), Math.max(128, color.getBlue())));
+        List<Hex> waypoints = playerCharacter.getActionQueue().simulation().waypoints(false);
+        for (Hex waypoint : waypoints) {
+            g.drawOval((int)(location.add(waypoint.subtract(playerCharacter.getLocation())).drawX() * size_factor) + DEFAULT_WIDTH/2 - 4,
+                    (int)(location.add(waypoint.subtract(playerCharacter.getLocation())).drawY() * size_factor) + DEFAULT_HEIGHT/2 - 4,
+                    8,
+                    8);
+        }
         Hex offset = Hex.origin();
-        ActionQueue simulation = playerCharacter.getActionQueue().simulation();
-        List<Hex.Direction> instructions = simulation.moves();
+        List<Hex.Direction> instructions = playerCharacter.getActionQueue().simulation().moves();
         for (Hex.Direction nextDirection : instructions) {
             //g.drawLine((int)(location.add(offset).drawX() * size_factor) + DEFAULT_WIDTH/2,
             //        (int)(location.add(offset).drawY() * size_factor) + DEFAULT_HEIGHT/2,

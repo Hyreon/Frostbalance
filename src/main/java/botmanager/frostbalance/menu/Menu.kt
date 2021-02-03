@@ -125,18 +125,14 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     private fun nextDeletion(messageId: Long, responses: List<MenuResponse>, index: Int = 0, offset: Int = 0) {
         message?.reactions?.let {
             it.getOrNull(index + offset)?.let { mr ->
-                println("Intended response here: ${responses[index].emoji.toByteArray().contentToString()}")
-                println("Response being compared: ${mr.reactionEmote.emoji.toByteArray().contentToString()}")
                 if (responses.size > index && responses[index].emoji == mr.reactionEmote.emoji) { //this emote is in place
                     mr.retrieveUsers().queue { users ->
-                        println("Users for clearing other: $users")
                         mr.clearInstanceEvent(null, false, users)?.queue { //delete all but itself
                             nextDeletion(messageId, responses, index + 1, offset) //check for the next emote response
                         } ?: nextDeletion(messageId, responses, index + 1, offset)
                     }
                 } else { //this emote is out of place
                     mr.retrieveUsers().queue { users ->
-                        println("Users: $users")
                         mr.clearInstanceEvent(null, true, users)!!.queue { //delete all, even itself
                             nextDeletion(messageId, responses, index, offset + 1)
                         }
@@ -364,7 +360,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
                 if (originalMenu.message!!.isFromGuild && (self || bot.jda.selfUser != user)) {
                     val newEvent = removeReaction(user)
                     returnEvent = returnEvent?.flatMap{ println("Deleting ${this.reactionEmote.emoji} from $user"); newEvent } ?: run {
-                        println("Brand new delete event"); newEvent
+                        newEvent
                     }
                 }
             }

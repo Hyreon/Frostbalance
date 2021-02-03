@@ -311,7 +311,6 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
     get() = {
         Utilities.triangulateWithRemainder(ownerStrength.value)
                 .run {
-                    println("Level on this tile: $this (from owner strength $ownerStrength)")
                     this
                 }
     }

@@ -1,12 +1,9 @@
 package botmanager.frostbalance.commands.map;
 
 import botmanager.frostbalance.Frostbalance;
-import botmanager.frostbalance.command.AuthorityLevel;
-import botmanager.frostbalance.command.ContextLevel;
-import botmanager.frostbalance.command.FrostbalanceGuildCommand;
-import botmanager.frostbalance.command.GuildMessageContext;
-import botmanager.frostbalance.grid.coordinate.Hex;
+import botmanager.frostbalance.command.*;
 import botmanager.frostbalance.grid.PlayerCharacter;
+import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.menu.input.ConfirmationMenu;
 
 public class MoveCommand extends FrostbalanceGuildCommand {
@@ -21,16 +18,11 @@ public class MoveCommand extends FrostbalanceGuildCommand {
     protected void executeWithGuild(GuildMessageContext context, String... params) {
 
         PlayerCharacter character = context.getPlayer().getCharacter();
-        Hex destination;
 
-        if (params.length < 3) {
-            context.sendResponse(info(context.getAuthority(), context.isPublic()));
-            return;
-        }
-        try {
-            destination = new Hex(Integer.parseInt(params[0]), Integer.parseInt(params[1]), Integer.parseInt(params[2]));
-        } catch (NumberFormatException e) {
-            context.sendResponse("One or more of these numbers aren't really numbers.");
+        ArgumentStream arguments = new ArgumentStream(params);
+        Hex destination = arguments.nextCoordinate();
+        if (destination == null) {
+            context.sendResponse(getInfo(context));
             return;
         }
 
@@ -54,6 +46,6 @@ public class MoveCommand extends FrostbalanceGuildCommand {
 
     @Override
     protected String info(AuthorityLevel authorityLevel, boolean isPublic) {
-        return "**" + getBot().getPrefix() + "move X Y Z** - Queue your character to move to the destination";
+        return "**" + getBot().getPrefix() + "move LOCATION** - Queue your character to move to the destination";
     }
 }

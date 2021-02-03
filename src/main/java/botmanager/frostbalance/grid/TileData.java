@@ -16,5 +16,4 @@ public abstract class TileData implements Containable<Tile> {
     public void setParent(Tile parent) {
         tile = parent;
     }
-
 }

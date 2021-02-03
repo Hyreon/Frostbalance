@@ -1,12 +1,15 @@
 package botmanager.frostbalance.action.routine;
 
+import botmanager.Utilities;
 import botmanager.frostbalance.action.ActionQueue;
-import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.action.QueueStep;
+import botmanager.frostbalance.action.actions.MoveAction;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class MoveToRoutine extends Routine {
@@ -15,7 +18,7 @@ public class MoveToRoutine extends Routine {
      * All intermediate waypoints.
      * These are skipped if a faster route is found that avoids them.
      */
-    List<Hex> waypoints;
+    List<Hex> softWaypoints = new ArrayList<>();
 
     Hex destination;
 
@@ -28,9 +31,10 @@ public class MoveToRoutine extends Routine {
         this.destination = destination;
     }
 
-    public MoveToRoutine(ActionQueue queue, Hex destination) {
+    public MoveToRoutine(ActionQueue queue, Hex destination, List<Hex> softWaypoints) {
         setParent(queue);
         this.destination = destination;
+        this.softWaypoints = softWaypoints;
     }
 
     public MoveToRoutine(ActionQueue queue, Hex.Direction direction, int amount) {
@@ -39,13 +43,47 @@ public class MoveToRoutine extends Routine {
         Hex previousDestination;
         if (previousRoutine == null) {
             System.out.println("Adding after last destination!");
-            List<Hex> waypoints = queue.simulation().waypoints();
-            previousDestination = waypoints.get(waypoints.size() - 1); //last waypoint
+            List<Hex> hardWaypoints = queue.simulation().waypoints(false);
+            previousDestination = hardWaypoints.get(hardWaypoints.size() - 1); //last waypoint
         } else {
             System.out.println("Replacing last destination!");
+            softWaypoints = previousRoutine.getSoftWaypoints();
             previousDestination = previousRoutine.getDestination();
+            softWaypoints.add(previousDestination);
         }
         destination = previousDestination.move(direction, amount);
+        updateWaypoints();
+    }
+
+    private void updateWaypoints() {
+        Hex startLocation = queue.getCharacter().getLocation();
+        List<Long> distances = new ArrayList<>();
+        Hex lastLocation = startLocation;
+        for (Hex hex : softWaypoints) {
+            distances.add(lastLocation.minimumDistance(hex));
+            lastLocation = hex;
+        }
+        distances.add(lastLocation.minimumDistance(destination));
+        long minDistance = startLocation.minimumDistance(getDestination());
+        long actualDistance = Utilities.addNumericalList(distances);
+        while (!distances.isEmpty() && minDistance < actualDistance) {
+            System.out.println(minDistance + " IS MIN DISTANCE, CURRENT IS " + actualDistance);
+            System.out.println("Removing soft waypoint at " + softWaypoints.remove(softWaypoints.size() - 1));
+            distances.remove(distances.size() - 1);
+            minDistance = startLocation.minimumDistance(getDestination());
+            actualDistance = Utilities.addNumericalList(distances);
+        }
+        System.out.println(minDistance + " IS MIN DISTANCE, CURRENT IS " + actualDistance);
+        System.out.println("Getting soft waypoints, after update, for " + this);
+        getSoftWaypoints();
+    }
+
+    /**
+     * Returns a new list containing all soft waypoints. Does not include the final destination.
+     */
+    public List<Hex> getSoftWaypoints() {
+        System.out.println("SOFT WAYPOINTS:" + softWaypoints.toString());
+        return new ArrayList<>(softWaypoints);
     }
 
     @Override
@@ -58,10 +96,15 @@ public class MoveToRoutine extends Routine {
 
     @Override
     public MoveAction peekAction() {
+        while (!softWaypoints.isEmpty() && softWaypoints.get(0).equals(queue.getCharacter().getLocation())) {
+            System.out.println("Removing soft waypoint " + softWaypoints.remove(0));
+        }
         if (destination.equals(queue.getCharacter().getLocation())) {
             return null;
-        } else {
+        } else if (softWaypoints.isEmpty()) {
             return new MoveAction(queue.getCharacter(), destination.subtract(queue.getCharacter().getLocation()).crawlDirection());
+        } else {
+            return new MoveAction(queue.getCharacter(), softWaypoints.get(0).subtract(queue.getCharacter().getLocation()).crawlDirection());
         }
 
     }
@@ -72,14 +115,13 @@ public class MoveToRoutine extends Routine {
 
     /**
      * Guesses what the actions of this routine will be based on the state of the mobile.
-     * @return True if the routine completed; false if actions were already queued
      */
     public Queue<MoveAction> peekAtAllActions(int simulationStep) {
 
         Queue<MoveAction> moveActions = new LinkedBlockingQueue<>();
 
         ActionQueue simulation = queue.simulation(simulationStep);
-        List<Hex> locations = simulation.waypoints();
+        List<Hex> locations = simulation.waypoints(true);
         Hex startLocation;
         if (locations.isEmpty()) {
             startLocation = queue.getCharacter().getLocation();
@@ -95,16 +137,12 @@ public class MoveToRoutine extends Routine {
 
     }
 
-    public List<Hex.Direction> directionsFrom(Hex location) {
-        return new LinkedList<>(getDestination().subtract(location).crawlDirections());
-    }
-
     public Hex getDestination() {
         return destination;
     }
 
     @Override
     public QueueStep simulate() {
-        return new MoveToRoutine(this.queue, this.destination);
+        return new MoveToRoutine(this.queue, this.destination, this.softWaypoints);
     }
 }

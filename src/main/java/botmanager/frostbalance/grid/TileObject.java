@@ -11,7 +11,7 @@ public abstract class TileObject extends TileData implements Renderable {
 
     transient private BufferedImage cachedImage;
     transient private long cachedImageDate;
-    transient private Object lastActiveTurn;
+    transient private long lastActiveTurn;
     protected ActionQueue actionQueue;
 
     protected TileObject(Tile tile) {
@@ -56,7 +56,7 @@ public abstract class TileObject extends TileData implements Renderable {
      */
     public abstract boolean turnAction();
 
-    public boolean doTurn(@NotNull Object turn) {
+    public boolean doTurn(@NotNull long turn) {
         if (this.lastActiveTurn != turn) {
             lastActiveTurn = turn;
             return turnAction();

@@ -47,6 +47,18 @@ public class Hex {
         normalize();
     }
 
+    /**
+     * Creates a new hex coordinate that somewhat matches the cartesian system.
+     * @param cartesianX
+     * @param cartesianY
+     */
+    public Hex(long cartesianX, long cartesianY) {
+        x = (long) Math.ceil(-cartesianX / 2.0);
+        y = (long) Math.ceil(cartesianX / 2.0);
+        z = -cartesianY;
+        normalize();
+    }
+
     public static double xSize() {
         return Hex.X_SCALE / Hex.WIDTH_RATIO / 2.0;
     }

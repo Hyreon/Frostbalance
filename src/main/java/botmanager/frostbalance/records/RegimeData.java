@@ -91,7 +91,6 @@ public class RegimeData implements Containable<GuildWrapper> {
 
     @Override
     public void setParent(GuildWrapper parent) {
-        System.out.println("Setting parent");
         guildWrapper = parent;
     }
 }

@@ -3,7 +3,6 @@ package botmanager.frostbalance.command
 import botmanager.frostbalance.Influence
 import botmanager.frostbalance.grid.coordinate.Hex
 import botmanager.frostbalance.grid.coordinate.HexDomain
-import java.util.*
 
 class ArgumentStream(var arguments: MutableList<String>) {
 
@@ -53,7 +52,44 @@ class ArgumentStream(var arguments: MutableList<String>) {
     }
 
     fun nextCoordinate(): Hex? {
-        return nextSpacedCoordinate()
+        if (arguments.getOrNull(0)?.startsWith(COORDINATE_PRE_DELIMITER) == true) {
+
+            val coordinates: MutableList<Long> = mutableListOf()
+            val savedSubArguments: MutableList<String> = mutableListOf()
+
+            val lastArgument = arguments.first { it.endsWith(COORDINATE_POST_DELIMITER) }
+            for (argument : String in arguments) {
+                var effectiveArgument = argument
+                if (argument == arguments[0]) effectiveArgument = argument.removePrefix(COORDINATE_PRE_DELIMITER)
+                if (effectiveArgument.endsWith(COORDINATE_MID_DELIMITER)) {
+                    effectiveArgument = effectiveArgument.removeSuffix(COORDINATE_MID_DELIMITER)
+                }
+                if (effectiveArgument == lastArgument) effectiveArgument = effectiveArgument.removeSuffix(COORDINATE_POST_DELIMITER)
+                if (effectiveArgument.contains(COORDINATE_MID_DELIMITER)) {
+                    savedSubArguments.addAll(effectiveArgument.split(COORDINATE_MID_DELIMITER))
+                }
+
+                if (savedSubArguments.size == 0) {
+                    coordinates.add(effectiveArgument.toLong())
+                } else {
+                    while (savedSubArguments.size > 0) {
+                        coordinates.add(savedSubArguments.removeAt(0).toLong())
+                    }
+                }
+                if (argument == lastArgument) break //nothing after this
+            }
+
+            if (coordinates.size == 2) {
+                while (arguments[0] != lastArgument) arguments.removeFirst()
+                arguments.removeFirst()
+                return Hex(coordinates[0], coordinates[1])
+            } else if (coordinates.size == 3) {
+                while (arguments[0] != lastArgument) arguments.removeFirst()
+                arguments.removeFirst()
+                return Hex(coordinates[0], coordinates[1], coordinates[2])
+            } else return null
+
+        } else return null
     }
 
     /**
@@ -70,6 +106,12 @@ class ArgumentStream(var arguments: MutableList<String>) {
         } catch (e: NumberFormatException) {
             null
         }
+    }
+
+    companion object {
+        const val COORDINATE_PRE_DELIMITER = "("
+        val COORDINATE_MID_DELIMITER = ","
+        const val COORDINATE_POST_DELIMITER = ")"
     }
 
 }

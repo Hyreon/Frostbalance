@@ -181,9 +181,7 @@ public class MapMenu extends Menu {
                     directionNames[i] = "(" + Hex.Direction.values()[i].name().toUpperCase() + ")";
                 }
                 String pattern = "(" + String.join("|", directionNames) + ") [0-9]{1,3}";
-                System.out.println(pattern);
                 String content = hookContext.getMessage().getContentRaw().toUpperCase();
-                System.out.println(content);
                 return content.matches(pattern);
             }
         });
