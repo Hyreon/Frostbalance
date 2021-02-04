@@ -1,7 +1,5 @@
 package botmanager.frostbalance
 
-import botmanager.utils.IOUtils
-import botmanager.utils.Utils
 import botmanager.Utilities
 import botmanager.frostbalance.GuildWrapper.Companion.wrapper
 import botmanager.frostbalance.action.ActionQueue
@@ -14,20 +12,21 @@ import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
 import botmanager.frostbalance.commands.map.*
 import botmanager.frostbalance.commands.meta.*
-import botmanager.frostbalance.records.RegimeData
-import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
 import botmanager.frostbalance.grid.building.Gatherer
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.records.RegimeData
+import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.resource.ItemStack
 import botmanager.frostbalance.resource.ItemType
 import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonSerializer
+import botmanager.utils.IOUtils
+import botmanager.utils.Utils
+import com.google.gson.*
+import com.google.gson.stream.JsonReader
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
@@ -39,9 +38,7 @@ import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEv
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.internal.managers.GuildManagerImpl
 import java.awt.AlphaComposite
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.IOException
+import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
@@ -49,24 +46,25 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 
+
 class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
     internal val mapResourceCaches: MutableMap<Biome, List<Pair<MapResource, Int>>> = HashMap()
-    internal val itemResources: MutableList<ItemType> = mutableListOf(ItemType("Lumber", "0x000000"))
-    internal val mapResources: MutableList<MapResource> = mutableListOf(MapResource("Trees", Gatherer.Method.MILL, itemResources.first()))
+    internal val itemResources: MutableList<ItemType> = mutableListOf(ItemType("DEBUG", "0x000000"))
+    internal val mapResources: MutableList<MapResource> = loadResourceDeposits()
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
 
     var mainNetwork: GameNetwork
         get() = gameNetworks[0]
-        set(it) = {
+        set(it) {
             gameNetworks.remove(it)
             gameNetworks.add(0, it)
-        }.invoke()
+        }
 
     var regimes: Map<Guild?, MutableList<RegimeData>?> = MapToCollection()
     private val activeMenus: MutableList<Menu> = ArrayList()
@@ -256,6 +254,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val adminIds: List<String>
         get() = Utilities.readLines(File("data/$name/staff.csv"))
 
+    private fun loadResourceDeposits(): MutableList<MapResource> {
+
+        val fileReader = FileReader("res/generator/deposits.json")
+        val text = fileReader.readText()
+        println("Text: $text")
+        val data = JsonParser.parseString(text)
+        fileReader.close()
+        println("Data: $data")
+
+        return mutableListOf(MapResource("DEBUG", Gatherer.Method.MILL, itemResources.first()))
+    }
+
     private fun loadRecords(guild: Guild?) {
         val info = Utilities.readLines(File("data/" + name + "/" + guild!!.id + "/history.csv"))
         if (info != null && info.isNotEmpty()) {
@@ -404,7 +414,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 it.pointsIn(biome)
             }
             val selectableWeights = weights.mapIndexed { index, value ->
-                value + (weights.subList(0,index).reduceOrNull { acc, i -> acc + i } ?: 0)
+                value + (weights.subList(0, index).reduceOrNull { acc, i -> acc + i } ?: 0)
             }
             mapResourceCaches[biome] = effectiveResources.zip(selectableWeights)
         }
@@ -624,15 +634,19 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         for (file in File("data/$name/games").listFiles()) {
             if (file.exists()) {
                 val gsonBuilder = GsonBuilder()
+                println("Building gson for " + file.name)
                 gsonBuilder.registerTypeAdapter(Mobile::class.java, TileObjectAdapter())
                 gsonBuilder.registerTypeAdapter(QueueStep::class.java, QueueStepAdapter())
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 gsonBuilder.registerTypeAdapter(ActionQueue::class.java, ActionQueueAdapter())
                 val gson = gsonBuilder.create()
+                println("Loading game network " + file.name)
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)
+                println("Setting parent for " + file.name)
                 gameNetwork.setParent(this)
                 gameNetwork.adopt()
                 gameNetwork.initializeTurnCycle()
+                println("Done with " + file.name)
                 if (gameNetwork.id != null) { //impossible condition test
                     gameNetworks.add(gameNetwork)
                     if (gameNetwork.id == "main") {
