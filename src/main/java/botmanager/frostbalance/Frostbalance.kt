@@ -256,12 +256,15 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun loadResourceDeposits(): MutableList<MapResource> {
 
-        val fileReader = FileReader("res/generator/deposits.json")
-        val text = fileReader.readText()
+        val file = javaClass.classLoader.getResource("generator/deposits.json")!!
+
+        val text = file.readText()
+
         println("Text: $text")
         val data = JsonParser.parseString(text)
-        fileReader.close()
         println("Data: $data")
+
+        //YESSSS
 
         return mutableListOf(MapResource("DEBUG", Gatherer.Method.MILL, itemResources.first()))
     }
