@@ -5,7 +5,7 @@ import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.GameNetwork
 import botmanager.frostbalance.Player
 import botmanager.frostbalance.grid.coordinate.Hex
-import botmanager.frostbalance.resource.MapResource
+import botmanager.frostbalance.resource.DepositType
 import com.google.gson.GsonBuilder
 import net.dv8tion.jda.api.entities.Guild
 import java.io.File
@@ -17,7 +17,7 @@ import java.util.stream.Collectors
  */
 class WorldMap(@Transient var gameNetwork: GameNetwork) : Containable<GameNetwork>, Container {
 
-    val mapResources: List<MapResource>
+    val depositTypes: List<DepositType>
         get() = gameNetwork.bot.globalResources()
 
     @Transient

@@ -15,18 +15,20 @@ import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
+import botmanager.frostbalance.grid.biome.ElevationClass
+import botmanager.frostbalance.grid.biome.HumidityClass
+import botmanager.frostbalance.grid.biome.TemperatureClass
 import botmanager.frostbalance.grid.building.Gatherer
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.records.RegimeData
 import botmanager.frostbalance.records.TerminationCondition
+import botmanager.frostbalance.resource.DepositType
 import botmanager.frostbalance.resource.ItemStack
 import botmanager.frostbalance.resource.ItemType
-import botmanager.frostbalance.resource.MapResource
 import botmanager.generic.BotBase
 import botmanager.utils.IOUtils
 import botmanager.utils.Utils
 import com.google.gson.*
-import com.google.gson.stream.JsonReader
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
@@ -52,9 +54,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
-    internal val mapResourceCaches: MutableMap<Biome, List<Pair<MapResource, Int>>> = HashMap()
-    internal val itemResources: MutableList<ItemType> = mutableListOf(ItemType("DEBUG", "0x000000"))
-    internal val mapResources: MutableList<MapResource> = loadResourceDeposits()
+    internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Int>>> = EnumMap(Biome::class.java)
+    internal val itemResources: MutableList<ItemType> = loadItemTypes()
+    internal val depositTypes: MutableList<DepositType> = loadDepositTypes()
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
@@ -254,19 +256,77 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val adminIds: List<String>
         get() = Utilities.readLines(File("data/$name/staff.csv"))
 
-    private fun loadResourceDeposits(): MutableList<MapResource> {
+    private fun loadItemTypes(): MutableList<ItemType> {
 
-        val file = javaClass.classLoader.getResource("generator/deposits.json")!!
+        val file = javaClass.classLoader.getResource("generator/resources.json")!!
+
+        val resourceItems: MutableList<ItemType> = emptyList<ItemType>().toMutableList()
 
         val text = file.readText()
 
-        println("Text: $text")
-        val data = JsonParser.parseString(text)
-        println("Data: $data")
+        val data = JsonParser.parseString(text).asJsonObject
 
-        //YESSSS
+        for (key in data.keySet()) {
+            val depositRepository = data[key].asJsonArray
+            for (deposit in depositRepository) {
+                val depositAsJsonObject = deposit.asJsonObject
+                resourceItems.add(
+                    ItemType(
+                        depositAsJsonObject.get("name").asString,
+                        depositAsJsonObject.get("color").asString
+                    )
+                )
+            }
+        }
 
-        return mutableListOf(MapResource("DEBUG", Gatherer.Method.MILL, itemResources.first()))
+        println("Items: $resourceItems")
+
+        return resourceItems
+    }
+
+    private fun loadDepositTypes(): MutableList<DepositType> {
+
+        val file = javaClass.classLoader.getResource("generator/deposits.json")!!
+
+        val resourceDeposits: MutableList<DepositType> = emptyList<DepositType>().toMutableList()
+
+        val text = file.readText()
+
+        val data = JsonParser.parseString(text).asJsonObject
+
+        for (key in data.keySet()) {
+            val depositRepository = data[key].asJsonArray
+            for (deposit in depositRepository) {
+                val depositAsJsonObject = deposit.asJsonObject
+
+                val biomeJsonMap = Gson().fromJson(depositAsJsonObject.get("biomes"), MutableMap::class.java) as MutableMap<String, Double>?
+                val biomeMap = biomeJsonMap?.mapKeys { entry -> Biome.valueOf(entry.key) }?.mapValues { entry -> entry.value.toInt() } as HashMap<Biome, Int>?
+                val modifierJsonMap = Gson().fromJson(depositAsJsonObject.get("mods"), MutableMap::class.java) as MutableMap<String, Double>?
+                val humidityJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<HumidityClass>(entry.key) }
+                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<HumidityClass, Int>?
+                val elevationJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<ElevationClass>(entry.key) }
+                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<ElevationClass, Int>?
+                val temperatureJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<TemperatureClass>(entry.key) }
+                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<TemperatureClass, Int>?
+
+
+                resourceDeposits.add(
+                    DepositType(
+                        depositAsJsonObject.get("name").asString,
+                        itemResources.firstOrNull { it.id == depositAsJsonObject.get("yield").asString } ?: ItemType.DEBUG,
+                        Gatherer.Method.valueOf(depositAsJsonObject.get("gatherer").asString),
+                        biomeMap,
+                        elevationJsonMap,
+                        temperatureJsonMap,
+                        humidityJsonMap
+                    )
+                )
+            }
+        }
+
+        println("Deposits: $resourceDeposits")
+
+        return resourceDeposits
     }
 
     private fun loadRecords(guild: Guild?) {
@@ -402,16 +462,16 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return newCommands.requireNoNulls()
     }
 
-    fun globalResources(): List<MapResource> {
-        return mapResources
+    fun globalResources(): List<DepositType> {
+        return depositTypes
     }
 
     private fun globalItems(): List<ItemType> {
         return itemResources
     }
 
-    private fun resourcesFor(biome: Biome): List<Pair<MapResource, Int>> {
-        if (!mapResourceCaches.containsKey(biome)) {
+    private fun resourcesFor(biome: Biome): List<Pair<DepositType, Int>> {
+        if (!depositTypeCaches.containsKey(biome)) {
             val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
             val weights = effectiveResources.map {
                 it.pointsIn(biome)
@@ -419,15 +479,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             val selectableWeights = weights.mapIndexed { index, value ->
                 value + (weights.subList(0, index).reduceOrNull { acc, i -> acc + i } ?: 0)
             }
-            mapResourceCaches[biome] = effectiveResources.zip(selectableWeights)
+            depositTypeCaches[biome] = effectiveResources.zip(selectableWeights)
         }
-        return mapResourceCaches[biome] ?: emptyList()
+        return depositTypeCaches[biome] ?: emptyList()
     }
 
-    fun generateResourceIn(biome: Biome, seed: Long): MapResource {
+    /**
+     * Generates a deposit type for use when discovering new deposits.
+     */
+    fun generateResourceIn(biome: Biome, seed: Long): DepositType {
         val effectiveResources = resourcesFor(biome)
-        val selector = Utilities.mapToRange(Utilities.randomFromSeed(seed), 0, effectiveResources.last().second.coerceAtLeast(10).toLong())
-        return effectiveResources.first { it.second > selector }.first
+        val selector = Utilities.mapToRange(Utilities.randomFromSeed(seed), 0, effectiveResources.last().second.toLong())
+        return effectiveResources.first { it.second >= selector }.first
     }
 
     /**
@@ -754,7 +817,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 ?: userWrappers.firstOrNull { user -> println(user.name); user.name == targetName }
     }
 
-    fun resourceWithId(resourceId: String): MapResource {
+    fun resourceWithId(resourceId: String): DepositType {
         return globalResources().first { it.name == resourceId}
     }
 
@@ -819,5 +882,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 saveUsers()
             }
         }, 300000, 300000)
+    }
+
+    /**
+     * Returns an enum entry with the specified name or `null` if no such entry was found.
+     */
+    private inline fun <reified T : Enum<T>> enumValueOfOrNull(name: String): T? {
+        return enumValues<T>().find { it.name == name }
     }
 }

@@ -14,11 +14,11 @@ public class ResourceDeposit implements Containable<ResourceData> {
 
     /**
      * Generates a resource deposit with a level up to the given amount. Reseeded based on progress and tile location.
-     * @param mapResource
+     * @param depositType
      * @param progress
      */
-    public ResourceDeposit(MapResource mapResource, Hex location, int progress) {
-        this.resourceId = mapResource.getId();
+    public ResourceDeposit(DepositType depositType, Hex location, int progress) {
+        this.resourceId = depositType.getId();
         this.level =
                 (int) Utilities.mapToRange(Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL, location.getXnoZ(), location.getYnoZ(), progress),
                         1, progress);
@@ -28,7 +28,7 @@ public class ResourceDeposit implements Containable<ResourceData> {
         return getDeposit().name + " " + level;
     }
 
-    public MapResource getDeposit() {
+    public DepositType getDeposit() {
         return Frostbalance.bot.resourceWithId(resourceId);
     }
 

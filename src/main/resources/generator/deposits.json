@@ -1,1 +1,233 @@
-﻿{"Demonstration":[{"name":"Pigs","yield":"Pork","gatherer":"PASTURE","color":"0xFF00FF","biomes":{"GRASSLAND":2}},{"name":"Copper","yield":"Copper Ore","gatherer":"MINE","color":"0xCC9966","mods":{"MOUNTAINS":4,"HILLS":2}},{"name":"Tin","yield":"Tin Ore","gatherer":"MINE","color":"0x3366CC","mods":{"MOUNTAINS":2,"HILLS":1}},{"name":"Iron","yield":"Iron Ore","gatherer":"MINE","color":"0xCC3366","mods":{"MOUNTAINS":2,"HILLS":1}},{"name":"Silver","yield":"Silver Ore","gatherer":"MINE","color":"0xCCFFCC","mods":{"HILLS":1}},{"name":"Gold","yield":"Gold Ore","gatherer":"MINE","color":"0xAACC00","mods":{"MOUNTAINS":1}},{"name":"Sapphire","yield":"Sapphire Stone","gatherer":"MINE","color":"0x0000FF","biomes":{"SNOW_PEAK":1}},{"name":"Ruby","yield":"Ruby Stone","gatherer":"MINE","color":"0xFF0000","biomes":{"MESA":1}},{"name":"Emerald","yield":"Emerald Stone","gatherer":"MINE","color":"0x00FF00","biomes":{"ALP":1}},{"name":"Diamond","yield":"Diamond Stone","gatherer":"MINE","color":"0xFFFFFF","biomes":{"ROCKY":1}},{"name":"Well Water","yield":"Water","gatherer":"WELL","color":"0x0000FF","biomes":{"GRASSLAND":4,"SNOW_FIELD":2,"PRAIRIE":2},"mods":{"HILLS":-1}},{"name":"Freshwater","yield":"Water","gatherer":"PIT","color":"0x0000FF","biomes":{"RIVER":8,"SWAMP":4,"JUNGLE":4,"MARSH":4,"FOREST":2,"SAVANNA":2},"mods":{"HILLS":-1}},{"name":"Marble","yield":"Marble","gatherer":"QUARRY","color":"0xCCCCCC","biomes":{"ROCKY":2,"ALP":2,"SNOW_PEAK":1,"MESA":1},"mods":{"HILLS":1}},{"name":"Trees","yield":"Wood","gatherer":"MILL","color":"0x804000","mods":{"HEAVY_RAIN":4,"GOOD_RAIN":8,"MODEST_RAIN":2,"SEA":-8,"MOUNTAINS":-6}},{"name":"Stone","yield":"Stone","gatherer":"QUARRY","color":"0x777777","mods":{"HILLS":4,"MOUNTAINS":8}},{"name":"Fish","yield":"Fish","gatherer":"BOATS","color":"0x0080FF","biomes":{"RIVER":4,"COAST":4,"SEA":2,"STORMY_SEA":2,"ICE":1}},{"name":"Cotton","yield":"Cotton","gatherer":"PLANTATION","color":"0xCCFFCC","mods":{"WARM":2,"MODEST_RAIN":2,"TROPICAL":1,"GOOD_RAIN":1,"SEA":-10,"MOUNTAINS":-10}},{"name":"Deer","yield":"Venison","gatherer":"CAMP","color":"0x806040","biomes":{"TAIGA":2,"SNOW_FIELD":1}},{"name":"Clay","yield":"Clay","gatherer":"PIT","color":"0xBB0000","biomes":{"RIVER":4,"MESA":4,"JUNGLE":2,"SWAMP":2,"MARSH":2},"mods":{"PLAINS":1}}]}
+﻿{
+  "Demonstration": [
+    {
+      "name": "Pigs",
+      "yield": "Pork",
+      "gatherer": "PASTURE",
+      "color": "0xFF00FF",
+      "biomes": {
+        "STEPPE": 2
+      }
+    },
+    {
+      "name": "Copper",
+      "yield": "Copper Ore",
+      "gatherer": "MINE",
+      "color": "0xCC9966",
+      "mods": {
+        "MOUNTAINS": 4,
+        "HILLS": 2
+      }
+    },
+    {
+      "name": "Tin",
+      "yield": "Tin Ore",
+      "gatherer": "MINE",
+      "color": "0x3366CC",
+      "mods": {
+        "MOUNTAINS": 2,
+        "HILLS": 1
+      }
+    },
+    {
+      "name": "Iron",
+      "yield": "Iron Ore",
+      "gatherer": "MINE",
+      "color": "0xCC3366",
+      "mods": {
+        "MOUNTAINS": 2,
+        "HILLS": 1
+      }
+    },
+    {
+      "name": "Silver",
+      "yield": "Silver Ore",
+      "gatherer": "MINE",
+      "color": "0xCCFFCC",
+      "mods": {
+        "HILLS": 1
+      }
+    },
+    {
+      "name": "Gold",
+      "yield": "Gold Ore",
+      "gatherer": "MINE",
+      "color": "0xAACC00",
+      "mods": {
+        "MOUNTAINS": 1
+      }
+    },
+    {
+      "name": "Sapphire",
+      "yield": "Sapphire Stone",
+      "gatherer": "MINE",
+      "color": "0x0000FF",
+      "biomes": {
+        "SNOW_PEAK": 1
+      }
+    },
+    {
+      "name": "Ruby",
+      "yield": "Ruby Stone",
+      "gatherer": "MINE",
+      "color": "0xFF0000",
+      "biomes": {
+        "MESA": 1
+      }
+    },
+    {
+      "name": "Emerald",
+      "yield": "Emerald Stone",
+      "gatherer": "MINE",
+      "color": "0x00FF00",
+      "biomes": {
+        "ALP": 1
+      }
+    },
+    {
+      "name": "Diamond",
+      "yield": "Diamond Stone",
+      "gatherer": "MINE",
+      "color": "0xFFFFFF",
+      "biomes": {
+        "ROCKY": 1
+      }
+    },
+    {
+      "name": "Well Water",
+      "yield": "Water",
+      "gatherer": "WELL",
+      "color": "0x0000FF",
+      "biomes": {
+        "STEPPE": 4,
+        "SNOW_PLAINS": 2,
+        "PRAIRIE": 2
+      },
+      "mods": {
+        "HILLS": -1
+      }
+    },
+    {
+      "name": "Springs",
+      "yield": "Water",
+      "gatherer": "WELL",
+      "color": "0x0000FF",
+      "biomes": {
+        "DESERT": 1,
+        "TEMPERATE_DESERT": 1
+      },
+      "mods": {
+        "HILLS": -1
+      }
+    },
+    {
+      "name": "Freshwater",
+      "yield": "Water",
+      "gatherer": "PIT",
+      "color": "0x0000FF",
+      "biomes": {
+        "RIVER": 8,
+        "SWAMP": 4,
+        "JUNGLE": 4,
+        "MARSH": 4,
+        "FOREST": 2,
+        "SAVANNA": 2,
+        "TAIGA": 2
+      },
+      "mods": {
+        "HILLS": -1
+      }
+    },
+    {
+      "name": "Marble",
+      "yield": "Marble",
+      "gatherer": "QUARRY",
+      "color": "0xCCCCCC",
+      "biomes": {
+        "ROCKY": 2,
+        "ALP": 2,
+        "SNOW_PEAK": 1,
+        "MESA": 1
+      },
+      "mods": {
+        "HILLS": 1
+      }
+    },
+    {
+      "name": "Trees",
+      "yield": "Wood",
+      "gatherer": "MILL",
+      "color": "0x804000",
+      "mods": {
+        "HEAVY_RAIN": 4,
+        "GOOD_RAIN": 8,
+        "MODEST_RAIN": 2,
+        "SEA": -8,
+        "MOUNTAINS": -6
+      }
+    },
+    {
+      "name": "Stone",
+      "yield": "Stone",
+      "gatherer": "QUARRY",
+      "color": "0x777777",
+      "mods": {
+        "HILLS": 4,
+        "MOUNTAINS": 8
+      }
+    },
+    {
+      "name": "Fish",
+      "yield": "Cod",
+      "gatherer": "BOATS",
+      "color": "0x0080FF",
+      "biomes": {
+        "RIVER": 4,
+        "COAST": 4,
+        "SEA": 2,
+        "STORMY_SEA": 2,
+        "ICE": 1
+      }
+    },
+    {
+      "name": "Cotton",
+      "yield": "Cotton",
+      "gatherer": "PLANTATION",
+      "color": "0xCCFFCC",
+      "mods": {
+        "WARM": 2,
+        "MODEST_RAIN": 2,
+        "TROPICAL": 1,
+        "GOOD_RAIN": 1,
+        "SEA": -10,
+        "MOUNTAINS": -10
+      }
+    },
+    {
+      "name": "Deer",
+      "yield": "Venison",
+      "gatherer": "CAMP",
+      "color": "0x806040",
+      "biomes": {
+        "TAIGA": 2,
+        "SNOW_PLAINS": 1
+      }
+    },
+    {
+      "name": "Clay",
+      "yield": "Clay",
+      "gatherer": "PIT",
+      "color": "0xBB0000",
+      "biomes": {
+        "RIVER": 4,
+        "MESA": 4,
+        "JUNGLE": 2,
+        "SWAMP": 2,
+        "MARSH": 2
+      },
+      "mods": {
+        "PLAINS": 1
+      }
+    }
+  ]
+}

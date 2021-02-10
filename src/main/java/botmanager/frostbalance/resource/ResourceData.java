@@ -41,7 +41,7 @@ public class ResourceData implements Containable<Tile>, Container {
 
     public boolean search(boolean sudo) {
         //FIXME use the tile and the attempts to seed the result!
-        if (sudo || Utilities.randomFromSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.SEARCH_SUCCESS_FAIL) < 0.3) {
+        if (sudo || Utilities.randomFromSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.RESOURCE_SEARCH_SUCCESS) < 0.3) {
             addProgress();
             attempts++;
             return true;
@@ -64,8 +64,9 @@ public class ResourceData implements Containable<Tile>, Container {
 
     private void addResource() {
         long seed = Utilities.combineSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.NEW_DEPOSIT);
+        DepositType depositType = Frostbalance.bot.generateResourceIn(tile.getBiome(), seed);
         resources.add(
-                new ResourceDeposit(Frostbalance.bot.generateResourceIn(tile.getBiome(), seed), tile.getLocation(), progress)
+                new ResourceDeposit(depositType, tile.getLocation(), progress)
         );
     }
 
@@ -93,7 +94,7 @@ public class ResourceData implements Containable<Tile>, Container {
      * @param resourceDepositList
      */
     public static void simp(List<ResourceDeposit> resourceDepositList) {
-        HashMap<MapResource, List<ResourceDeposit>> resourceDepositBuckets = new HashMap<>();
+        HashMap<DepositType, List<ResourceDeposit>> resourceDepositBuckets = new HashMap<>();
         for (int i = 0; i < resourceDepositList.size(); i++) {
             ResourceDeposit deposit = resourceDepositList.get(i);
             if (resourceDepositBuckets.containsKey(deposit.getDeposit())) {
@@ -105,7 +106,7 @@ public class ResourceData implements Containable<Tile>, Container {
             }
         }
         System.out.println("Buckets assembled: " + resourceDepositBuckets.toString());
-        for (MapResource key : resourceDepositBuckets.keySet()) {
+        for (DepositType key : resourceDepositBuckets.keySet()) {
             int max = -1;
             for (ResourceDeposit resourceDeposit : resourceDepositBuckets.get(key)) {
                 if (resourceDeposit.level <= max) {
