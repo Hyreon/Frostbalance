@@ -129,4 +129,8 @@ public class ResourceData implements Containable<Tile>, Container {
             deposit.setParent(this);
         }
     }
+
+    public ResourceDeposit recentDeposit() {
+        return resources.get(resources.size() - 1);
+    }
 }

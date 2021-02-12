@@ -171,6 +171,7 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
     /**
      * Pops the last item from the queue so long as it matches the
      * given class.
+     * @return Null, if it does not match the given class; otherwise the item displaced form the queue.
      */
     public QueueStep displace(Class<? extends QueueStep> clazz) {
         QueueStep last = peekLast();

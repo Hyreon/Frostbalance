@@ -47,6 +47,16 @@ class ArgumentStream(var arguments: MutableList<String>) {
         }
     }
 
+    fun nextInteger(): Int? {
+        return next()?.let { next -> lastArgument = next
+            return try {
+                next.toInt()
+            } catch (e: java.lang.NumberFormatException) {
+                null
+            }
+        }
+    }
+
     fun nextHexDomain(): HexDomain? {
         return next()?.let { HexDomain(it) }
     }

@@ -8,27 +8,22 @@ class SearchCommand(bot: Frostbalance): FrostbalanceGuildCommand(bot, arrayOf(
     "search"
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
-    override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
+    override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String {
         return "do .search to find stuff"
     }
 
-    override fun executeWithGuild(context: GuildMessageContext, vararg params: String?) {
+    override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
 
-        val success =
-        if (params.getOrNull(0)?.equals("sudo") == true) {
-            context.player.character.tile.resourceData.search(true)
+        var args = ArgumentStream(params)
+        val searches = args.nextInteger()
+
+        if (searches != null) {
+            context.player.character.searchTile(searches)
         } else {
-            context.player.character.tile.resourceData.search(false)
+            context.player.character.searchTile(1)
         }
 
-        val resourcesFound = context.player.character.tile.resourceData.priorityOrderDeposits()
-        ResourceData.simp(resourcesFound)
-
-        context.sendMultiLineResponse(listOf(
-                "Success: $success",
-                "Resources found: $resourcesFound",
-                "Progress: " + context.player.character.tile.resourceData.progress
-        ))
+        context.sendResponse("You are now searching for resources at ${context.player.character.destination.getCoordinates(context.author.userOptions.coordSys)}, and will stop after $searches attempts.")
 
     }
 
