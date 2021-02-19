@@ -169,20 +169,6 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
     }
 
     /**
-     * Pops the last item from the queue so long as it matches the
-     * given class.
-     * @return Null, if it does not match the given class; otherwise the item displaced form the queue.
-     */
-    public QueueStep displace(Class<? extends QueueStep> clazz) {
-        QueueStep last = peekLast();
-        if (last != null && (last.getClass().equals(clazz))) {
-            return pollLast();
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * A clarification that the QueueStep itself is being sent, not the Action.
      * @return The last QueueStep currently en route
      */

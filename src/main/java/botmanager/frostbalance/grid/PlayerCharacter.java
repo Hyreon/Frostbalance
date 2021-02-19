@@ -112,7 +112,25 @@ public class PlayerCharacter extends Mobile {
     }
 
     public void adjustDestination(Hex.Direction direction, int amount) {
-        actionQueue.add(new MoveToRoutine(getActionQueue(), direction, amount));
+        QueueStep previousRoutine = actionQueue.peekLast();
+        Hex previousDestination;
+        if (previousRoutine instanceof MoveToRoutine) {
+            System.out.println("Replacing last destination!");
+            List<Hex> softWaypoints = ((MoveToRoutine) previousRoutine).getSoftWaypoints();
+            previousDestination = ((MoveToRoutine) previousRoutine).getDestination();
+            actionQueue.pollLast();
+            actionQueue.add(new MoveToRoutine(getActionQueue(), softWaypoints, previousDestination, direction, amount));
+        } else {
+            List<Hex> hardWaypoints = actionQueue.simulation().waypoints(false);
+            if (hardWaypoints.size() == 0) {
+                System.out.println("Creating first destination!");
+                actionQueue.add(new MoveToRoutine(getActionQueue(), direction, amount));
+            } else {
+                System.out.println("Adding after last destination!");
+                previousDestination = hardWaypoints.get(hardWaypoints.size() - 1); //last waypoint
+                actionQueue.add(new MoveToRoutine(getActionQueue(), previousDestination, direction, amount));
+            }
+        }
     }
 
     public void searchTile(int searches) {

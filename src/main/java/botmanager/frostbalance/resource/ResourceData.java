@@ -133,4 +133,8 @@ public class ResourceData implements Containable<Tile>, Container {
     public ResourceDeposit recentDeposit() {
         return resources.get(resources.size() - 1);
     }
+
+    public long getAttempts() {
+        return attempts;
+    }
 }

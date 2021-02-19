@@ -5,5 +5,6 @@ package botmanager.frostbalance.grid
 </T> */
 interface Containable<T> {
 
+
     fun setParent(parent: T)
 }

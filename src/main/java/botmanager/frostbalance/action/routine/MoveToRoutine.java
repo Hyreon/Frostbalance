@@ -37,22 +37,26 @@ public class MoveToRoutine extends Routine {
         this.softWaypoints = softWaypoints;
     }
 
-    public MoveToRoutine(ActionQueue queue, Hex.Direction direction, int amount) {
+    public MoveToRoutine(ActionQueue queue, List<Hex> softWaypoints, Hex previousDestination, Hex.Direction direction, int amount) {
         setParent(queue);
-        MoveToRoutine previousRoutine = (MoveToRoutine) queue.displace(this.getClass());
-        Hex previousDestination;
-        if (previousRoutine == null) {
-            System.out.println("Adding after last destination!");
-            List<Hex> hardWaypoints = queue.simulation().waypoints(false);
-            previousDestination = hardWaypoints.get(hardWaypoints.size() - 1); //last waypoint
-        } else {
-            System.out.println("Replacing last destination!");
-            softWaypoints = previousRoutine.getSoftWaypoints();
-            previousDestination = previousRoutine.getDestination();
-            softWaypoints.add(previousDestination);
-        }
+        this.softWaypoints = softWaypoints;
+        this.softWaypoints.add(previousDestination);
         destination = previousDestination.move(direction, amount);
         updateWaypoints();
+    }
+
+    public MoveToRoutine(ActionQueue queue, Hex previousDestination, Hex.Direction direction, int amount) {
+        setParent(queue);
+        this.softWaypoints = new ArrayList<>();
+        this.softWaypoints.add(previousDestination);
+        destination = previousDestination.move(direction, amount);
+        updateWaypoints();
+    }
+
+    public MoveToRoutine(ActionQueue queue, Hex.Direction direction, int amount) {
+        setParent(queue);
+        this.softWaypoints = new ArrayList<>();
+        destination = queue.getCharacter().getLocation().move(direction, amount);
     }
 
     private void updateWaypoints() {

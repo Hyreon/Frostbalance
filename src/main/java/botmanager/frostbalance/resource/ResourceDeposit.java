@@ -25,7 +25,7 @@ public class ResourceDeposit implements Containable<ResourceData> {
     }
 
     public String toString() {
-        return getDeposit().name + " " + level;
+        return QualityGrade.asString(level) + " " + getDeposit().name;
     }
 
     public DepositType getDeposit() {
