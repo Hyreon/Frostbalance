@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Gatherer extends Building {
 
-    public final static int TO_LEVEL_UP = 360;
+    public final static int TO_LEVEL_UP = 360; //amounts to 6 hours, or 1/4 of a day
 
     double experience = 0.0;
 
@@ -46,14 +46,14 @@ public class Gatherer extends Building {
         double quantity = workers.isEmpty() ? 0 : (1.0 + getLevel()) / workers.size();
         for (PlayerCharacter worker : workers) {
             worker.getInventory().addItem(deposit.yield(quantity));
-            gainExperience( 1.0 / 360 ); //there are 360 turns in a day
+            gainExperience(); //there are 360 turns in a day
         }
         return false; //never any graphical change
     }
 
-    private void gainExperience(double experience) {
+    private void gainExperience() {
 
-        this.experience += experience;
+        this.experience += 1.0 / TO_LEVEL_UP;
 
     }
 

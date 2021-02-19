@@ -14,9 +14,9 @@ enum class Biome(var color: Color, val elevation: ElevationClass, val temperatur
     COAST(Color(80, 120, 255), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE),
 
     //sea
-    SEA(Color(80, 80, 255), ElevationClass.SEA, TemperatureClass.COOL, HumidityClass.ARID),
-    ICE(Color(192, 255, 255), ElevationClass.SEA, TemperatureClass.BOREAL, HumidityClass.ARID),
-    STORMY_SEA(Color(60, 0, 200), ElevationClass.SEA, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN),
+    SEA(Color(80, 80, 255), ElevationClass.BASIN, TemperatureClass.COOL, HumidityClass.ARID),
+    ICE(Color(192, 255, 255), ElevationClass.BASIN, TemperatureClass.BOREAL, HumidityClass.ARID),
+    STORMY_SEA(Color(60, 0, 200), ElevationClass.BASIN, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN),
 
     //mountain
     SNOW_PEAK(Color(220, 200, 240), ElevationClass.MOUNTAINS, TemperatureClass.BOREAL, HumidityClass.ARID), //covers all humidities
@@ -31,14 +31,14 @@ enum class Biome(var color: Color, val elevation: ElevationClass, val temperatur
     MARSH(Color(0x606080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.HEAVY_RAIN),
 
     //moderate
-    TEMPERATE_DESERT(Color(0x89A32E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.ARID),
+    TEMPERATE_DESERT(Color(0xF0C896), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.ARID),
     STEPPE(Color(0x69932E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.MODEST_RAIN),
     FOREST(Color(0x008000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.GOOD_RAIN),
     SWAMP(Color(0x606000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.HEAVY_RAIN),
 
     //hot
-    DESERT(Color(0xF0C896), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.ARID),
-    PRAIRIE(Color(0xA0BE64), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.MODEST_RAIN),
+    DESERT(Color(0xF08040), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.ARID),
+    PRAIRIE(Color(0xB0CE64), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.MODEST_RAIN),
     SAVANNA(Color(0x808000), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.GOOD_RAIN),
     JUNGLE(Color(0x30A050), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN);
 

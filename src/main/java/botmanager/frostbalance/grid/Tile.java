@@ -1,8 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.Nation;
-import botmanager.frostbalance.grid.biome.Biome;
-import botmanager.frostbalance.grid.biome.BiomeData;
+import botmanager.frostbalance.grid.biome.*;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.resource.ResourceData;
 
@@ -152,5 +151,17 @@ public class Tile implements Containable<WorldMap>, Container {
 
     public Biome getBiome() {
         return biomeData.getBiome();
+    }
+
+    public HumidityClass getHumidityClass() {
+        return HumidityClass.from(biomeData.getHumidity());
+    }
+
+    public TemperatureClass getTemperatureClass() {
+        return TemperatureClass.from(biomeData.getTemperature());
+    }
+
+    public ElevationClass getElevationClass() {
+        return ElevationClass.from(biomeData.getElevation());
     }
 }

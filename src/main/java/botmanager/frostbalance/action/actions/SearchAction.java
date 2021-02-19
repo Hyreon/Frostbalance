@@ -21,7 +21,6 @@ public class SearchAction extends Action {
         ResourceData resourceData = character.getTile().getResourceData();
         int startingResources = resourceData.numResources();
         long attempts = resourceData.getAttempts();
-        int progress = resourceData.getProgress();
         boolean success = resourceData.search(false);
         if (success && resourceData.getProgress() == 0) { //progress reset
             if (startingResources == resourceData.numResources()) {

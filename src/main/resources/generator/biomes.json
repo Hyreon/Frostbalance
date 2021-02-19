@@ -1,0 +1,216 @@
+﻿{
+  "Demonstration": [
+    {
+      "name": "SNOW_PEAK",
+      "color": "0xDCC8F0",
+	  "minElevation": "MOUNTAINS",
+	  "minTemperature": "BOREAL",
+	  "speed": 3
+    },
+    {
+      "name": "ROCKY",
+      "color": "0xB4A0A0",
+	  "minElevation": "MOUNTAINS",
+	  "minTemperature": "COOL",
+	  "minHumidity": "ARID",
+	  "speed": 3
+    },
+    {
+      "name": "ALPS",
+      "color": "0x96B496",
+	  "minElevation": "MOUNTAINS",
+	  "minTemperature": "COOL",
+	  "minHumidity": "GOOD_RAIN",
+	  "speed": 3
+    },
+    {
+      "name": "MESA",
+      "color": "0xC08040",
+	  "minElevation": "MOUNTAINS",
+	  "minTemperature": "TROPICAL",
+	  "speed": 3
+    },
+    {
+      "name": "TUNDRA",
+      "color": "0xFAFADC",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "BOREAL",
+	  "minHumidity": "ARID",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1
+    },
+    {
+      "name": "SNOW_PLAINS",
+      "color": "0xCCD9A4",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "BOREAL",
+	  "minHumidity": "MODEST_RAIN",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1
+    },
+    {
+      "name": "TAIGA",
+      "color": "0x008080",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "BOREAL",
+	  "minHumidity": "GOOD_RAIN",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1.5
+    },
+    {
+      "name": "MARSH",
+      "color": "0x606080",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "BOREAL",
+	  "minHumidity": "HEAVY_RAIN",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 2
+    },
+    {
+      "name": "TEMPERATE_DESERT",
+      "color": "0xF0C896",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "COOL",
+	  "minHumidity": "ARID",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1
+    },
+    {
+      "name": "STEPPE",
+      "color": "0x69932E",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "COOL",
+	  "minHumidity": "MODEST_RAIN",
+	  "variants": [
+		"HILLS",
+		"WARM"
+	  ]
+	  "speed": 1
+    },
+    {
+      "name": "FOREST",
+      "color": "0x008000",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "COOL",
+	  "minHumidity": "GOOD_RAIN",
+	  "variants": [
+		"HILLS",
+		"WARM"
+	  ]
+	  "speed": 1.5
+    },
+    {
+      "name": "SWAMP",
+      "color": "0x606000",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "COOL",
+	  "minHumidity": "HEAVY_RAIN",
+	  "variants": [
+		"HILLS",
+		"WARM"
+	  ]
+	  "speed": 2
+    },
+    {
+      "name": "DESERT",
+      "color": "0xF08040",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "TROPICAL",
+	  "minHumidity": "ARID",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1
+    },
+    {
+      "name": "PRAIRIE",
+      "color": "0xB0CE64",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "TROPICAL",
+	  "minHumidity": "MODEST_RAIN",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1
+    },
+    {
+      "name": "SAVANNA",
+      "color": "0x808000",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "TROPICAL",
+	  "minHumidity": "GOOD_RAIN",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 1.5
+    },
+    {
+      "name": "JUNGLE",
+      "color": "0x30A050",
+	  "minElevation": "PLAINS",
+	  "minTemperature": "TROPICAL",
+	  "minHumidity": "HEAVY_RAIN",
+	  "variants": [
+		"HILLS"
+	  ]
+	  "speed": 2
+    },
+    {
+      "name": "SEA",
+      "color": "0x5050FF",
+	  "minElevation": "BASIN",
+	  "minTemperature": "COOL",
+	  "impassable": true
+    },
+    {
+      "name": "ICE",
+      "color": "0xC0FFFF",
+	  "minElevation": "BASIN",
+	  "minTemperature": "BOREAL",
+	  "speed": 1
+    },
+    {
+      "name": "STORMY_SEA",
+      "color": "0x3C00C8",
+	  "minElevation": "BASIN",
+	  "minTemperature": "TROPICAL",
+	  "minHumidity": "HEAVY_RAIN",
+	  "impassable": true
+    },
+    {
+      "name": "RIVER",
+      "color": "0x50A0FF",
+	  "technical": true
+    },
+    {
+      "name": "ISLAND",
+      "color": "0x50FF50",
+	  "technical": true
+    },
+    {
+      "name": "BEACH",
+      "color": "0xFFFF50",
+	  "technical": true
+    },
+    {
+      "name": "COAST",
+      "color": "0x5078FF",
+	  "technical": true
+    },
+    {
+      "name": "ERROR",
+      "color": "0x000000",
+	  "technical": true
+    },
+  ]
+}

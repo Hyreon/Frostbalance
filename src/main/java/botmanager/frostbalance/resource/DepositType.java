@@ -22,19 +22,6 @@ public class DepositType {
 
     Gatherer.Method gatherer;
 
-    //TODO replace this debug method with a proper method
-    public DepositType(@NotNull String name, ItemType itemType, Gatherer.Method method, HashMap<Biome, Integer> points) {
-        this.name = name;
-        if (points != null) {
-            for (Biome biome : points.keySet()) {
-                this.points.put(biome, points.get(biome));
-            }
-        }
-        gatherer = method;
-        this.itemType = itemType;
-    }
-
-    //TODO replace this debug method with a proper method
     public DepositType(@NotNull String name, ItemType itemType, Gatherer.Method method, HashMap<Biome, Integer> points,
                        HashMap<ElevationClass, Integer> elevationModifiers, HashMap<TemperatureClass, Integer> temperatureModifiers, HashMap<HumidityClass, Integer> humidityModifiers) {
         this.name = name;
@@ -53,16 +40,7 @@ public class DepositType {
         this.itemType = itemType;
     }
 
-    //TODO replace this debug method with a proper method
-    public DepositType(@NotNull String name, ItemType itemType, Gatherer.Method method) {
-        this.name = name;
-        for (Biome biome : Biome.values()) {
-            points.put(biome, 9);
-        }
-        gatherer = method;
-        this.itemType = itemType;
-    }
-
+    //TODO change the biome format to allow for the use of modifiers.
     public int pointsIn(Biome biome) {
         return Math.max(points.getOrDefault(biome, 0), 0)
                 + humidityModifiers.getOrDefault(biome.getHumidity(), 0)

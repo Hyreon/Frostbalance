@@ -9,7 +9,7 @@ public enum ElevationClass {
     HILLS(0.55),
     PLAINS(0.35),
 
-    SEA(0.0); //being above sea level is no guarantee it's dry!
+    BASIN(0.0); //being above sea level is no guarantee it's dry!
 
     double threshold;
 

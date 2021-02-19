@@ -168,7 +168,7 @@ public class BiomeData implements Containable<Tile> {
                 .get(TemperatureClass.from(getTemperature()))
                 .get(HumidityClass.from(getHumidity()));
 
-        if (isRiver() && baseBiome.getElevation() != ElevationClass.SEA) return Biome.RIVER;
+        if (isRiver() && baseBiome.getElevation() != ElevationClass.BASIN) return Biome.RIVER;
         if (baseBiome == Biome.SEA && getElevation() > 0.30) {
             return Biome.COAST;
         }

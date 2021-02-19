@@ -1,13 +1,9 @@
 package botmanager.frostbalance.render;
 
 import botmanager.frostbalance.Player;
-import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.*;
+import botmanager.frostbalance.grid.biome.ElevationClass;
 import botmanager.frostbalance.grid.building.Gatherer;
-import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.Tile;
-import botmanager.frostbalance.grid.TileObject;
-import botmanager.frostbalance.grid.WorldMap;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,6 +14,7 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -123,11 +120,24 @@ public class MapRenderer {
                 (int) ((drawnHex.drawY())*sizeFactor + DEFAULT_HEIGHT/2));
     }
 
-    private static void renderTile(Graphics2D g, Tile tile, Hex center, double size_factor) {
+    private static void renderTile(Graphics2D g, Tile tile, Hex center, double sizeFactor) {
         g.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL));
         Hex drawnHex = tile.getLocation().subtract(center);
         g.setColor(tile.getBiomeColor());
-        g.fillPolygon(getHex(drawnHex, size_factor));
+        g.fillPolygon(getHex(drawnHex, sizeFactor));
+        if (tile.getElevationClass() == ElevationClass.HILLS) {
+            try {
+                BufferedImage texture = ImageIO.read(new FileInputStream("res/ore.png"));
+                g.drawImage(texture, (int) ((drawnHex.drawX() - Hex.X_SCALE / 2) * sizeFactor + DEFAULT_WIDTH / 2),
+                        (int) ((drawnHex.drawY() - Hex.Y_SCALE / 2) * sizeFactor + DEFAULT_HEIGHT / 2),
+                        (int) (Hex.X_SCALE * sizeFactor),
+                        (int) (Hex.Y_SCALE * sizeFactor),
+                        null);
+            } catch (IOException e) {
+                System.err.println("Failed to load ore texture!");
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void drawBorders(Graphics2D g, Tile tile, Hex center, double size_factor) {
