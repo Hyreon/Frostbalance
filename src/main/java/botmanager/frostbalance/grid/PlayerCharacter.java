@@ -116,7 +116,7 @@ public class PlayerCharacter extends Mobile {
         Hex previousDestination;
         if (previousRoutine instanceof MoveToRoutine) {
             System.out.println("Replacing last destination!");
-            List<Hex> softWaypoints = ((MoveToRoutine) previousRoutine).getSoftWaypoints();
+            List<Hex> softWaypoints = ((MoveToRoutine) previousRoutine).readSoftWaypoints();
             previousDestination = ((MoveToRoutine) previousRoutine).getDestination();
             actionQueue.pollLast();
             actionQueue.add(new MoveToRoutine(getActionQueue(), softWaypoints, previousDestination, direction, amount));

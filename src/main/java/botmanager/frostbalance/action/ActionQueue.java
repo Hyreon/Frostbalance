@@ -142,7 +142,7 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
             } else if (queueStep instanceof MoveToRoutine) {
                 if (includeSoft) {
                     System.out.println("Getting soft waypoints for " + queueStep);
-                    locations.addAll(((MoveToRoutine) queueStep).getSoftWaypoints());
+                    locations.addAll(((MoveToRoutine) queueStep).readSoftWaypoints());
                 }
                 locations.add(((MoveToRoutine) queueStep).getDestination());
             } else if (queueStep instanceof RepeatRoutine && ((RepeatRoutine) queueStep).getAction() instanceof MoveAction) {

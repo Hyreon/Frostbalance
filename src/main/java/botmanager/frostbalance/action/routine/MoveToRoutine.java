@@ -79,14 +79,14 @@ public class MoveToRoutine extends Routine {
         }
         System.out.println(minDistance + " IS MIN DISTANCE, CURRENT IS " + actualDistance);
         System.out.println("Getting soft waypoints, after update, for " + this);
-        getSoftWaypoints();
+        readSoftWaypoints();
     }
 
     /**
      * Returns a new list containing all soft waypoints. Does not include the final destination.
      */
-    public List<Hex> getSoftWaypoints() {
-        System.out.println("SOFT WAYPOINTS:" + softWaypoints.toString());
+    public List<Hex> readSoftWaypoints() {
+        System.out.println("SOFT WAYPOINTS: " + softWaypoints);
         return new ArrayList<>(softWaypoints);
     }
 
