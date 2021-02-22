@@ -259,6 +259,6 @@ public class MapRenderer {
         /**
          * Apply no color filter to the terrain based on claims.
          */
-        BASE;
+        BASE
     }
 }

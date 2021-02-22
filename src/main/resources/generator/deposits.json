@@ -6,7 +6,7 @@
       "gatherer": "PASTURE",
       "color": "0xFF00FF",
       "biomes": {
-        "STEPPE": 2
+        "PLAINS": 25
       }
     },
     {
@@ -15,8 +15,9 @@
       "gatherer": "MINE",
       "color": "0xCC9966",
       "mods": {
-        "MOUNTAINS": 4,
-        "HILLS": 2
+        "MOUNTAINS": 20,
+        "HILLS": 15,
+        "PLAINS": 10
       }
     },
     {
@@ -25,8 +26,9 @@
       "gatherer": "MINE",
       "color": "0x3366CC",
       "mods": {
-        "MOUNTAINS": 2,
-        "HILLS": 1
+        "MOUNTAINS": 15,
+        "HILLS": 10,
+        "PLAINS": 5
       }
     },
     {
@@ -35,8 +37,8 @@
       "gatherer": "MINE",
       "color": "0xCC3366",
       "mods": {
-        "MOUNTAINS": 2,
-        "HILLS": 1
+        "MOUNTAINS": 15,
+        "HILLS": 10
       }
     },
     {
@@ -45,7 +47,7 @@
       "gatherer": "MINE",
       "color": "0xCCFFCC",
       "mods": {
-        "HILLS": 1
+        "HILLS": 5
       }
     },
     {
@@ -99,12 +101,12 @@
       "gatherer": "WELL",
       "color": "0x0000FF",
       "biomes": {
-        "STEPPE": 4,
-        "SNOW_PLAINS": 2,
-        "PRAIRIE": 2
+        "PLAINS": 75,
+        "SNOW_PLAINS": 25,
+        "PRAIRIE": 25
       },
       "mods": {
-        "HILLS": -1
+        "HILLS": -10
       }
     },
     {
@@ -113,11 +115,11 @@
       "gatherer": "WELL",
       "color": "0x0000FF",
       "biomes": {
-        "DESERT": 1,
-        "TEMPERATE_DESERT": 1
+        "DESERT": 10,
+        "BADLANDS": 10
       },
       "mods": {
-        "HILLS": -1
+        "HILLS": -10
       }
     },
     {
@@ -126,16 +128,16 @@
       "gatherer": "PIT",
       "color": "0x0000FF",
       "biomes": {
-        "RIVER": 8,
-        "SWAMP": 4,
-        "JUNGLE": 4,
-        "MARSH": 4,
-        "FOREST": 2,
-        "SAVANNA": 2,
-        "TAIGA": 2
+        "RIVER": 100,
+        "SWAMP": 75,
+        "JUNGLE": 75,
+        "MARSH": 75,
+        "FOREST": 25,
+        "SAVANNA": 25,
+        "TAIGA": 25
       },
       "mods": {
-        "HILLS": -1
+        "HILLS": -10
       }
     },
     {
@@ -144,13 +146,13 @@
       "gatherer": "QUARRY",
       "color": "0xCCCCCC",
       "biomes": {
-        "ROCKY": 2,
-        "ALP": 2,
-        "SNOW_PEAK": 1,
-        "MESA": 1
+        "ROCKY": 10,
+        "ALP": 10,
+        "SNOW_PEAK": 5,
+        "MESA": 5
       },
       "mods": {
-        "HILLS": 1
+        "HILLS": 5
       }
     },
     {
@@ -159,11 +161,11 @@
       "gatherer": "MILL",
       "color": "0x804000",
       "mods": {
-        "HEAVY_RAIN": 4,
-        "GOOD_RAIN": 8,
-        "MODEST_RAIN": 2,
-        "SEA": -8,
-        "MOUNTAINS": -6
+        "HEAVY_RAIN": 75,
+        "GOOD_RAIN": 100,
+        "MODEST_RAIN": 25,
+        "SEA": -100,
+        "MOUNTAINS": -75
       }
     },
     {
@@ -172,8 +174,9 @@
       "gatherer": "QUARRY",
       "color": "0x777777",
       "mods": {
-        "HILLS": 4,
-        "MOUNTAINS": 8
+        "PLAINS": 25,
+        "HILLS": 75,
+        "MOUNTAINS": 100
       }
     },
     {
@@ -182,11 +185,11 @@
       "gatherer": "BOATS",
       "color": "0x0080FF",
       "biomes": {
-        "RIVER": 4,
-        "COAST": 4,
-        "SEA": 2,
-        "STORMY_SEA": 2,
-        "ICE": 1
+        "RIVER": 50,
+        "COAST": 50,
+        "SEA": 25,
+        "STORMY_SEA": 25,
+        "ICE": 10
       }
     },
     {
@@ -195,12 +198,12 @@
       "gatherer": "PLANTATION",
       "color": "0xCCFFCC",
       "mods": {
-        "WARM": 2,
-        "MODEST_RAIN": 2,
-        "TROPICAL": 1,
-        "GOOD_RAIN": 1,
-        "SEA": -10,
-        "MOUNTAINS": -10
+        "WARM": 25,
+        "MODEST_RAIN": 25,
+        "TROPICAL": 10,
+        "GOOD_RAIN": 10,
+        "SEA": -1000,
+        "MOUNTAINS": -1000
       }
     },
     {
@@ -209,8 +212,8 @@
       "gatherer": "CAMP",
       "color": "0x806040",
       "biomes": {
-        "TAIGA": 2,
-        "SNOW_PLAINS": 1
+        "TAIGA": 25,
+        "SNOW_PLAINS": 10
       }
     },
     {
@@ -219,14 +222,14 @@
       "gatherer": "PIT",
       "color": "0xBB0000",
       "biomes": {
-        "RIVER": 4,
-        "MESA": 4,
-        "JUNGLE": 2,
-        "SWAMP": 2,
-        "MARSH": 2
+        "RIVER": 50,
+        "MESA": 50,
+        "JUNGLE": 25,
+        "SWAMP": 25,
+        "MARSH": 25
       },
       "mods": {
-        "PLAINS": 1
+        "PLAINS": 10
       }
     }
   ]

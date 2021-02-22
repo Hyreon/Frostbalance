@@ -401,6 +401,10 @@ public class Utilities {
     public static long mapToRange(double ranger, long start, long end) {
         return Math.round((end - start) * ranger) + start;
 	}
+
+	public static double mapToDoubleRange(double ranger, double start, double end) {
+        return (end - start) * ranger + start;
+    }
     
 	/* Draws a string centered at x, y.
      * Note that this is currently bugged and will display too far to the right.

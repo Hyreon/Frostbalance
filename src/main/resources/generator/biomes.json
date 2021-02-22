@@ -73,8 +73,8 @@
 	  "moveCost": 2
     },
     {
-      "name": "TEMPERATE_DESERT",
-      "color": "0xF0C896",
+      "name": "BADLANDS",
+      "color": "0xF08040",
 	  "minElevation": "PLAINS",
 	  "minTemperature": "COOL",
 	  "minHumidity": "ARID",
@@ -121,7 +121,7 @@
     },
     {
       "name": "DESERT",
-      "color": "0xF08040",
+      "color": "0xF0C896",
 	  "minElevation": "PLAINS",
 	  "minTemperature": "TROPICAL",
 	  "minHumidity": "ARID",

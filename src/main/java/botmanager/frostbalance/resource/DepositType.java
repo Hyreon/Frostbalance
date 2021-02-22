@@ -15,15 +15,15 @@ public class DepositType {
 
     public ItemType itemType;
 
-    HashMap<Biome, Integer> points = new HashMap<>(); //odds of finding this resource
-    HashMap<HumidityClass, Integer> humidityModifiers = new HashMap<>();
-    HashMap<TemperatureClass, Integer> temperatureModifiers = new HashMap<>();
-    HashMap<ElevationClass, Integer> elevationModifiers = new HashMap<>();
+    HashMap<Biome, Double> points = new HashMap<>(); //odds of finding this resource
+    HashMap<HumidityClass, Double> humidityModifiers = new HashMap<>();
+    HashMap<TemperatureClass, Double> temperatureModifiers = new HashMap<>();
+    HashMap<ElevationClass, Double> elevationModifiers = new HashMap<>();
 
     Gatherer.Method gatherMethod;
 
-    public DepositType(@NotNull String name, ItemType itemType, Gatherer.Method method, HashMap<Biome, Integer> points,
-                       HashMap<ElevationClass, Integer> elevationModifiers, HashMap<TemperatureClass, Integer> temperatureModifiers, HashMap<HumidityClass, Integer> humidityModifiers) {
+    public DepositType(@NotNull String name, ItemType itemType, Gatherer.Method method, HashMap<Biome, Double> points,
+                       HashMap<ElevationClass, Double> elevationModifiers, HashMap<TemperatureClass, Double> temperatureModifiers, HashMap<HumidityClass, Double> humidityModifiers) {
         this.name = name;
         if (points != null) {
             for (Biome biome : points.keySet()) {
@@ -41,11 +41,11 @@ public class DepositType {
     }
 
     //TODO change the biome format to allow for the use of modifiers.
-    public int pointsIn(Biome biome) {
-        return Math.max(points.getOrDefault(biome, 0), 0)
-                + humidityModifiers.getOrDefault(biome.getHumidity(), 0)
-                + temperatureModifiers.getOrDefault(biome.getTemperature(), 0)
-                + elevationModifiers.getOrDefault(biome.getElevation(), 0);
+    public double pointsIn(Biome biome) {
+        return Math.max(points.getOrDefault(biome, 0.0), 0)
+                + humidityModifiers.getOrDefault(biome.getHumidity(), 0.0)
+                + temperatureModifiers.getOrDefault(biome.getTemperature(), 0.0)
+                + elevationModifiers.getOrDefault(biome.getElevation(), 0.0);
     }
 
     public String getId() {

@@ -55,7 +55,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
-    internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Int>>> = mutableMapOf()
+    internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Double>>> = mutableMapOf()
     internal val itemResources: MutableList<ItemType> = loadItemTypes()
     internal val depositTypes: MutableList<DepositType> = loadDepositTypes()
 
@@ -347,14 +347,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val depositAsJsonObject = deposit.asJsonObject
 
                 val biomeJsonMap = Gson().fromJson(depositAsJsonObject.get("biomes"), MutableMap::class.java) as MutableMap<String, Double>?
-                val biomeMap = biomeJsonMap?.mapKeys { entry -> Biome.fromName(entry.key) }?.mapValues { entry -> entry.value.toInt() } as HashMap<Biome, Int>?
+                val biomeMap = biomeJsonMap?.mapKeys { entry -> Biome.fromName(entry.key) }?.mapValues { entry -> entry.value } as HashMap<Biome, Double>?
                 val modifierJsonMap = Gson().fromJson(depositAsJsonObject.get("mods"), MutableMap::class.java) as MutableMap<String, Double>?
                 val humidityJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<HumidityClass>(entry.key) }
-                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<HumidityClass, Int>?
+                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value } as HashMap<HumidityClass, Double>?
                 val elevationJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<ElevationClass>(entry.key) }
-                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<ElevationClass, Int>?
+                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value } as HashMap<ElevationClass, Double>?
                 val temperatureJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<TemperatureClass>(entry.key) }
-                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<TemperatureClass, Int>?
+                    ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value } as HashMap<TemperatureClass, Double>?
 
 
                 resourceDeposits.add(
@@ -517,14 +517,14 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return itemResources
     }
 
-    private fun resourcesFor(biome: Biome): List<Pair<DepositType, Int>> {
+    private fun resourcesFor(biome: Biome): List<Pair<DepositType, Double>> {
         if (!depositTypeCaches.containsKey(biome)) {
             val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
             val weights = effectiveResources.map {
                 it.pointsIn(biome)
             }
             val selectableWeights = weights.mapIndexed { index, value ->
-                value + (weights.subList(0, index).reduceOrNull { acc, i -> acc + i } ?: 0)
+                value + (weights.subList(0, index).reduceOrNull { acc, i -> acc + i } ?: 0.0)
             }
             depositTypeCaches[biome] = effectiveResources.zip(selectableWeights)
         }
@@ -536,7 +536,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      */
     fun generateResourceIn(biome: Biome, seed: Long): DepositType {
         val effectiveResources = resourcesFor(biome)
-        val selector = Utilities.mapToRange(Utilities.randomFromSeed(seed), 0, effectiveResources.last().second.toLong())
+        val selector = Utilities.mapToDoubleRange(Utilities.randomFromSeed(seed), 0.0, effectiveResources.last().second)
         return effectiveResources.first { it.second >= selector }.first
     }
 
