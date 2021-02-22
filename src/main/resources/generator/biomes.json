@@ -5,7 +5,7 @@
       "color": "0xDCC8F0",
 	  "minElevation": "MOUNTAINS",
 	  "minTemperature": "BOREAL",
-	  "speed": 3
+	  "moveCost": 3
     },
     {
       "name": "ROCKY",
@@ -13,7 +13,7 @@
 	  "minElevation": "MOUNTAINS",
 	  "minTemperature": "COOL",
 	  "minHumidity": "ARID",
-	  "speed": 3
+	  "moveCost": 3
     },
     {
       "name": "ALPS",
@@ -21,14 +21,14 @@
 	  "minElevation": "MOUNTAINS",
 	  "minTemperature": "COOL",
 	  "minHumidity": "GOOD_RAIN",
-	  "speed": 3
+	  "moveCost": 3
     },
     {
       "name": "MESA",
       "color": "0xC08040",
 	  "minElevation": "MOUNTAINS",
 	  "minTemperature": "TROPICAL",
-	  "speed": 3
+	  "moveCost": 3
     },
     {
       "name": "TUNDRA",
@@ -39,7 +39,6 @@
 	  "variants": [
 		"HILLS"
 	  ]
-	  "speed": 1
     },
     {
       "name": "SNOW_PLAINS",
@@ -50,7 +49,6 @@
 	  "variants": [
 		"HILLS"
 	  ]
-	  "speed": 1
     },
     {
       "name": "TAIGA",
@@ -60,8 +58,8 @@
 	  "minHumidity": "GOOD_RAIN",
 	  "variants": [
 		"HILLS"
-	  ]
-	  "speed": 1.5
+	  ],
+	  "moveCost": 1.5
     },
     {
       "name": "MARSH",
@@ -71,8 +69,8 @@
 	  "minHumidity": "HEAVY_RAIN",
 	  "variants": [
 		"HILLS"
-	  ]
-	  "speed": 2
+	  ],
+	  "moveCost": 2
     },
     {
       "name": "TEMPERATE_DESERT",
@@ -82,11 +80,11 @@
 	  "minHumidity": "ARID",
 	  "variants": [
 		"HILLS"
-	  ]
-	  "speed": 1
+	  ],
+	  "moveCost": 1
     },
     {
-      "name": "STEPPE",
+      "name": "PLAINS",
       "color": "0x69932E",
 	  "minElevation": "PLAINS",
 	  "minTemperature": "COOL",
@@ -94,8 +92,8 @@
 	  "variants": [
 		"HILLS",
 		"WARM"
-	  ]
-	  "speed": 1
+	  ],
+	  "moveCost": 1
     },
     {
       "name": "FOREST",
@@ -106,8 +104,8 @@
 	  "variants": [
 		"HILLS",
 		"WARM"
-	  ]
-	  "speed": 1.5
+	  ],
+	  "moveCost": 1.5
     },
     {
       "name": "SWAMP",
@@ -118,8 +116,8 @@
 	  "variants": [
 		"HILLS",
 		"WARM"
-	  ]
-	  "speed": 2
+	  ],
+	  "moveCost": 2
     },
     {
       "name": "DESERT",
@@ -130,7 +128,6 @@
 	  "variants": [
 		"HILLS"
 	  ]
-	  "speed": 1
     },
     {
       "name": "PRAIRIE",
@@ -141,7 +138,6 @@
 	  "variants": [
 		"HILLS"
 	  ]
-	  "speed": 1
     },
     {
       "name": "SAVANNA",
@@ -151,8 +147,8 @@
 	  "minHumidity": "GOOD_RAIN",
 	  "variants": [
 		"HILLS"
-	  ]
-	  "speed": 1.5
+	  ],
+	  "moveCost": 1.5
     },
     {
       "name": "JUNGLE",
@@ -162,22 +158,21 @@
 	  "minHumidity": "HEAVY_RAIN",
 	  "variants": [
 		"HILLS"
-	  ]
-	  "speed": 2
+	  ],
+	  "moveCost": 2
     },
     {
       "name": "SEA",
       "color": "0x5050FF",
 	  "minElevation": "BASIN",
 	  "minTemperature": "COOL",
-	  "impassable": true
+	  "environment": "SEA"
     },
     {
       "name": "ICE",
       "color": "0xC0FFFF",
 	  "minElevation": "BASIN",
-	  "minTemperature": "BOREAL",
-	  "speed": 1
+	  "minTemperature": "BOREAL"
     },
     {
       "name": "STORMY_SEA",
@@ -185,32 +180,12 @@
 	  "minElevation": "BASIN",
 	  "minTemperature": "TROPICAL",
 	  "minHumidity": "HEAVY_RAIN",
-	  "impassable": true
+	  "environment": "SEA"
     },
     {
       "name": "RIVER",
       "color": "0x50A0FF",
-	  "technical": true
-    },
-    {
-      "name": "ISLAND",
-      "color": "0x50FF50",
-	  "technical": true
-    },
-    {
-      "name": "BEACH",
-      "color": "0xFFFF50",
-	  "technical": true
-    },
-    {
-      "name": "COAST",
-      "color": "0x5078FF",
-	  "technical": true
-    },
-    {
-      "name": "ERROR",
-      "color": "0x000000",
-	  "technical": true
-    },
+	  "environment": "SEA"
+    }
   ]
 }

@@ -1,6 +1,5 @@
 package botmanager.frostbalance.grid;
 
-import botmanager.Utilities;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +11,7 @@ public abstract class TileObject extends TileData implements Renderable {
     transient private BufferedImage cachedImage;
     transient private long cachedImageDate;
     transient private long lastActiveTurn;
+    transient private boolean disabled;
     protected ActionQueue actionQueue;
 
     protected TileObject(Tile tile) {
@@ -57,7 +57,7 @@ public abstract class TileObject extends TileData implements Renderable {
     public abstract boolean turnAction();
 
     public boolean doTurn(@NotNull long turn) {
-        if (this.lastActiveTurn != turn) {
+        if (this.lastActiveTurn != turn || isEnabled()) {
             lastActiveTurn = turn;
             return turnAction();
         } else return false;
@@ -69,5 +69,17 @@ public abstract class TileObject extends TileData implements Renderable {
 
     public void setActionQueue(ActionQueue actionQueue) {
         this.actionQueue = actionQueue;
+    }
+
+    /**
+     * Used to disable invalid objects. These will not be processed by the game.
+     * @param disabled
+     */
+    protected void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
+
+    public boolean isEnabled() {
+        return !disabled;
     }
 }

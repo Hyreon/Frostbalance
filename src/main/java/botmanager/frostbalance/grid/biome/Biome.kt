@@ -2,57 +2,45 @@ package botmanager.frostbalance.grid.biome
 
 import java.awt.Color
 
-enum class Biome(var color: Color, val elevation: ElevationClass, val temperature: TemperatureClass, val humidity: HumidityClass) {
+class Biome(val name: String, val color: Color,
+            val elevation: ElevationClass, val temperature: TemperatureClass, val humidity: HumidityClass,
+            val movementCost: Int = 1, val environment: Environment = Environment.LAND) {
 
-    //unknown
-    UNKNOWN(Color(0, 0, 0), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE),
-
-    //overlay
-    RIVER(Color(80, 160, 255), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE),
-    ISLAND(Color(80, 255, 80), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE),
-    BEACH(Color(255, 255, 80), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE),
-    COAST(Color(80, 120, 255), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE),
-
-    //sea
-    SEA(Color(80, 80, 255), ElevationClass.BASIN, TemperatureClass.COOL, HumidityClass.ARID),
-    ICE(Color(192, 255, 255), ElevationClass.BASIN, TemperatureClass.BOREAL, HumidityClass.ARID),
-    STORMY_SEA(Color(60, 0, 200), ElevationClass.BASIN, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN),
-
-    //mountain
-    SNOW_PEAK(Color(220, 200, 240), ElevationClass.MOUNTAINS, TemperatureClass.BOREAL, HumidityClass.ARID), //covers all humidities
-    ROCKY(Color(180, 160, 160), ElevationClass.MOUNTAINS, TemperatureClass.COOL, HumidityClass.ARID),
-    ALP(Color(150, 180, 150), ElevationClass.MOUNTAINS, TemperatureClass.COOL, HumidityClass.GOOD_RAIN),
-    MESA(Color(192, 128, 64), ElevationClass.MOUNTAINS, TemperatureClass.TROPICAL, HumidityClass.ARID), //covers all humidities
-
-    //cold
-    TUNDRA(Color(0xFAFADC), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.ARID),
-    SNOW_PLAINS(Color(0xCCD9A4), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.MODEST_RAIN),
-    TAIGA(Color(0x008080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.GOOD_RAIN),
-    MARSH(Color(0x606080), ElevationClass.PLAINS, TemperatureClass.BOREAL, HumidityClass.HEAVY_RAIN),
-
-    //moderate
-    TEMPERATE_DESERT(Color(0xF0C896), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.ARID),
-    STEPPE(Color(0x69932E), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.MODEST_RAIN),
-    FOREST(Color(0x008000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.GOOD_RAIN),
-    SWAMP(Color(0x606000), ElevationClass.PLAINS, TemperatureClass.COOL, HumidityClass.HEAVY_RAIN),
-
-    //hot
-    DESERT(Color(0xF08040), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.ARID),
-    PRAIRIE(Color(0xB0CE64), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.MODEST_RAIN),
-    SAVANNA(Color(0x808000), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.GOOD_RAIN),
-    JUNGLE(Color(0x30A050), ElevationClass.PLAINS, TemperatureClass.TROPICAL, HumidityClass.HEAVY_RAIN);
+    override fun toString(): String {
+        return name
+    }
 
     companion object {
-        val SMART_MAP: Map<ElevationClass, Map<TemperatureClass, Map<HumidityClass, Biome>>> = makeSmartMap(values()).let { println(it); it }
 
-        private fun makeSmartMap(array: Array<Biome>): Map<ElevationClass, Map<TemperatureClass, Map<HumidityClass, Biome>>> {
+        //unknown
+        val UNKNOWN = Biome("UNKNOWN", Color(0, 0, 0), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE, 1, Environment.VOID)
+
+        //overlay
+        @JvmField
+        val RIVER = Biome("RIVER", Color(80, 160, 255), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE, 1, Environment.SEA)
+        @JvmField
+        val COAST = Biome("COAST", Color(80, 120, 255), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE, 1, Environment.SEA)
+
+        //val ISLAND = Biome("UNKNOWN", Color(80, 255, 80), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE)
+        //val BEACH = Biome("UNKNOWN", Color(255, 255, 80), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE)
+
+
+        var BIOMES: Array<Biome> = arrayOf(UNKNOWN, RIVER, COAST)
+
+        private var SMART_MAP: MutableMap<ElevationClass, MutableMap<TemperatureClass, MutableMap<HumidityClass, Biome>>> = mutableMapOf()
+
+        fun updateSmartMap() {
+            SMART_MAP = makeSmartMap(BIOMES)
+        }
+
+        private fun makeSmartMap(array: Array<Biome>): MutableMap<ElevationClass, MutableMap<TemperatureClass, MutableMap<HumidityClass, Biome>>> {
             return ElevationClass.values().associateWith { elevation ->
                 TemperatureClass.values().associateWith { temperature ->
                     HumidityClass.values().associateWith { humidity ->
                         bestFit(array, elevation, temperature, humidity)
-                    }
-                }
-            }
+                    }.toMutableMap()
+                }.toMutableMap()
+            }.toMutableMap()
         }
 
         private fun bestFit(array: Array<Biome>, initElev: ElevationClass, initTemp: TemperatureClass, initWatr: HumidityClass): Biome {
@@ -66,9 +54,6 @@ enum class Biome(var color: Color, val elevation: ElevationClass, val temperatur
             for (elevation in elevations) {
                 for (temperature in temperatures) {
                     for (humidity in humidities) {
-                        if (initElev == ElevationClass.HILLS) {
-                            println("Testing $elevation $temperature $humidity")
-                        }
                         array.firstOrNull { biome -> biome.elevation == elevation && biome.temperature == temperature && biome.humidity == humidity }?.run {
                             return this
                         }
@@ -78,6 +63,27 @@ enum class Biome(var color: Color, val elevation: ElevationClass, val temperatur
 
             return UNKNOWN
         }
+
+        @JvmStatic
+        fun from(elevation: ElevationClass, temperature: TemperatureClass, humidity: HumidityClass): Biome {
+            return SMART_MAP.get(elevation)?.get(temperature)?.get(humidity) ?: run {
+                System.err.println("Smart map was found to be missing a biome!")
+                UNKNOWN
+            }
+        }
+
+        fun fromName(key: String): Biome {
+            for (biome in BIOMES) {
+                if (biome.name == key) {
+                    return biome
+                }
+            }
+            return UNKNOWN
+        }
+    }
+
+    enum class Environment {
+        LAND, SEA, VOID
     }
 
 }

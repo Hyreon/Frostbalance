@@ -3,6 +3,8 @@ package botmanager.frostbalance.resource;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.grid.Containable;
+import botmanager.frostbalance.grid.building.Building;
+import botmanager.frostbalance.grid.building.Gatherer;
 import botmanager.frostbalance.grid.coordinate.Hex;
 
 public class ResourceDeposit implements Containable<ResourceData> {
@@ -11,6 +13,7 @@ public class ResourceDeposit implements Containable<ResourceData> {
 
     String resourceId;
     int maxSupplyFactor;
+    long lastSupplyUpdateTurn = 0;
     double supply = 1.0; //1 for 100% supply, 0 for 0%
 
     /**
@@ -34,12 +37,72 @@ public class ResourceDeposit implements Containable<ResourceData> {
         return Frostbalance.bot.resourceWithId(resourceId);
     }
 
+    /**
+     * Attempts to yield an item. If no item can be yielded, then null is returned instead.
+     * Supply increases or decreases when this command is run.
+     * @param quantity
+     * @return
+     */
     public ItemStack yield(double quantity) {
-        return new ItemStack(getDeposit().itemType, quantity);
+        if (getSupply() > 0) {
+            drainSupply(quantity);
+            return new ItemStack(getDeposit().itemType, quantity);
+        } else {
+            replenishSupply(quantity);
+            return null;
+        }
+    }
+
+    private void drainSupply(double quantity) {
+        getSupply();
+        supply -= getDeposit().gatherMethod.getDrainRate() * quantity / maxSupplyFactor;
+    }
+
+    private void replenishSupply(double quantity) {
+        getSupply();
+        supply += getDeposit().gatherMethod.getReplantRate() * quantity / maxSupplyFactor;
+        if (supply > 1.0) { supply = 1.0; }
+    }
+
+    private double getSupply() {
+        long currentTurn = data.tile.getMap().getGameNetwork().getTurn();
+        if (lastSupplyUpdateTurn < currentTurn) {
+            renewSupply(currentTurn - lastSupplyUpdateTurn);
+            lastSupplyUpdateTurn = currentTurn;
+        }
+        return supply;
+    }
+
+    /**
+     * Returns the building placed on this resource, or null if there is no such building.
+     */
+    private Gatherer getBuilding() {
+        for (Building building : data.tile.getBuildingData().getBuildings()) {
+            if (building instanceof Gatherer) {
+                if (((Gatherer) building).getDeposit() == this) {
+                    return (Gatherer) building;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void renewSupply(long turns) {
+        supply += getDeposit().gatherMethod.getRestoreRate() * turns / maxSupplyFactor;
+        if (supply > 1.0) { supply = 1.0; }
     }
 
     @Override
     public void setParent(ResourceData parent) {
         this.data = parent;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof ResourceDeposit) &&
+                ((ResourceDeposit) o).data == data &&
+                ((ResourceDeposit) o).resourceId.equals(resourceId) &&
+                ((ResourceDeposit) o).maxSupplyFactor == maxSupplyFactor;
+    }
+
 }

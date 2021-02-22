@@ -17,12 +17,34 @@ public class Gatherer extends Building {
 
     double experience = 0.0;
 
+    /**
+     * FIXME BAD REFERENCE!
+     * This reference would be serialized as a separate thing than the ResourceDeposit it is built on.
+     */
     ResourceDeposit deposit;
 
     public Gatherer(Tile tile, Player owner, ResourceDeposit deposit) {
         super(tile, owner);
         this.deposit = deposit;
     }
+
+    @Override
+    public void setParent(Tile tile) {
+        super.setParent(tile);
+
+        //set the deposit to the appropriate resource, or invalidate this gatherer if no resource can be found
+        for (ResourceDeposit deposit : tile.getResourceData().priorityOrderDeposits()) {
+            if (deposit.equals(this.deposit)) {
+                this.deposit = deposit;
+                return;
+            }
+        }
+
+        //no resource found that matches this one
+        System.err.println("Failed to load gatherer " + this + " because its resource is missing! Sending it to the twilight zone.");
+        setDisabled(true);
+
+     }
 
     @Override
     public InputStream getRender() {
@@ -61,17 +83,51 @@ public class Gatherer extends Building {
         return Math.floor(Utilities.triangulateWithRemainder(experience));
     }
 
+    public static final double RATE_NEVER = 0.0; //never
+    public static final double RATE_MONTHLY = 1.0 / 2592000; //1 month
+    public static final double RATE_WEEKLY = 1.0 / 604800; //1 week
+    public static final double RATE_DAILY = 1.0 / 86400; //1 day
+    public static final double RATE_INSTANT = 1.0; //1 minute
+
     public enum Method {
 
-        PASTURE,
-        MINE,
-        WELL,
-        QUARRY,
-        MILL,
-        BOATS,
-        PLANTATION,
-        CAMP,
-        PIT
+        //wells never run dry.
+        WELL(RATE_NEVER, RATE_INSTANT, RATE_INSTANT),
 
+        //farmed goods can be refreshed manually or automatically.
+        PASTURE(RATE_WEEKLY, RATE_WEEKLY, RATE_MONTHLY / 2),
+        PLANTATION(RATE_WEEKLY, RATE_MONTHLY, RATE_WEEKLY / 2),
+        MILL(RATE_MONTHLY, RATE_MONTHLY, RATE_MONTHLY / 2),
+
+        //wild goods are only refreshed automatically.
+        BOATS(RATE_WEEKLY, RATE_NEVER, RATE_DAILY / 2),
+        CAMP(RATE_DAILY, RATE_NEVER, RATE_WEEKLY / 2),
+
+        //mineral goods are never refreshed.
+        QUARRY(RATE_MONTHLY, RATE_NEVER, RATE_NEVER),
+        MINE(RATE_MONTHLY, RATE_NEVER, RATE_NEVER),
+        PIT(RATE_MONTHLY, RATE_NEVER, RATE_NEVER);
+
+        double drainRate;
+        double replantRate;
+        double restoreRate;
+
+        Method(double drainRate, double replantRate, double restoreRate) {
+            this.drainRate = drainRate;
+            this.replantRate = replantRate;
+            this.restoreRate = restoreRate;
+        }
+
+        public double getDrainRate() {
+            return drainRate;
+        }
+
+        public double getReplantRate() {
+            return replantRate;
+        }
+
+        public double getRestoreRate() {
+            return restoreRate;
+        }
     }
 }

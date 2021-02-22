@@ -40,6 +40,7 @@ import net.dv8tion.jda.api.events.message.priv.react.PrivateMessageReactionAddEv
 import net.dv8tion.jda.api.exceptions.ErrorResponseException
 import net.dv8tion.jda.internal.managers.GuildManagerImpl
 import java.awt.AlphaComposite
+import java.awt.Color
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -54,7 +55,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val gameNetworks: MutableList<GameNetwork> = ArrayList()
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
-    internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Int>>> = EnumMap(Biome::class.java)
+    internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Int>>> = mutableMapOf()
     internal val itemResources: MutableList<ItemType> = loadItemTypes()
     internal val depositTypes: MutableList<DepositType> = loadDepositTypes()
 
@@ -74,6 +75,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val saverTimer = Timer()
     private fun load() {
         try {
+            loadData()
+        } catch (e: NullPointerException) {
+            e.printStackTrace()
+        }
+        try {
             loadUsers()
         } catch (e: NullPointerException) {
             e.printStackTrace()
@@ -85,8 +91,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         }
     }
 
+    private fun loadData() {
+        loadBiomes()
+    }
+
     override fun shutdown() {
-        super.shutdown();
+        super.shutdown()
         saveUsers()
         saveGames()
     }
@@ -256,6 +266,43 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     private val adminIds: List<String>
         get() = Utilities.readLines(File("data/$name/staff.csv"))
 
+    private fun loadBiomes(): MutableList<Biome> {
+
+        val file = javaClass.classLoader.getResource("generator/biomes.json")!!
+
+        val biomes: MutableList<Biome> = emptyList<Biome>().toMutableList()
+
+        val text = file.readText()
+
+        val data = JsonParser.parseString(text).asJsonObject
+
+        for (key in data.keySet()) {
+            val biomeRepository = data[key].asJsonArray
+            for (biome in biomeRepository) {
+                val jsonBiome = biome.asJsonObject
+                biomes.add(
+                    Biome(
+                        jsonBiome.get("name").asString,
+                        Color.decode(jsonBiome.get("color").asString),
+                        jsonBiome.get("minElevation")?.asString?.let { ElevationClass.valueOf(it) } ?: ElevationClass.BASIN,
+                        jsonBiome.get("minTemperature")?.asString?.let { TemperatureClass.valueOf(it) } ?: TemperatureClass.BOREAL,
+                        jsonBiome.get("minHumidity")?.asString?.let { HumidityClass.valueOf(it) } ?: HumidityClass.ARID,
+                        jsonBiome.get("moveCost")?.asInt ?: 1, //TODO move this default value outside of the main initializer class
+                        jsonBiome.get("environment")?.asString?.let { Biome.Environment.valueOf(it) } ?: Biome.Environment.LAND
+                    )
+                )
+            }
+        }
+
+        println("Biomes: $biomes")
+
+        biomes.addAll(Biome.BIOMES)
+        Biome.BIOMES = biomes.toTypedArray()
+        Biome.updateSmartMap()
+
+        return biomes
+    }
+
     private fun loadItemTypes(): MutableList<ItemType> {
 
         val file = javaClass.classLoader.getResource("generator/resources.json")!!
@@ -300,7 +347,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val depositAsJsonObject = deposit.asJsonObject
 
                 val biomeJsonMap = Gson().fromJson(depositAsJsonObject.get("biomes"), MutableMap::class.java) as MutableMap<String, Double>?
-                val biomeMap = biomeJsonMap?.mapKeys { entry -> Biome.valueOf(entry.key) }?.mapValues { entry -> entry.value.toInt() } as HashMap<Biome, Int>?
+                val biomeMap = biomeJsonMap?.mapKeys { entry -> Biome.fromName(entry.key) }?.mapValues { entry -> entry.value.toInt() } as HashMap<Biome, Int>?
                 val modifierJsonMap = Gson().fromJson(depositAsJsonObject.get("mods"), MutableMap::class.java) as MutableMap<String, Double>?
                 val humidityJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<HumidityClass>(entry.key) }
                     ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value.toInt() } as HashMap<HumidityClass, Int>?

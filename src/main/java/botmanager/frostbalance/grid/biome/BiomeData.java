@@ -163,13 +163,13 @@ public class BiomeData implements Containable<Tile> {
 
     public Biome getBiome() {
 
-        Biome baseBiome = Biome.Companion.getSMART_MAP()
-                .get(ElevationClass.from(getElevation()))
-                .get(TemperatureClass.from(getTemperature()))
-                .get(HumidityClass.from(getHumidity()));
+        Biome baseBiome = Biome.from(
+                ElevationClass.from(getElevation()),
+                TemperatureClass.from(getTemperature()),
+                HumidityClass.from(getHumidity()));
 
         if (isRiver() && baseBiome.getElevation() != ElevationClass.BASIN) return Biome.RIVER;
-        if (baseBiome == Biome.SEA && getElevation() > 0.30) {
+        if (baseBiome.getEnvironment() == Biome.Environment.SEA && getElevation() > 0.30) {
             return Biome.COAST;
         }
 
