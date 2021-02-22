@@ -47,9 +47,9 @@ public class MoveToRoutine extends Routine {
             previousDestination = hardWaypoints.get(hardWaypoints.size() - 1); //last waypoint
         } else {
             System.out.println("Replacing last destination!");
-            softWaypoints = previousRoutine.getSoftWaypoints();
+            softWaypoints = previousRoutine.readSoftWaypoints();
             previousDestination = previousRoutine.getDestination();
-            softWaypoints.add(previousDestination);
+            getSoftWaypoints().add(previousDestination);
         }
         destination = previousDestination.move(direction, amount);
         updateWaypoints();
@@ -59,7 +59,7 @@ public class MoveToRoutine extends Routine {
         Hex startLocation = queue.getCharacter().getLocation();
         List<Long> distances = new ArrayList<>();
         Hex lastLocation = startLocation;
-        for (Hex hex : softWaypoints) {
+        for (Hex hex : getSoftWaypoints()) {
             distances.add(lastLocation.minimumDistance(hex));
             lastLocation = hex;
         }
@@ -68,22 +68,32 @@ public class MoveToRoutine extends Routine {
         long actualDistance = Utilities.addNumericalList(distances);
         while (!distances.isEmpty() && minDistance < actualDistance) {
             System.out.println(minDistance + " IS MIN DISTANCE, CURRENT IS " + actualDistance);
-            System.out.println("Removing soft waypoint at " + softWaypoints.remove(softWaypoints.size() - 1));
+            System.out.println("Removing soft waypoint at " + getSoftWaypoints().remove(getSoftWaypoints().size() - 1));
             distances.remove(distances.size() - 1);
             minDistance = startLocation.minimumDistance(getDestination());
             actualDistance = Utilities.addNumericalList(distances);
         }
         System.out.println(minDistance + " IS MIN DISTANCE, CURRENT IS " + actualDistance);
         System.out.println("Getting soft waypoints, after update, for " + this);
-        getSoftWaypoints();
+        readSoftWaypoints();
     }
 
     /**
      * Returns a new list containing all soft waypoints. Does not include the final destination.
      */
     public List<Hex> getSoftWaypoints() {
-        System.out.println("SOFT WAYPOINTS:" + softWaypoints.toString());
-        return new ArrayList<>(softWaypoints);
+        if (softWaypoints == null) {
+            softWaypoints = new ArrayList<>();
+        }
+        return softWaypoints;
+    }
+
+    /**
+     * Returns a new list containing all soft waypoints. Does not include the final destination.
+     */
+    public List<Hex> readSoftWaypoints() {
+        System.out.println("SOFT WAYPOINTS:" + getSoftWaypoints());
+        return new ArrayList<>(getSoftWaypoints());
     }
 
     @Override
@@ -96,15 +106,15 @@ public class MoveToRoutine extends Routine {
 
     @Override
     public MoveAction peekAction() {
-        while (!softWaypoints.isEmpty() && softWaypoints.get(0).equals(queue.getCharacter().getLocation())) {
-            System.out.println("Removing soft waypoint " + softWaypoints.remove(0));
+        while (!getSoftWaypoints().isEmpty() && getSoftWaypoints().get(0).equals(queue.getCharacter().getLocation())) {
+            System.out.println("Removing soft waypoint " + getSoftWaypoints().remove(0));
         }
         if (destination.equals(queue.getCharacter().getLocation())) {
             return null;
-        } else if (softWaypoints.isEmpty()) {
+        } else if (getSoftWaypoints().isEmpty()) {
             return new MoveAction(queue.getCharacter(), destination.subtract(queue.getCharacter().getLocation()).crawlDirection());
         } else {
-            return new MoveAction(queue.getCharacter(), softWaypoints.get(0).subtract(queue.getCharacter().getLocation()).crawlDirection());
+            return new MoveAction(queue.getCharacter(), getSoftWaypoints().get(0).subtract(queue.getCharacter().getLocation()).crawlDirection());
         }
 
     }
@@ -143,6 +153,6 @@ public class MoveToRoutine extends Routine {
 
     @Override
     public QueueStep simulate() {
-        return new MoveToRoutine(this.queue, this.destination, this.softWaypoints);
+        return new MoveToRoutine(this.queue, this.destination, this.getSoftWaypoints());
     }
 }
