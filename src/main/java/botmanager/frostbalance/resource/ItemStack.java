@@ -9,6 +9,12 @@ public class ItemStack {
     double quantity;
     int quality;
 
+    ItemStack(ItemType itemType, double quantity) {
+        this.resourceId = itemType.getId();
+        this.quantity = quantity;
+        this.quality = 1; //default natural quality level
+    }
+
     ItemStack(ItemType itemType, double quantity, int quality) {
         this.resourceId = itemType.getId();
         this.quantity = quantity;

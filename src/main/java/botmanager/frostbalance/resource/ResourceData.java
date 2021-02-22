@@ -11,6 +11,7 @@ import java.util.*;
 
 public class ResourceData implements Containable<Tile>, Container {
 
+    private static final double SEARCH_SUCCESS_RATE = 0.1;
     transient Tile tile;
 
     /**
@@ -41,12 +42,12 @@ public class ResourceData implements Containable<Tile>, Container {
 
     public boolean search(boolean sudo) {
         //FIXME use the tile and the attempts to seed the result!
-        if (sudo || Utilities.randomFromSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.RESOURCE_SEARCH_SUCCESS) < 0.3) {
+        if (sudo || Utilities.randomFromSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.RESOURCE_SEARCH_SUCCESS) < SEARCH_SUCCESS_RATE) {
             addProgress();
             attempts++;
             return true;
         } else {
-            resetProgress();
+            //resetProgress(); //this was too steep a progression curve
             attempts++;
             return false;
         }
@@ -82,7 +83,7 @@ public class ResourceData implements Containable<Tile>, Container {
     @NotNull
     public List<ResourceDeposit> priorityOrderDeposits() {
         List<ResourceDeposit> sorted = new ArrayList<>(resources);
-        sorted.sort(Comparator.comparingInt(i -> -i.level));
+        sorted.sort(Comparator.comparingInt(i -> -i.maxSupplyFactor));
         return sorted;
     }
 
@@ -109,11 +110,11 @@ public class ResourceData implements Containable<Tile>, Container {
         for (DepositType key : resourceDepositBuckets.keySet()) {
             int max = -1;
             for (ResourceDeposit resourceDeposit : resourceDepositBuckets.get(key)) {
-                if (resourceDeposit.level <= max) {
+                if (resourceDeposit.maxSupplyFactor <= max) {
                     resourceDepositList.remove(resourceDeposit);
                     System.out.println("Removed: " + resourceDepositBuckets.toString());
                 } else {
-                    max = resourceDeposit.level;
+                    max = resourceDeposit.maxSupplyFactor;
                 }
             }
         }

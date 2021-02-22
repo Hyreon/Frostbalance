@@ -20,7 +20,7 @@ public class DepositType {
     HashMap<TemperatureClass, Integer> temperatureModifiers = new HashMap<>();
     HashMap<ElevationClass, Integer> elevationModifiers = new HashMap<>();
 
-    Gatherer.Method gatherer;
+    Gatherer.Method gatherMethod;
 
     public DepositType(@NotNull String name, ItemType itemType, Gatherer.Method method, HashMap<Biome, Integer> points,
                        HashMap<ElevationClass, Integer> elevationModifiers, HashMap<TemperatureClass, Integer> temperatureModifiers, HashMap<HumidityClass, Integer> humidityModifiers) {
@@ -36,7 +36,7 @@ public class DepositType {
         this.temperatureModifiers = temperatureModifiers;
         if (humidityModifiers != null)
         this.humidityModifiers = humidityModifiers;
-        gatherer = method;
+        gatherMethod = method;
         this.itemType = itemType;
     }
 
