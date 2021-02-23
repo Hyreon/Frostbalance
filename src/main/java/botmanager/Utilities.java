@@ -393,7 +393,7 @@ public class Utilities {
     public static long combineSeed(long... seeds) {
         long total = 0;
         for (long seed : seeds) {
-            total = total * 1008001L + seed;
+            total = total * 1008001L + new Random(seed).nextInt(0xFFFF);
         }
         return total;
     }

@@ -15,6 +15,10 @@ class BuildGathererCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, ar
 
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
 
+        if (context.author.playerIn(context.gameNetwork).character.tile.resourceData.priorityOrderDeposits().isEmpty()) {
+            return context.sendResponse("There are no resources to gather on this tile! You'll need to find some with `.search`.\n" +
+                    "This will take 10 minutes on average, but maybe longer.")
+        }
         BuildGathererMenu(bot, context).send()
 
     }
