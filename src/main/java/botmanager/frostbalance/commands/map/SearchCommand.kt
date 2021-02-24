@@ -9,13 +9,16 @@ class SearchCommand(bot: Frostbalance): FrostbalanceGuildCommand(bot, arrayOf(
 ), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String {
-        return "do .search to find stuff"
+        return "**.search AMOUNT** - look for resources on your current tile"
     }
 
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
 
         var args = ArgumentStream(params)
         val searches = args.nextInteger()
+
+        if (!context.gameNetwork.isTutorial())
+            context.sendResponse("Resources are only available on the test world for now.")
 
         if (searches != null) {
             context.player.character.searchTile(searches)

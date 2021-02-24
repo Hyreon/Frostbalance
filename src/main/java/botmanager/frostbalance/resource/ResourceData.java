@@ -47,7 +47,6 @@ public class ResourceData implements Containable<Tile>, Container {
             attempts++;
             return true;
         } else {
-            //resetProgress(); //this was too steep a progression curve
             attempts++;
             return false;
         }
@@ -69,10 +68,6 @@ public class ResourceData implements Containable<Tile>, Container {
         resources.add(
                 new ResourceDeposit(depositType, tile.getLocation(), progress)
         );
-    }
-
-    private void resetProgress() {
-        progress = 0;
     }
 
     @Override
