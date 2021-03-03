@@ -49,7 +49,7 @@ public class Gatherer extends Building {
     @Override
     public InputStream getRender() {
         try {
-            return new FileInputStream("res/gatherer.png");
+            return new FileInputStream("textures/gatherer.png");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;

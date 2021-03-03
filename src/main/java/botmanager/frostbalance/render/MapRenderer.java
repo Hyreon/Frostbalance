@@ -127,7 +127,7 @@ public class MapRenderer {
         g.fillPolygon(getHex(drawnHex, sizeFactor));
         if (tile.getElevationClass() == ElevationClass.HILLS) {
             try {
-                BufferedImage texture = ImageIO.read(new FileInputStream("res/ore.png"));
+                BufferedImage texture = ImageIO.read(new FileInputStream("textures/ore.png"));
                 g.drawImage(texture, (int) ((drawnHex.drawX() - Hex.X_SCALE / 2) * sizeFactor + DEFAULT_WIDTH / 2),
                         (int) ((drawnHex.drawY() - Hex.Y_SCALE / 2) * sizeFactor + DEFAULT_HEIGHT / 2),
                         (int) (Hex.X_SCALE * sizeFactor),
