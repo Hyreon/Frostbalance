@@ -62,11 +62,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
         return bot.mainNetwork == this
     }
 
-    fun isTutorial(): Boolean {
-        return hasNetworkFlag(NetworkFlag.TUTORIAL)
-    }
-
-    private fun hasNetworkFlag(flag: NetworkFlag): Boolean {
+    fun hasNetworkFlag(flag: NetworkFlag): Boolean {
         return flags.contains(flag)
     }
 

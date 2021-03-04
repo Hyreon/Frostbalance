@@ -112,7 +112,7 @@ public class PlayerCharacter extends Mobile {
     }
 
     public void adjustDestination(Hex.Direction direction, int amount) {
-        QueueStep previousRoutine = actionQueue.peekLast();
+        QueueStep previousRoutine = getActionQueue().peekLast();
         Hex previousDestination;
         if (previousRoutine instanceof MoveToRoutine) {
             System.out.println("Replacing last destination!");
@@ -134,7 +134,7 @@ public class PlayerCharacter extends Mobile {
     }
 
     public void searchTile(int searches) {
-        actionQueue.add(new RepeatRoutine<>(new SearchAction(this), searches));
+        getActionQueue().add(new RepeatRoutine<>(new SearchAction(this), searches));
     }
 
     public Hex getDestination() {

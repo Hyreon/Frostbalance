@@ -5,7 +5,9 @@ import botmanager.frostbalance.GameNetwork
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.GuildMessageContext
 import botmanager.frostbalance.command.MessageContext
+import botmanager.frostbalance.flags.NetworkFlag
 import botmanager.frostbalance.menu.Menu
+import botmanager.frostbalance.menu.input.ConfirmationMenu
 import botmanager.frostbalance.menu.option.OptionMenu
 import botmanager.frostbalance.menu.response.MenuResponse
 import botmanager.frostbalance.menu.response.SimpleTextHook
@@ -55,6 +57,22 @@ class NetworkSettingsMenu(bot: Frostbalance, context: GuildMessageContext) : Men
 
                 context.gameNetwork.setAsMain()
                 close(false)
+
+            }
+
+            override val isValid: Boolean
+                get() = originalMenu.actor?.memberIn(context.guild)?.hasAuthority(AuthorityLevel.BOT_ADMIN) ?: false
+
+        })
+
+        menuResponses.add(object : MenuResponse("\uD83E\uDDEA", "Enable experimental content") {
+            override fun reactEvent() {
+
+                ConfirmationMenu(bot, context, {
+                    context.gameNetwork.addNetworkFlag(flag = NetworkFlag.EXPERIMENTAL)
+                    close(false)
+                }, "Are you sure you want to toggle experimental content?").send()
+
 
             }
 

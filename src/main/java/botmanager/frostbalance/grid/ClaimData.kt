@@ -337,12 +337,8 @@ class ClaimData(tile: Tile?) : TileData(tile), Container {
                 for (nation in tile.map.gameNetwork.nations) {
                     val strength = internalNationStrengthOf(nation)
                     if (!strength.nonZero) continue
-                    var effectiveString: String
-                    effectiveString = if (tile.map.gameNetwork.isTutorial()) {
-                        nation.toString() + ": " + String.format("%s", strength)
-                    } else {
-                        nation.effectiveName + ": " + String.format("%s", strength)
-                    }
+                    var effectiveString: String =
+                        tile.map.gameNetwork.guildWithAllegiance(nation).toString() + ": " + String.format("%s", strength)
                     if (owningNation === nation) {
                         lines.add("**$effectiveString**")
                     } else {

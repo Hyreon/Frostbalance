@@ -2,6 +2,7 @@ package botmanager.frostbalance.commands.resource
 
 import botmanager.frostbalance.Frostbalance
 import botmanager.frostbalance.command.*
+import botmanager.frostbalance.flags.NetworkFlag
 import botmanager.frostbalance.resource.ResourceData
 
 class SearchCommand(bot: Frostbalance): FrostbalanceGuildCommand(bot, arrayOf(
@@ -17,7 +18,7 @@ class SearchCommand(bot: Frostbalance): FrostbalanceGuildCommand(bot, arrayOf(
         var args = ArgumentStream(params)
         val searches = args.nextInteger()
 
-        if (!context.gameNetwork.isTutorial())
+        if (!context.gameNetwork.hasNetworkFlag(NetworkFlag.EXPERIMENTAL))
             return context.sendResponse("Resources are only available on the test world for now.")
 
         if (searches != null) {

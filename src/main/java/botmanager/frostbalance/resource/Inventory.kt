@@ -24,13 +24,11 @@ class Inventory(val fictional: Boolean = false) {
         item?.let { item ->
             if (fictional || queryItem(item)) {
                 while (item.quantity > 0) {
-                    println("Running through loop")
                     var substitutionDegree = 0
                     var itemToRemove: ItemStack?
                     do {
                         if (!items.any{it.resourceId == item.resourceId && it.quality - substitutionDegree >= item.quality}) {
                             if (fictional) {
-                                println("No more matching items found")
                                 return
                             }
                             throw IllegalStateException("Item validation failed - unable to find the items to get rid of during an inventory removal!")
