@@ -1,5 +1,6 @@
 package botmanager.frostbalance.render;
 
+import botmanager.Utilities;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.grid.*;
 import botmanager.frostbalance.grid.biome.ElevationClass;
@@ -14,7 +15,6 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -127,7 +127,7 @@ public class MapRenderer {
         g.fillPolygon(getHex(drawnHex, sizeFactor));
         if (tile.getElevationClass() == ElevationClass.HILLS) {
             try {
-                BufferedImage texture = ImageIO.read(new FileInputStream("textures/ore.png"));
+                BufferedImage texture = ImageIO.read(Utilities.getResource("textures/ore.png"));
                 g.drawImage(texture, (int) ((drawnHex.drawX() - Hex.X_SCALE / 2) * sizeFactor + DEFAULT_WIDTH / 2),
                         (int) ((drawnHex.drawY() - Hex.Y_SCALE / 2) * sizeFactor + DEFAULT_HEIGHT / 2),
                         (int) (Hex.X_SCALE * sizeFactor),

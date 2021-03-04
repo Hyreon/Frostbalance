@@ -151,9 +151,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             } else {
                 "discord/snowflake_w.png"
             }
-            val iconToUse = javaClass.classLoader.getResource(iconNameToUse)
+            val iconToUse = Utilities.getResource(iconNameToUse)
             try {
-                val defaultIcon = Icon.from(File(iconToUse.file))
+                val defaultIcon = Icon.from(iconToUse)
                 GuildManagerImpl(event.guild).setIcon(defaultIcon).queue()
                 return
             } catch (e: IOException) {
@@ -173,9 +173,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 return
             }
             try {
-                val effectToUse = javaClass.classLoader.getResource("discord/effect.png")
+                val effectToUse = Utilities.getResource("discord/effect.png")
                 val baseImage = ImageIO.read(connection.inputStream)
-                val effect = ImageIO.read(File(effectToUse.file))
+                val effect = ImageIO.read(effectToUse)
 
                 //FIXME cause this to work on smaller images
                 //FIXME increase image intensity
@@ -268,7 +268,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun loadBiomes(): MutableList<Biome> {
 
-        val file = javaClass.classLoader.getResource("data/biomes.json")!!
+        val file = Utilities.getResource("data/biomes.json")!!
 
         val biomes: MutableList<Biome> = emptyList<Biome>().toMutableList()
 
@@ -304,9 +304,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     private fun loadItemTypes(): MutableList<ItemType> {
-        println(Frostbalance::class.java.getResource("data"))
 
-        val file = Frostbalance::class.java.getResource("data/resources.json")!!
+        val file = Utilities.getResource("data/resources.json")!!
 
         val resourceItems: MutableList<ItemType> = emptyList<ItemType>().toMutableList()
 
@@ -334,7 +333,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun loadDepositTypes(): MutableList<DepositType> {
 
-        val file = javaClass.classLoader.getResource("data/deposits.json")!!
+        val file = Utilities.getResource("data/deposits.json")!!
 
         val resourceDeposits: MutableList<DepositType> = emptyList<DepositType>().toMutableList()
 

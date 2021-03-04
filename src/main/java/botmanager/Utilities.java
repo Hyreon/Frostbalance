@@ -374,6 +374,16 @@ public class Utilities {
         }
     }
 
+    public static File getResource(@NotNull String string) {
+        File file = new File("data/resources/" + string);
+        if (!file.exists()) {
+            System.err.println("Unable to locate file '" + string + "'");
+            return null;
+        } else {
+            return file;
+        }
+    }
+
     /**
      * Returns a random value between 0 and 1 from a set of seeds.
      * This will yield the same result for the same set of seeds.
