@@ -83,9 +83,16 @@ open class MessageContext {
         }
     }
 
+    @JvmOverloads
     fun sendMultiLineResponse(resultLines: List<String?>) {
         if (resultLines.size > 10) {
-            object : ListMenu<String?>(bot, this, resultLines) {}.send(channel, author)
+            object : ListMenu<String?>(bot, this, resultLines) {
+
+                override val embedBuilder: EmbedBuilder
+                    get() = super.embedBuilder
+                        .setTitle("Page $page/${maxPages()}")
+
+            }.send(channel, author)
         } else {
             val message = java.lang.String.join("\n", resultLines)
             val messageEmbed = buildEmbed(message)
