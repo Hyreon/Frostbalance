@@ -17,4 +17,8 @@ public class ItemType {
     public String getId() {
         return name;
     }
+
+    public String toString() {
+        return name;
+    }
 }

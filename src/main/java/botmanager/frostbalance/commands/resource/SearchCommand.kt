@@ -18,7 +18,7 @@ class SearchCommand(bot: Frostbalance): FrostbalanceGuildCommand(bot, arrayOf(
         val searches = args.nextInteger()
 
         if (!context.gameNetwork.isTutorial())
-            context.sendResponse("Resources are only available on the test world for now.")
+            return context.sendResponse("Resources are only available on the test world for now.")
 
         if (searches != null) {
             context.player.character.searchTile(searches)

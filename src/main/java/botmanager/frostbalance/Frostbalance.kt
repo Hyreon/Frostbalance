@@ -15,16 +15,12 @@ import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.commands.resource.*
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
-import botmanager.frostbalance.grid.biome.Biome
-import botmanager.frostbalance.grid.biome.ElevationClass
-import botmanager.frostbalance.grid.biome.HumidityClass
-import botmanager.frostbalance.grid.biome.TemperatureClass
+import botmanager.frostbalance.grid.biome.*
 import botmanager.frostbalance.grid.building.Gatherer
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.records.RegimeData
 import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.resource.DepositType
-import botmanager.frostbalance.resource.ItemStack
 import botmanager.frostbalance.resource.ItemType
 import botmanager.generic.BotBase
 import botmanager.utils.IOUtils
@@ -283,34 +279,49 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             val biomeRepository = data[key].asJsonArray
             for (biome in biomeRepository) {
                 val jsonBiome = biome.asJsonObject
+                val biomeGroup = BiomeGroup(jsonBiome.get("name")!!.asString)
                 val variants = jsonBiome.get("variants")?.asJsonArray?.toList()
                 if (variants?.any{e -> e.asString == "HILLS"} == true) {
-                    biomes.add(biomeFromJson(jsonBiome, elevation = ElevationClass.HILLS))
+                    val hillBiome = biomeFromJson(jsonBiome, elevation = ElevationClass.HILLS)
+                    biomeGroup.add(hillBiome)
+                    biomes.add(hillBiome)
                 }
                 if (variants?.any{e -> e.asString == "WARM"} == true) {
-                    biomes.add(biomeFromJson(jsonBiome, temperature = TemperatureClass.WARM))
+                    val warmBiome = biomeFromJson(jsonBiome, temperature = TemperatureClass.WARM)
+                    biomeGroup.add(warmBiome)
+                    biomes.add(warmBiome)
                 }
                 if (variants?.any{ e -> e.asString == "HILLS"} == true && variants.any{ e -> e.asString == "WARM"}) {
-                    biomes.add(biomeFromJson(jsonBiome, temperature = TemperatureClass.WARM, elevation = ElevationClass.HILLS))
+                    val bothBiome = biomeFromJson(jsonBiome, temperature = TemperatureClass.WARM, elevation = ElevationClass.HILLS)
+                    biomeGroup.add(bothBiome)
+                    biomes.add(bothBiome)
                 }
-                biomes.add(
-                    biomeFromJson(jsonBiome)
-                )
+                val baseBiome = biomeFromJson(jsonBiome)
+                biomeGroup.add(baseBiome)
+                biomes.add(baseBiome)
+                BiomeGroup.addGroup(biomeGroup)
             }
         }
 
         println("Biomes: $biomes")
 
-        biomes.addAll(Biome.BIOMES)
-        Biome.BIOMES = biomes.toTypedArray()
+        biomes.addAll(Biome.biomes)
+        Biome.biomes = biomes.toTypedArray()
         Biome.updateSmartMap()
 
         return biomes
     }
 
     private fun biomeFromJson(jsonBiome: JsonObject, temperature: TemperatureClass? = null, elevation: ElevationClass? = null): Biome {
+        var id = jsonBiome.get("name").asString
+        if (temperature != null) {
+            id += "_$temperature"
+        }
+        if (elevation != null) {
+            id += "_$elevation"
+        }
         return Biome(
-            jsonBiome.get("name").asString,
+            id,
             Color.decode(jsonBiome.get("color").asString),
             elevation ?: jsonBiome.get("minElevation")?.asString?.let { ElevationClass.valueOf(it) } ?: ElevationClass.BASIN,
             temperature ?: jsonBiome.get("minTemperature")?.asString?.let { TemperatureClass.valueOf(it) } ?: TemperatureClass.BOREAL,
@@ -364,7 +375,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 val depositAsJsonObject = deposit.asJsonObject
 
                 val biomeJsonMap = Gson().fromJson(depositAsJsonObject.get("biomes"), MutableMap::class.java) as MutableMap<String, Double>?
-                val biomeMap = biomeJsonMap?.mapKeys { entry -> Biome.fromName(entry.key) }?.mapValues { entry -> entry.value } as HashMap<Biome, Double>?
+                val biomeMap = biomeJsonMap?.mapKeys { entry -> BiomeGroup.fromId(entry.key) }?.mapValues { entry -> entry.value } as HashMap<BiomeGroup, Double>?
                 val modifierJsonMap = Gson().fromJson(depositAsJsonObject.get("mods"), MutableMap::class.java) as MutableMap<String, Double>?
                 val humidityJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<HumidityClass>(entry.key) }
                     ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value } as HashMap<HumidityClass, Double>?
@@ -372,7 +383,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                     ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value } as HashMap<ElevationClass, Double>?
                 val temperatureJsonMap = modifierJsonMap?.mapKeys { entry -> enumValueOfOrNull<TemperatureClass>(entry.key) }
                     ?.filter{ entry -> entry.key != null }?.mapValues { entry -> entry.value } as HashMap<TemperatureClass, Double>?
-
 
                 resourceDeposits.add(
                     DepositType(

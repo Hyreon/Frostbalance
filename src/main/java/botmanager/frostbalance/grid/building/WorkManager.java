@@ -29,6 +29,12 @@ public class WorkManager {
     Map<PlayerCharacter, Building> buildings = new HashMap<>();
     List<PlayerCharacter> allWorkers = new ArrayList<>();
 
+    /**
+     *
+     * @param building The building being worked
+     * @param worker The worker working there
+     * @return True, if this worker was previously working somewhere else.
+     */
     public boolean addWorker(@NotNull Building building, PlayerCharacter worker) {
         boolean previousWork = false;
         Building existingWorkplace = getBuilding(worker);

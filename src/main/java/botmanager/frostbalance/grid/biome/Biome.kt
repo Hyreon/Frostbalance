@@ -2,6 +2,9 @@ package botmanager.frostbalance.grid.biome
 
 import java.awt.Color
 
+/**
+ * Represents a specific biome. Each one has a unique appearance and movement properties.
+ */
 class Biome(val name: String, val color: Color,
             val elevation: ElevationClass, val temperature: TemperatureClass, val humidity: HumidityClass,
             val movementCost: Int = 1, val environment: Environment = Environment.LAND) {
@@ -25,12 +28,12 @@ class Biome(val name: String, val color: Color,
         //val BEACH = Biome("UNKNOWN", Color(255, 255, 80), ElevationClass.NONE, TemperatureClass.NONE, HumidityClass.NONE)
 
 
-        var BIOMES: Array<Biome> = arrayOf(UNKNOWN, RIVER, COAST)
+        var biomes: Array<Biome> = arrayOf(UNKNOWN, RIVER, COAST)
 
-        private var SMART_MAP: MutableMap<ElevationClass, MutableMap<TemperatureClass, MutableMap<HumidityClass, Biome>>> = mutableMapOf()
+        private var smartMap: MutableMap<ElevationClass, MutableMap<TemperatureClass, MutableMap<HumidityClass, Biome>>> = mutableMapOf()
 
         fun updateSmartMap() {
-            SMART_MAP = makeSmartMap(BIOMES)
+            smartMap = makeSmartMap(biomes)
         }
 
         private fun makeSmartMap(array: Array<Biome>): MutableMap<ElevationClass, MutableMap<TemperatureClass, MutableMap<HumidityClass, Biome>>> {
@@ -66,14 +69,14 @@ class Biome(val name: String, val color: Color,
 
         @JvmStatic
         fun from(elevation: ElevationClass, temperature: TemperatureClass, humidity: HumidityClass): Biome {
-            return SMART_MAP.get(elevation)?.get(temperature)?.get(humidity) ?: run {
+            return smartMap.get(elevation)?.get(temperature)?.get(humidity) ?: run {
                 System.err.println("Smart map was found to be missing a biome!")
                 UNKNOWN
             }
         }
 
         fun fromName(key: String): Biome {
-            for (biome in BIOMES) {
+            for (biome in biomes) {
                 if (biome.name == key) {
                     return biome
                 }

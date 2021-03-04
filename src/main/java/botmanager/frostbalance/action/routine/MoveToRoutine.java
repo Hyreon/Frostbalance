@@ -74,6 +74,13 @@ public class MoveToRoutine extends Routine {
             System.out.println(minDistance + " IS MIN DISTANCE, CURRENT IS " + actualDistance);
             System.out.println("Removing soft waypoint at " + getSoftWaypoints().remove(getSoftWaypoints().size() - 1));
             distances.remove(distances.size() - 1);
+
+            if (distances.size() == 1) {
+                break; //there are no more soft waypoints. the route will now be manually drawn
+            }
+
+            //must be equal to the distance from the destination to the last waypoint
+            distances.set(distances.size() - 1, getSoftWaypoints().get(getSoftWaypoints().size() - 1).minimumDistance(getDestination()));
             minDistance = startLocation.minimumDistance(getDestination());
             actualDistance = Utilities.addNumericalList(distances);
         }
