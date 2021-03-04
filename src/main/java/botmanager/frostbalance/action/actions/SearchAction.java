@@ -20,8 +20,8 @@ public class SearchAction extends Action {
         PlayerCharacter character = queue.getCharacter();
         ResourceData resourceData = character.getTile().getResourceData();
         int startingResources = resourceData.numResources();
-        long attempts = resourceData.getAttempts();
         boolean success = resourceData.search(false);
+        long attempts = resourceData.getAttempts();
         if (success && resourceData.getProgress() == 0) { //progress reset
             if (startingResources == resourceData.numResources()) {
                 character.getUser().sendNotification(character.getMap().getGameNetwork().guildWithAllegiance(character.getNation()),

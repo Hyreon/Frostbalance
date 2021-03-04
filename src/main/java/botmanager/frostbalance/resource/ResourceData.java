@@ -66,7 +66,7 @@ public class ResourceData implements Containable<Tile>, Container {
         long seed = Utilities.combineSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.NEW_DEPOSIT);
         DepositType depositType = Frostbalance.bot.generateResourceIn(tile.getBiome(), seed);
         resources.add(
-                new ResourceDeposit(depositType, tile.getLocation(), progress)
+                new ResourceDeposit(depositType, tile, progress)
         );
     }
 

@@ -3,9 +3,9 @@ package botmanager.frostbalance.resource;
 import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.grid.Containable;
+import botmanager.frostbalance.grid.Tile;
 import botmanager.frostbalance.grid.building.Building;
 import botmanager.frostbalance.grid.building.Gatherer;
-import botmanager.frostbalance.grid.coordinate.Hex;
 
 public class ResourceDeposit implements Containable<ResourceData> {
 
@@ -21,10 +21,11 @@ public class ResourceDeposit implements Containable<ResourceData> {
      * @param depositType
      * @param progress
      */
-    public ResourceDeposit(DepositType depositType, Hex location, int progress) {
+    public ResourceDeposit(DepositType depositType, Tile tile, int progress) {
+        this.data = tile.getResourceData();
         this.resourceId = depositType.getId();
         this.maxSupplyFactor = 1;
-        while ( Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL, location.getXnoZ(), location.getYnoZ(), progress, maxSupplyFactor) > 0.5 ) {
+        while ( Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL, tile.getLocation().getXnoZ(), tile.getLocation().getYnoZ(), progress, maxSupplyFactor) > 0.5 ) {
             maxSupplyFactor++;
         }
     }
