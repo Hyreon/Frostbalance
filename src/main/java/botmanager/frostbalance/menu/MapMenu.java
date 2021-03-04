@@ -176,6 +176,7 @@ public class MapMenu extends Menu {
 
             @Override
             public boolean isValid(@NotNull MessageContext hookContext) {
+                if (!super.isValid(hookContext)) return false;
                 String[] directionNames = new String[Hex.Direction.values().length];
                 for (int i = 0; i < Hex.Direction.values().length; i++) {
                     directionNames[i] = "(" + Hex.Direction.values()[i].name().toUpperCase() + ")";
