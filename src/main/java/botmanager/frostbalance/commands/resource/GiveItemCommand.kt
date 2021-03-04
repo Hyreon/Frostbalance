@@ -1,4 +1,4 @@
-package botmanager.frostbalance.commands.map
+package botmanager.frostbalance.commands.resource
 
 import botmanager.Utilities
 import botmanager.frostbalance.Frostbalance

@@ -12,6 +12,7 @@ import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
 import botmanager.frostbalance.commands.map.*
 import botmanager.frostbalance.commands.meta.*
+import botmanager.frostbalance.commands.resource.*
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.Biome
@@ -56,8 +57,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     internal val userWrappers: MutableList<UserWrapper> = ArrayList()
 
     internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Double>>> = mutableMapOf()
-    internal val itemResources: MutableList<ItemType> = loadItemTypes()
-    internal val depositTypes: MutableList<DepositType> = loadDepositTypes()
+    internal lateinit var itemResources: MutableList<ItemType>
+    internal lateinit var depositTypes: MutableList<DepositType>
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
@@ -93,6 +94,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun loadData() {
         loadBiomes()
+        itemResources = loadItemTypes()
+        depositTypes = loadDepositTypes()
     }
 
     override fun shutdown() {
@@ -280,16 +283,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             val biomeRepository = data[key].asJsonArray
             for (biome in biomeRepository) {
                 val jsonBiome = biome.asJsonObject
+                val variants = jsonBiome.get("variants")?.asJsonArray?.toList()
+                if (variants?.any{e -> e.asString == "HILLS"} == true) {
+                    biomes.add(biomeFromJson(jsonBiome, elevation = ElevationClass.HILLS))
+                }
+                if (variants?.any{e -> e.asString == "WARM"} == true) {
+                    biomes.add(biomeFromJson(jsonBiome, temperature = TemperatureClass.WARM))
+                }
+                if (variants?.any{ e -> e.asString == "HILLS"} == true && variants.any{ e -> e.asString == "WARM"}) {
+                    biomes.add(biomeFromJson(jsonBiome, temperature = TemperatureClass.WARM, elevation = ElevationClass.HILLS))
+                }
                 biomes.add(
-                    Biome(
-                        jsonBiome.get("name").asString,
-                        Color.decode(jsonBiome.get("color").asString),
-                        jsonBiome.get("minElevation")?.asString?.let { ElevationClass.valueOf(it) } ?: ElevationClass.BASIN,
-                        jsonBiome.get("minTemperature")?.asString?.let { TemperatureClass.valueOf(it) } ?: TemperatureClass.BOREAL,
-                        jsonBiome.get("minHumidity")?.asString?.let { HumidityClass.valueOf(it) } ?: HumidityClass.ARID,
-                        jsonBiome.get("moveCost")?.asInt ?: 1, //TODO move this default value outside of the main initializer class
-                        jsonBiome.get("environment")?.asString?.let { Biome.Environment.valueOf(it) } ?: Biome.Environment.LAND
-                    )
+                    biomeFromJson(jsonBiome)
                 )
             }
         }
@@ -301,6 +306,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         Biome.updateSmartMap()
 
         return biomes
+    }
+
+    private fun biomeFromJson(jsonBiome: JsonObject, temperature: TemperatureClass? = null, elevation: ElevationClass? = null): Biome {
+        return Biome(
+            jsonBiome.get("name").asString,
+            Color.decode(jsonBiome.get("color").asString),
+            elevation ?: jsonBiome.get("minElevation")?.asString?.let { ElevationClass.valueOf(it) } ?: ElevationClass.BASIN,
+            temperature ?: jsonBiome.get("minTemperature")?.asString?.let { TemperatureClass.valueOf(it) } ?: TemperatureClass.BOREAL,
+            jsonBiome.get("minHumidity")?.asString?.let { HumidityClass.valueOf(it) } ?: HumidityClass.ARID,
+            jsonBiome.get("moveCost")?.asInt ?: 1, //TODO move this default value outside of the main initializer class
+            jsonBiome.get("environment")?.asString?.let { Biome.Environment.valueOf(it) } ?: Biome.Environment.LAND
+        )
     }
 
     private fun loadItemTypes(): MutableList<ItemType> {
@@ -517,6 +534,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return itemResources
     }
 
+    fun resourceOddsFor(biome: Biome): List<Pair<DepositType, Double>> {
+        if (!depositTypeCaches.containsKey(biome)) {
+            val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
+            val weights = effectiveResources.map {
+                it.pointsIn(biome)
+            }
+            val totalWeights = weights.reduceOrNull { acc, i -> acc + i } ?: 0.0
+            depositTypeCaches[biome] = effectiveResources.zip(weights.map { weight -> weight / totalWeights} )
+        }
+        return depositTypeCaches[biome] ?: emptyList()
+    }
+
     private fun resourcesFor(biome: Biome): List<Pair<DepositType, Double>> {
         if (!depositTypeCaches.containsKey(biome)) {
             val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
@@ -708,17 +737,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 }
             } catch (e: NumberFormatException) {
             }
-        }
-    }
-
-    private fun loadResources() {
-        val gsonBuilder = GsonBuilder()
-        gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
-        val gson = gsonBuilder.create()
-        val file = File("res/generator/deposits.json")
-        if (file.exists()) {
-            //won't work; needs to read array, not direct item stack.
-            val itemStack = gson.fromJson(IOUtils.read(file), ItemStack::class.java)
         }
     }
 
@@ -920,7 +938,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 SearchCommand(this),
                 BuildGathererCommand(this),
                 WorkCommand(this),
-                InventoryCommand(this)
+                InventoryCommand(this),
+                DepositOddsCommand(this)
         )
         load()
         saverTimer.schedule(object : TimerTask() {
