@@ -134,7 +134,7 @@ public class ActionQueue extends LinkedList<QueueStep> implements Container, Con
      */
     public List<Hex> waypoints(boolean includeSoft) {
         LinkedList<Hex> locations = new LinkedList<>();
-        locations.add(playerCharacter.getLocation());
+        locations.add(getCharacter().getLocation());
         while (!isEmpty()) {
             QueueStep queueStep = pollBase();
             if (queueStep instanceof MoveAction) {

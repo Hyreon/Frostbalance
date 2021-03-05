@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 public class PlayerCharacter extends Mobile {
 
     public Inventory inventory;
-    transient ActionQueue actionQueue = new ActionQueue();
+    transient ActionQueue actionQueue = new ActionQueue(this);
     private transient double moves = 0.0;
 
     /**
@@ -193,6 +193,6 @@ public class PlayerCharacter extends Mobile {
 
     public void adopt() {
         getActionQueue().setParent(this);
-        actionQueue.adopt();
+        getActionQueue().adopt();
     }
 }
