@@ -1,11 +1,10 @@
 package botmanager.frostbalance.grid.building;
 
-import botmanager.frostbalance.MapToCollection;
-import botmanager.frostbalance.action.actions.WorkAction;
 import botmanager.frostbalance.grid.PlayerCharacter;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A static singleton class that manages the relationship between PlayerCharacters and Buildings.
@@ -16,71 +15,40 @@ public class WorkManager {
 
     public static WorkManager singleton = new WorkManager();
 
-    private WorkManager() {
-        Timer validatorTimer = new Timer();
-        validatorTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                validateWorkers();
-            }
-        }, 300000, 300000);
-    }
+    private WorkManager() {}
 
-    Map<Building, List<PlayerCharacter>> workers = new MapToCollection<>();
-    Map<PlayerCharacter, Building> buildings = new HashMap<>();
     List<PlayerCharacter> allWorkers = new ArrayList<>();
 
     /**
      *
-     * @param building The building being worked
-     * @param worker The worker working there
-     * @return True, if this worker was previously working somewhere else.
+     * @param worker The worker working
+     * @return False, if this worker was not added (because they were already working)
      */
-    public boolean addWorker(@NotNull Building building, PlayerCharacter worker) {
-        boolean previousWork = false;
-        Building existingWorkplace = getBuilding(worker);
-        if (existingWorkplace != null) {
-            removeWorker(existingWorkplace, worker);
-            previousWork = true;
+    public boolean addWorker(PlayerCharacter worker) {
+        if (allWorkers.contains(worker)) {
+            return false;
         }
-        workers.getOrDefault(building, new ArrayList<>()).add(worker);
-        buildings.put(worker, building);
-        allWorkers.add(worker);
-        return previousWork;
+        return allWorkers.add(worker);
     }
 
-    public boolean removeWorker(Building building, PlayerCharacter worker) {
-        allWorkers.remove(worker);
-        buildings.remove(worker);
-        return workers.getOrDefault(building, new ArrayList<>()).remove(worker);
-    }
-
-    public Building getBuilding(PlayerCharacter worker) {
-        for (Building building : workers.keySet()) {
-            if (workers.get(building).contains(worker)) {
-                return building;
-            }
-        }
-        return null;
-    }
-
-    public boolean isWorking(PlayerCharacter worker) {
-        return allWorkers.contains(worker);
+    public void completeWorkCycle() {
+        allWorkers.clear();
     }
 
     public List<PlayerCharacter> getWorkers(Building building) {
-        return workers.computeIfAbsent(building, k -> new ArrayList<>());
-    }
-
-    public void shutdown(Building building) {
-        for (PlayerCharacter worker : workers.get(building)) {
-            removeWorker(building, worker);
+        List<PlayerCharacter> localWorkers = new LinkedList<>();
+        for (PlayerCharacter worker : allWorkers) {
+            if (worker.getLocation().equals(building.getLocation())) {
+                localWorkers.add(worker);
+            }
         }
+        return localWorkers;
     }
 
     /**
      * Corrects any workers or buildings in an invalid state.
      */
+    /*
     public void validateWorkers() {
         List<PlayerCharacter> workingSomewhere = new ArrayList<>();
         for (Building key : workers.keySet()) {
@@ -107,6 +75,6 @@ public class WorkManager {
             allWorkers = workingSomewhere;
         }
 
-    }
+    }*/
 
 }

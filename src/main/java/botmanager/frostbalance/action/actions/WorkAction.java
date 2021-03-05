@@ -21,7 +21,9 @@ public class WorkAction extends Action {
         Gatherer gatherer = queue.getCharacter().getTile().getBuildingData().activeGatherer();
 
         if (gatherer != null) {
-            WorkManager.singleton.addWorker(gatherer, queue.getCharacter());
+            WorkManager.singleton.addWorker(queue.getCharacter());
+        } else {
+            //TODO cancel and refund movement cost
         }
 
     }

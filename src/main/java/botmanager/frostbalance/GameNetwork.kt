@@ -34,7 +34,7 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
                         //TODO update observers of this tile
                     }
                 }
-                WorkManager.singleton.validateWorkers()
+                WorkManager.singleton.completeWorkCycle()
                 turn++
             }
         }, TURN_LENGTH, TURN_LENGTH)

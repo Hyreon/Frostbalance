@@ -27,7 +27,7 @@ class WorkCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("wo
             context.player.character.work(60)
         }
 
-        return if (WorkManager.singleton.addWorker(activeGatherer, context.player.character)) {
+        return if (WorkManager.singleton.addWorker(context.player.character)) {
             context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit})  for the next $workCycles minutes after ceasing to work at your previous one.")
         } else {
             context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit}) for the next $workCycles minutes.")
