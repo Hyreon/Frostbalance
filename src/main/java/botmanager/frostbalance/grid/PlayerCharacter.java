@@ -8,6 +8,7 @@ import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.action.actions.Action;
 import botmanager.frostbalance.action.actions.SearchAction;
+import botmanager.frostbalance.action.actions.WorkAction;
 import botmanager.frostbalance.action.routine.MoveToRoutine;
 import botmanager.frostbalance.action.routine.RepeatRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
@@ -137,6 +138,10 @@ public class PlayerCharacter extends Mobile {
         getActionQueue().add(new RepeatRoutine<>(new SearchAction(this), searches));
     }
 
+    public void work(int workCycles) {
+        getActionQueue().add(new RepeatRoutine<>(new WorkAction(this), workCycles));
+    }
+
     public Hex getDestination() {
         List<Hex> waypoints = getActionQueue().simulation().waypoints(false);
         return waypoints.get(waypoints.size() - 1); //last waypoint
@@ -169,6 +174,7 @@ public class PlayerCharacter extends Mobile {
     public String getName() {
         return getPlayer().getName();
     }
+
 
     @Override
     public boolean turnAction() {

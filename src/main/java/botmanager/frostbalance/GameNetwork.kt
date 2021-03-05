@@ -28,8 +28,8 @@ class GameNetwork(@Transient var bot: Frostbalance, var id: String) : Containabl
             override fun run() {
                 println("Doing turn $turn")
                 worldMap.loadedTiles.forEach {
-                    val buildingChanges = it.buildingData.buildings.any { building -> building.doTurn(turn) }
                     val mobChanges = it.mobs.any { mob -> mob.doTurn(turn) }
+                    val buildingChanges = it.buildingData.buildings.any { building -> building.doTurn(turn) }
                     if (buildingChanges || mobChanges) { //something changed on the tile
                         //TODO update observers of this tile
                     }

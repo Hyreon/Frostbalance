@@ -24,10 +24,10 @@ class SearchCommand(bot: Frostbalance): FrostbalanceGuildCommand(bot, arrayOf(
         if (searches != null) {
             context.player.character.searchTile(searches)
         } else {
-            context.player.character.searchTile(1)
+            context.player.character.searchTile(60)
         }
 
-        context.sendResponse("You are now searching for resources at ${context.player.character.destination.getCoordinates(context.author.userOptions.coordSys)}, and will stop after $searches attempts.")
+        context.sendResponse("You are now searching for resources at ${context.player.character.destination.getCoordinates(context.author.userOptions.coordSys)}, and will stop after $searches minutes.")
 
     }
 

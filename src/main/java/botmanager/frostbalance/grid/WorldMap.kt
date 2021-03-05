@@ -27,11 +27,11 @@ class WorldMap(@Transient var gameNetwork: GameNetwork) : Containable<GameNetwor
     var seed: Long = Random().nextLong()
 
     val players: List<PlayerCharacter>
-    get() = {
-        var list: MutableList<PlayerCharacter> = ArrayList()
-        loadedTiles.forEach{ tile -> list.addAll(tile.objects.filterIsInstance(PlayerCharacter::class.java))}
-        list
-    }.invoke()
+    get() {
+        val list: MutableList<PlayerCharacter> = ArrayList()
+        loadedTiles.forEach { tile -> list.addAll(tile.objects.filterIsInstance(PlayerCharacter::class.java)) }
+        return list
+    }
 
     fun getCharacter(player: Player): PlayerCharacter {
         return players.firstOrNull{ character -> character.userId == player.userWrapper.id} ?: let {

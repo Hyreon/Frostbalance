@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid.building;
 
 import botmanager.frostbalance.MapToCollection;
+import botmanager.frostbalance.action.actions.WorkAction;
 import botmanager.frostbalance.grid.PlayerCharacter;
 import org.jetbrains.annotations.NotNull;
 
@@ -90,12 +91,14 @@ public class WorkManager {
                 if (!worker.getTile().equals(key.getTile())) { //invalid!
                     System.err.println("Removing worker-building desynchronization");
                     removeWorker(key, worker);
-                }
-                if (workingSomewhere.contains(worker)) {
+                } else if (workingSomewhere.contains(worker)) {
                     System.err.println("Removing worker multi-task");
                     removeWorker(key, worker);
+                } else if (!(worker.getActionQueue().peek() instanceof WorkAction)) {
+                    removeWorker(key, worker);
+                } else { //the worker works
+                    workingSomewhere.add(worker);
                 }
-                workingSomewhere.add(worker);
             }
         }
 
