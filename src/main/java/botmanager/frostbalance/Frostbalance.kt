@@ -12,6 +12,7 @@ import botmanager.frostbalance.commands.admin.*
 import botmanager.frostbalance.commands.influence.*
 import botmanager.frostbalance.commands.map.*
 import botmanager.frostbalance.commands.meta.*
+import botmanager.frostbalance.commands.player.QueueCommand
 import botmanager.frostbalance.commands.resource.*
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
@@ -545,15 +546,12 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     }
 
     fun resourceOddsFor(biome: Biome): List<Pair<DepositType, Double>> {
-        if (!depositTypeCaches.containsKey(biome)) {
-            val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
-            val weights = effectiveResources.map {
-                it.pointsIn(biome)
-            }
-            val totalWeights = weights.reduceOrNull { acc, i -> acc + i } ?: 0.0
-            depositTypeCaches[biome] = effectiveResources.zip(weights.map { weight -> weight / totalWeights} )
+        val effectiveResources = globalResources().filter { it.pointsIn(biome) > 0 }
+        val weights = effectiveResources.map {
+            it.pointsIn(biome)
         }
-        return depositTypeCaches[biome] ?: emptyList()
+        val totalWeights = weights.reduceOrNull { acc, i -> acc + i } ?: 0.0
+        return effectiveResources.zip(weights.map { weight -> weight / totalWeights} )
     }
 
     private fun resourcesFor(biome: Biome): List<Pair<DepositType, Double>> {
@@ -575,6 +573,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
      */
     fun generateResourceIn(biome: Biome, seed: Long): DepositType {
         val effectiveResources = resourcesFor(biome)
+        println("Effective resources: $effectiveResources")
+        println("Using seed: $seed")
+        println("Result test: ${Utilities.randomFromSeed(seed)} ${Utilities.randomFromSeed(seed)} ${Utilities.randomFromSeed(seed)} (should all match)")
         val selector = Utilities.mapToDoubleRange(Utilities.randomFromSeed(seed), 0.0, effectiveResources.last().second)
         return effectiveResources.first { it.second >= selector }.first
     }
@@ -950,7 +951,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 WorkCommand(this),
                 InventoryCommand(this),
                 DepositOddsCommand(this),
-                TradeCommand(this)
+                TradeCommand(this),
+                QueueCommand(this)
         )
         load()
         saverTimer.schedule(object : TimerTask() {

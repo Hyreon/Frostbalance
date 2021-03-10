@@ -43,4 +43,9 @@ public class ClaimAction extends Action {
         queue.getCharacter().getTile().getClaimData().addClaim(member, amountToClaim);
 
     }
+
+    @Override
+    public String displayStep() {
+        return "Claim " + location.getCoordinates(queue.getCharacter()) + " with " + amountToClaim + " for " + queue.getCharacter().getMap().getGameNetwork().guildWithAllegiance(inNameOf);
+    }
 }

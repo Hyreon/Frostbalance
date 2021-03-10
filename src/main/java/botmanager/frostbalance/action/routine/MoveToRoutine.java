@@ -166,4 +166,14 @@ public class MoveToRoutine extends Routine {
     public QueueStep simulate() {
         return new MoveToRoutine(this.queue, this.destination, this.getSoftWaypoints());
     }
+
+    @Override
+    public String displayStep() {
+        String waypoints = "";
+        if (!getSoftWaypoints().isEmpty()) {
+            waypoints = " {Favored route: " + getSoftWaypoints().toString() + "}";
+        }
+        return "**Move to " + getDestination().getCoordinates(queue.getCharacter()) + "**";
+    }
+
 }

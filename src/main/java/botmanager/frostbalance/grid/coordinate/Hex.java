@@ -9,6 +9,8 @@ package botmanager.frostbalance.grid.coordinate;
  *   ^^^^
  */
 
+import botmanager.frostbalance.grid.PlayerCharacter;
+
 import java.util.*;
 
 /**
@@ -254,6 +256,10 @@ public class Hex {
             default:
                 return toString();
         }
+    }
+
+    public String getCoordinates(PlayerCharacter character) {
+        return getCoordinates(character.getUser().getUserOptions().getCoordSys());
     }
 
     /**

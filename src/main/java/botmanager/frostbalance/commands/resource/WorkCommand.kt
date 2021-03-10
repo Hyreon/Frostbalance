@@ -8,30 +8,16 @@ import botmanager.frostbalance.menu.BuildGathererMenu
 class WorkCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("work"), AuthorityLevel.GENERIC, ContextLevel.ANY) {
 
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String? {
-        return ".work - Works the gatherer on a tile (if there is one available)"
+        return "**.work MINUTES** - Works the gatherer on a tile (if there is one available)"
     }
 
     override fun executeWithGuild(context: GuildMessageContext, vararg params: String) {
 
         var args = ArgumentStream(params)
-        val workCycles = args.nextInteger()
+        val workCycles = args.nextInteger() ?: 60
 
-        val character = context.player.character
-        val activeGatherer = character.tile.buildingData.activeGatherer() ?: return context.sendResponse("There are no active gatherers here!")
-
-        if (activeGatherer.owner != context.player) return context.sendResponse("You don't own this gatherer!")
-
-        if (workCycles != null) {
-            context.player.character.work(workCycles)
-        } else {
-            context.player.character.work(60)
-        }
-
-        return if (WorkManager.singleton.addWorker(context.player.character)) {
-            context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit})  for the next $workCycles minutes after ceasing to work at your previous one.")
-        } else {
-            context.sendResponse("You are now working on your gatherer (${activeGatherer.deposit}) for the next $workCycles minutes.")
-        }
+        context.player.character.work(workCycles)
+        context.sendResponse("If possible, you will now work at ${context.player.character.destination.getCoordinates(context.author.userOptions.coordSys)}, and will stop after $workCycles minutes.")
 
     }
 

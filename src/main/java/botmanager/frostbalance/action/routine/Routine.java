@@ -11,6 +11,11 @@ public abstract class Routine implements QueueStep {
 
     transient ActionQueue queue;
 
+    /**
+     * Gets the next action to take. Used when performing moves.
+     * This returns 'null' if the action cannot be routine is complete, and the character should move on.
+     * @return
+     */
     public Action pollAction() {
         return peekAtAllActions().poll();
     }
@@ -23,7 +28,7 @@ public abstract class Routine implements QueueStep {
 
     @Override
     public int moveCost() {
-        return pollAction().moveCost();
+        return peekAction().moveCost();
     }
 
     @Override

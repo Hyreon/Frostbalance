@@ -14,4 +14,6 @@ public interface QueueStep extends Containable<ActionQueue> {
     default QueueStep refreshed() {
         return this;
     }
+
+    default String displayStep() { return toString(); }
 }

@@ -36,4 +36,9 @@ public class SearchAction extends Action {
 
     }
 
+    @Override
+    public String displayStep() {
+        return "Search this tile";
+    }
+
 }

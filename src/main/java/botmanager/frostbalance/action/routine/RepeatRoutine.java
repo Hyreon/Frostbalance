@@ -21,9 +21,11 @@ public class RepeatRoutine<A extends Action> extends Routine {
     }
 
     public Action pollAction() {
-        amount--;
         if (amount <= 0) return null;
-        else return action;
+        else {
+            amount--;
+            return action;
+        }
     }
 
     @Override
@@ -46,8 +48,7 @@ public class RepeatRoutine<A extends Action> extends Routine {
      */
     @Override
     public QueueStep refreshed() {
-        amount = initialAmount;
-        return this;
+        return new RepeatRoutine<>(this.action, initialAmount);
     }
 
     /**
@@ -65,6 +66,11 @@ public class RepeatRoutine<A extends Action> extends Routine {
 
     public int getAmount() {
         return amount;
+    }
+
+    @Override
+    public String displayStep() {
+        return getAction().displayStep() + " x" + getAmount();
     }
 
 }

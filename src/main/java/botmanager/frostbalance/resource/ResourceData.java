@@ -42,7 +42,7 @@ public class ResourceData implements Containable<Tile>, Container {
 
     public boolean search(boolean sudo) {
         //FIXME use the tile and the attempts to seed the result!
-        if (sudo || Utilities.randomFromSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.RESOURCE_SEARCH_SUCCESS) < SEARCH_SUCCESS_RATE) {
+        if (sudo || Utilities.randomFromSeed(Utilities.combineSeed(RandomId.RESOURCE_SEARCH_SUCCESS, tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts)) < SEARCH_SUCCESS_RATE) {
             addProgress();
             attempts++;
             return true;
@@ -63,7 +63,7 @@ public class ResourceData implements Containable<Tile>, Container {
     }
 
     private void addResource() {
-        long seed = Utilities.combineSeed(tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts, RandomId.NEW_DEPOSIT);
+        long seed = Utilities.combineSeed(RandomId.NEW_DEPOSIT, tile.getMap().getSeed(), tile.getLocation().hashCode(), numResources());
         DepositType depositType = Frostbalance.bot.generateResourceIn(tile.getBiome(), seed);
         resources.add(
                 new ResourceDeposit(depositType, tile, progress)

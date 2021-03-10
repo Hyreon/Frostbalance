@@ -16,4 +16,9 @@ public class DummyAction extends Action {
 
     @Override
     public void doAction() throws FrostbalanceException {} //does nothing
+
+    @Override
+    public String displayStep() {
+        return "Do nothing";
+    }
 }

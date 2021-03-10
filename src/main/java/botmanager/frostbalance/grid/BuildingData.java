@@ -62,4 +62,8 @@ public class BuildingData implements Containable<Tile>, Container {
         gatherers.add(0,gatherer); //this gatherer gets precedence, as it is newer
         return true;
     }
+
+    public boolean allowsWork(PlayerCharacter character) {
+        return (activeGatherer() != null && activeGatherer().ownerId.equals(character.userId));
+    }
 }

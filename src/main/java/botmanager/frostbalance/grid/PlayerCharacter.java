@@ -7,10 +7,10 @@ import botmanager.frostbalance.UserWrapper;
 import botmanager.frostbalance.action.ActionQueue;
 import botmanager.frostbalance.action.QueueStep;
 import botmanager.frostbalance.action.actions.Action;
-import botmanager.frostbalance.action.actions.SearchAction;
 import botmanager.frostbalance.action.actions.WorkAction;
 import botmanager.frostbalance.action.routine.MoveToRoutine;
 import botmanager.frostbalance.action.routine.RepeatRoutine;
+import botmanager.frostbalance.action.routine.SearchRoutine;
 import botmanager.frostbalance.checks.FrostbalanceException;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import botmanager.frostbalance.resource.Inventory;
@@ -134,8 +134,9 @@ public class PlayerCharacter extends Mobile {
         }
     }
 
-    public void searchTile(int searches) {
-        getActionQueue().add(new RepeatRoutine<>(new SearchAction(this), searches));
+    public void searchTile(int itemsToFind) {
+        int targetItems = getMap().getTile(getDestination()).getResourceData().numResources() + itemsToFind;
+        getActionQueue().add(new SearchRoutine(this, targetItems));
     }
 
     public void work(int workCycles) {

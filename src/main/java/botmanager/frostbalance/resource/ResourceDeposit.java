@@ -25,7 +25,7 @@ public class ResourceDeposit implements Containable<ResourceData> {
         this.data = tile.getResourceData();
         this.resourceId = depositType.getId();
         this.maxSupplyFactor = 1;
-        while ( Utilities.randomFromSeed(RandomId.DEPOSIT_LEVEL, tile.getLocation().getXnoZ(), tile.getLocation().getYnoZ(), progress, maxSupplyFactor) > 0.5 ) {
+        while ( Utilities.randomFromSeed(Utilities.combineSeed(RandomId.DEPOSIT_LEVEL, tile.getLocation().getXnoZ(), tile.getLocation().getYnoZ(), progress, maxSupplyFactor)) > 0.5 ) {
             maxSupplyFactor++;
         }
     }

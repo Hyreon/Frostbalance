@@ -12,7 +12,7 @@ public class WorkAction extends Action {
 
     @Override
     public int moveCost() {
-        return 1;
+        return (queue.getCharacter().getTile().getBuildingData().allowsWork(queue.getCharacter())) ? 1 : 0;
     }
 
     @Override
@@ -26,6 +26,11 @@ public class WorkAction extends Action {
             //TODO cancel and refund movement cost
         }
 
+    }
+
+    @Override
+    public String displayStep() {
+        return "Work at this tile's building";
     }
 
 }

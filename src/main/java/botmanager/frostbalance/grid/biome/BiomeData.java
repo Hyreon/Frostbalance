@@ -103,7 +103,7 @@ public class BiomeData implements Containable<Tile> {
     }
 
     private double simplexTile(double coord1, double coord2, long generatorSeed) {
-        OpenSimplexNoise noise = new OpenSimplexNoise(Utilities.combineSeed(generatorSeed, tile.getMap().getSeed(), RandomId.TILE_GENERATOR));
+        OpenSimplexNoise noise = new OpenSimplexNoise(Utilities.combineSeed(RandomId.TILE_GENERATOR, generatorSeed, tile.getMap().getSeed()));
         double ZOOM_AMOUNT = 1.0 / 16;
         return (noise.eval(coord1 * ZOOM_AMOUNT, coord2 * ZOOM_AMOUNT) + 1)
                 / 2.0;

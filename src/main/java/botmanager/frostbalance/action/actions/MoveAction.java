@@ -34,4 +34,9 @@ public class MoveAction extends Action {
     public Hex.Direction getDirection() {
         return direction;
     }
+
+    @Override
+    public String displayStep() {
+        return "Move " + getDirection().name();
+    }
 }

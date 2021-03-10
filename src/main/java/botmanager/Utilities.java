@@ -388,22 +388,20 @@ public class Utilities {
      * Returns a random value between 0 and 1 from a set of seeds.
      * This will yield the same result for the same set of seeds.
      */
-    public static double randomFromSeed(long... seeds) {
-        long seed = combineSeed(seeds);
-        System.out.println("Seed:" + seed);
+    public static double randomFromSeed(long seed) {
         double output = new Random(seed).nextDouble();
-        System.out.println("Output:" + output);
         return output;
     }
 
     /**
      * This combines any number of initial seeds and generates a (reasonably) distinct seed based off of
      * these values.
+     * Note that this is NOT guaranteed to yield the same seed given one input.
      */
     public static long combineSeed(long... seeds) {
         long total = 0;
         for (long seed : seeds) {
-            total = total * 1008001L + new Random(seed).nextInt(0xFFFF);
+            total = total * 1008001L + seed * 307L;
         }
         return total;
     }
