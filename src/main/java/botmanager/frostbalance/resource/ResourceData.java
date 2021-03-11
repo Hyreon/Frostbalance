@@ -41,13 +41,11 @@ public class ResourceData implements Containable<Tile>, Container {
     }
 
     public boolean search(boolean sudo) {
-        //FIXME use the tile and the attempts to seed the result!
-        if (sudo || Utilities.randomFromSeed(Utilities.combineSeed(RandomId.RESOURCE_SEARCH_SUCCESS, tile.getMap().getSeed(), tile.getLocation().hashCode(), attempts)) < SEARCH_SUCCESS_RATE) {
+        attempts++;
+        if (sudo || Utilities.randomFromSeed(Utilities.combineSeed(RandomId.RESOURCE_SEARCH_SUCCESS, tile.getMap().getSeed(), tile.getLocation().hashCode(), numResources(), attempts)) < SEARCH_SUCCESS_RATE) {
             addProgress();
-            attempts++;
             return true;
         } else {
-            attempts++;
             return false;
         }
     }
@@ -68,6 +66,7 @@ public class ResourceData implements Containable<Tile>, Container {
         resources.add(
                 new ResourceDeposit(depositType, tile, progress)
         );
+        attempts = 0;
     }
 
     @Override

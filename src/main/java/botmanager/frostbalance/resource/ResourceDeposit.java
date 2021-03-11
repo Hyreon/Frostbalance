@@ -30,6 +30,10 @@ public class ResourceDeposit implements Containable<ResourceData> {
         }
     }
 
+    public int getMaxSupplyFactor() {
+        return maxSupplyFactor;
+    }
+
     public String toString() {
         return maxSupplyFactor + "x " + getDeposit().name;
     }
@@ -65,7 +69,7 @@ public class ResourceDeposit implements Containable<ResourceData> {
         if (supply > 1.0) { supply = 1.0; }
     }
 
-    private double getSupply() {
+    public double getSupply() {
         long currentTurn = data.tile.getMap().getGameNetwork().getTurn();
         if (lastSupplyUpdateTurn < currentTurn) {
             renewSupply(currentTurn - lastSupplyUpdateTurn);

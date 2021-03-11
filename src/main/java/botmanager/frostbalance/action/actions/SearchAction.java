@@ -20,17 +20,17 @@ public class SearchAction extends Action {
         PlayerCharacter character = queue.getCharacter();
         ResourceData resourceData = character.getTile().getResourceData();
         int startingResources = resourceData.numResources();
-        boolean success = resourceData.search(false);
         long attempts = resourceData.getAttempts();
+        boolean success = resourceData.search(false);
         if (success && resourceData.getProgress() == 0) { //progress reset
             if (startingResources == resourceData.numResources()) {
                 character.getUser().sendNotification(character.getMap().getGameNetwork().guildWithAllegiance(character.getNation()),
                         "Your search at " + character.getTile().getLocation().getCoordinates(character.getUser().getUserOptions().getCoordSys()) +
-                                " has revealed that this tile is exhausted (after **" + attempts + "** attempts). There is nothing left to be found.");
+                                " has revealed that this tile is exhausted (after **" + (attempts + 1) + "** attempts). There is nothing left to be found.");
             } else {
                 queue.getCharacter().getUser().sendNotification(character.getMap().getGameNetwork().guildWithAllegiance(character.getNation()),
                         "Your search at " + character.getTile().getLocation().getCoordinates(character.getUser().getUserOptions().getCoordSys()) +
-                                " has revealed *" + resourceData.recentDeposit() + "* (after **" + attempts + "** attempts)! You can now set up a gatherer for this resource.");
+                                " has revealed *" + resourceData.recentDeposit() + "* (after **" + (attempts + 1) + "** attempts)! You can now set up a gatherer for this resource.");
             }
         }
 

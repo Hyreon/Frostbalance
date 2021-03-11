@@ -65,14 +65,16 @@ public class PlayerCharacter extends Mobile {
         int spentMoves = 0;
         for(;;) {
             QueueStep base = getActionQueue().peekBase();
-            Action action = getActionQueue().poll();
+            Action action = getActionQueue().peek();
             if (action != null //is supposed to do something
                     && moves >= action.moveCost() //character has the energy to do the thing
                     && spentMoves < 1 //character hasn't already moved the 1-tile limit
-                    && (action.moveCost() > 0 || !stepsPerformed.contains(base))) { //not a repeat of a zero-cost task (no infinite loops); beats both bad Routines and ActionQueues
+                    && (action.moveCost() > 0 || !stepsPerformed.contains(base)) //not a repeat of a zero-cost task (no infinite loops); beats both bad Routines and ActionQueues
+                    && stepsPerformed.size() < 1000) { //extra step to ensure that long loops, but not infinite ones, are still performed
                 try {
                     spentMoves += action.moveCost();
                     moves -= action.moveCost();
+                    getActionQueue().poll();
                     action.doAction();
                     System.out.println("Did " + action.getClass().getSimpleName());
                 } catch (FrostbalanceException e) {

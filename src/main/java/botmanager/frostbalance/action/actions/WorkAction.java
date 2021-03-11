@@ -12,7 +12,11 @@ public class WorkAction extends Action {
 
     @Override
     public int moveCost() {
-        return (queue.getCharacter().getTile().getBuildingData().allowsWork(queue.getCharacter())) ? 1 : 0;
+        return (validWorkConditions()) ? 1 : 0;
+    }
+
+    private boolean validWorkConditions() {
+        return queue.getCharacter().getTile().getBuildingData().allowsWork(queue.getCharacter());
     }
 
     @Override

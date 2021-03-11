@@ -22,7 +22,7 @@ class DepositOddsCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arra
         odds = odds.sortedByDescending { x -> x.second }
         val lines = odds.map { x -> x.first.toString() + ": " + String.format("%.1f", x.second * 100) + "%" }.toMutableList()
         lines.add("**Abundance: 10.0%**")
-        context.sendResponse("Here are the odds for finding resources in ${biome.name}:")
+        lines.add(0, "Odds for finding resources in ${biome.name}:")
         context.sendMultiLineResponse(lines)
 
     }
