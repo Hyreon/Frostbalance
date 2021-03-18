@@ -17,6 +17,8 @@ import botmanager.frostbalance.commands.resource.*
 import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.*
+import botmanager.frostbalance.grid.building.Building
+import botmanager.frostbalance.grid.building.BuildingAdapter
 import botmanager.frostbalance.grid.building.Gatherer
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.records.RegimeData
@@ -138,18 +140,18 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     override fun onGuildUpdateIcon(event: GuildUpdateIconEvent) {
         if (guildIconCache(event.guild)) return
         val urlString = event.newIconUrl
-        val guildFlags = getSettings(event.guild)
+        val guildColor = event.guild.wrapper.color
         if (urlString == null) {
-            val iconNameToUse: String = if (!guildFlags.contains(OldOptionFlag.MAIN)) {
-                "discord/snowflake.png"
-            } else if (guildFlags.contains(OldOptionFlag.RED)) {
+            val iconNameToUse: String = if (guildColor == Color.WHITE) {
+                "discord/snowflake_w.png"
+            } else if (guildColor == Color.RED) {
                 "discord/snowflake_r.png"
-            } else if (guildFlags.contains(OldOptionFlag.GREEN)) {
+            } else if (guildColor == Color.GREEN) {
                 "discord/snowflake_g.png"
-            } else if (guildFlags.contains(OldOptionFlag.BLUE)) {
+            } else if (guildColor == Color.BLUE) {
                 "discord/snowflake_b.png"
             } else {
-                "discord/snowflake_w.png"
+                "discord/snowflake.png"
             }
             val iconToUse = Utilities.getResource(iconNameToUse)
             try {
@@ -160,7 +162,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 System.err.println("Cannot put in the default guild icon: the file " + iconToUse + "didn't load correctly!")
                 e.printStackTrace()
             }
-        } else if (guildFlags.contains(OldOptionFlag.MAIN)) {
+        } else {
             var connection: HttpURLConnection? = null
             try {
                 val url = URL(urlString)
@@ -236,7 +238,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             event.guild.retrieveBan(event.user).complete() //verify this player was banned and didn't just leave
             if (event.user.wrapper.playerIn(event.guild.wrapper.gameNetwork).isLeader
                     && !event.user.wrapper.memberIn(event.guild.wrapper).banned
-                    && getSettings(event.guild).contains(OldOptionFlag.MAIN)) {
+                    && event.guild.wrapper.gameNetwork.isMain()) {
                 event.guild.unban(event.user).complete()
                 Utilities.sendGuildMessage(event.guild.defaultChannel,
                         event.user.name + " has been unbanned because they are the leader of a main server.")
@@ -254,17 +256,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             event.guild.ban(event.user, 0, BAN_MESSAGE).queue()
         }
     }
-
-    private fun getUserCSVAtIndex(guild: Guild?, userId: String, index: Int): String {
-        val guildId: String = guild?.id ?: "global"
-        val file = File("data/$name/$guildId/$userId.csv")
-        return if (!file.exists()) {
-            ""
-        } else Utilities.getCSVValueAtIndex(Utilities.read(file), index)
-    }
-
-    private val adminIds: List<String>
-        get() = Utilities.readLines(File("data/$name/staff.csv"))
 
     private fun loadBiomes(): MutableList<Biome> {
 
@@ -404,70 +395,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return resourceDeposits
     }
 
-    private fun loadRecords(guild: Guild?) {
-        val info = Utilities.readLines(File("data/" + name + "/" + guild!!.id + "/history.csv"))
-        if (info != null && info.isNotEmpty()) {
-            for (line in info) {
-                if (line.isEmpty()) {
-                    regimes.getOrDefault(guild, ArrayList())
-                    continue
-                }
-                val rulerId = Utilities.getCSVValueAtIndex(line, 0)
-                var startDay: Long = try {
-                    Utilities.getCSVValueAtIndex(line, 2).toLong()
-                } catch (e: NumberFormatException) {
-                    0
-                }
-                var endDay: Long = try {
-                    Utilities.getCSVValueAtIndex(line, 3).toLong()
-                } catch (e: NumberFormatException) {
-                    0
-                }
-                var terminationCondition: TerminationCondition = try {
-                    TerminationCondition.valueOf(Utilities.getCSVValueAtIndex(line, 4))
-                } catch (e: IllegalArgumentException) {
-                    TerminationCondition.UNKNOWN
-                } catch (e: NullPointerException) {
-                    TerminationCondition.UNKNOWN
-                }
-                regimes.getOrDefault(guild, ArrayList())!!.add(RegimeData(getGuildWrapper(guild.id), rulerId, startDay, endDay, terminationCondition))
-            }
-        }
-    }
-
-    /**
-     * Returns if the player is banned from this guild.
-     * @param guild The guild to check
-     * @param user The user to check
-     * @return Whether this user is banned from this guild, or banned globally
-     */
-    private fun isLocallyBanned(guild: Guild?, user: User?): Boolean {
-        return java.lang.Boolean.parseBoolean(getUserCSVAtIndex(guild, user!!.id, 1))
-    }
-
-    /**
-     * Returns if the player is globally banned.
-     * This function is expensive and should not be fired often.
-     * @param user The user to check
-     * @return Whether this user is banned globally
-     */
-    private fun isGloballyBanned(user: User?): Boolean {
-        val bannedUserIds = Utilities.readLines(File("data/$name/global/bans.csv"))
-        for (bannedUserId in bannedUserIds) {
-            if (bannedUserId == user!!.id) {
-                return true
-            }
-        }
-        return false
-    }
-
-    private fun getRecords(guild: Guild?): MutableList<RegimeData>? {
-        if (regimes[guild] == null) {
-            loadRecords(guild)
-        }
-        return regimes.getOrDefault(guild, ArrayList())
-    }
-
     private fun getSettings(guild: Guild): Collection<OldOptionFlag> {
         val debugFlagOlds: MutableCollection<OldOptionFlag> = HashSet()
         val flags = Utilities.readLines(File("data/" + name + "/" + guild.id + "/flags.csv"))
@@ -475,57 +402,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             debugFlagOlds.add(OldOptionFlag.valueOf(flag!!))
         }
         return debugFlagOlds
-    }
-
-    private fun getOwnerId(guild: Guild?): String {
-        val info = Utilities.read(File("data/" + name + "/" + guild!!.id + "/owner.csv"))
-        return Utilities.getCSVValueAtIndex(info, 0)
-    }
-
-    private fun getUserInfluence(guild: Guild?, user: User?): Influence {
-        return try {
-            Influence(getUserCSVAtIndex(guild, user!!.id, 0).toDouble())
-        } catch (e: NumberFormatException) {
-            Influence(0)
-        }
-    }
-
-    private fun getUserDailyAmount(guild: Guild?, user: User?): Influence {
-        return try {
-            Influence(getUserCSVAtIndex(guild, user!!.id, 3).toDouble())
-        } catch (e: NumberFormatException) {
-            Influence(0)
-        }
-    }
-
-    private fun getUserLastDaily(guild: Guild?, user: User?): Long {
-        return try {
-            getUserCSVAtIndex(guild, user!!.id, 2).toInt().toLong()
-        } catch (e: NumberFormatException) {
-            0
-        }
-    }
-
-    private fun getMainAllegiance(user: User): Nation? {
-        val allegiance = getUserCSVAtIndex(null, user.id, 1)
-        return if (Utils.isNullOrEmpty(allegiance)) null else Nation.valueOf(allegiance)
-    }
-
-    private fun getUserDefaultGuild(user: User?): Guild? {
-        return try {
-            jda.getGuildById(getUserCSVAtIndex(null, user!!.id, 0))
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-    }
-
-    fun loadLegacy() {
-        loadUsersFromCSV()
-        loadMembersFromCSV()
-        loadGamesFromCSV()
-        loadGuildsFromCSV()
-        loadMapsLegacy()
-        loadPlayersFromCSV()
     }
 
     override fun getCommands(): Array<FrostbalanceCommand> {
@@ -589,26 +465,6 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return mainNetwork.guildWithAllegiance(nation)
     }
 
-    private fun loadMapsLegacy() {
-        if (jda.guilds.isEmpty()) {
-            val exec = ScheduledThreadPoolExecutor(1)
-            exec.schedule({ loadMapsLegacy() }, 1, TimeUnit.SECONDS)
-        } else {
-            for (guild in jda.guilds) {
-                if (!getSettings(guild).contains(OldOptionFlag.MAIN)) {
-                    println("Loading map for " + guild.name)
-                    try {
-                        WorldMap.readWorldLegacy(guild.id)
-                    } catch (e: IllegalStateException) {
-                        e.printStackTrace()
-                        continue
-                    }
-                }
-            }
-            WorldMap.readWorldLegacy(null)
-        }
-    }
-
     fun saveUsers() {
         for (user in userWrappers) {
             writeObject("users/" + user.id, user)
@@ -617,137 +473,11 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
 
     private fun saveGames() {
         for (network in gameNetworks) {
-            writeObject("games/" + network.id, network, Pair(Mobile::class.java, TileObjectAdapter()))
-            writeObject("games/" + network.id, network, Pair(
-                    QueueStep::class.java, QueueStepAdapter()), Pair(Mobile::class.java, TileObjectAdapter()))
+            writeObject("games/" + network.id, network,
+                Pair(QueueStep::class.java, QueueStepAdapter()),
+                Pair(Mobile::class.java, TileObjectAdapter()),
+                Pair(Building::class.java, BuildingAdapter()))
             //TODO if network.isEmpty() remove file
-        }
-    }
-
-    private fun loadGamesFromCSV() {
-        gameNetworks.clear()
-        gameNetworks.add(GameNetwork(this, "main")) //establishes "main" as the first (main) network
-    }
-
-    private fun loadGuildsFromCSV() {
-        for (folder in File("data/$name").listFiles()) {
-            println("Folder:$folder")
-            if (!folder.isDirectory) continue
-            val guildId = folder.name
-            println("GuildId:$guildId")
-            try {
-                val guild = jda.getGuildById(guildId) ?: continue
-                println("Guild:$guild")
-                try {
-                    val settings = getSettings(guild)
-                    val gameNetwork = when {
-                        settings.contains(OldOptionFlag.MAIN) -> {
-                            getGameNetwork("main")
-                        }
-                        else -> {
-                            getGameNetwork(guild.id)
-                        }
-                    }
-                    val bGuild = getGuildIfPresent(guildId) ?: GuildWrapper(gameNetwork, guild)
-                    gameNetwork.addGuild(bGuild)
-                    gameNetwork.adopt()
-                    gameNetwork.initializeTurnCycle()
-                    bGuild.loadLegacy(
-                            getSettings(guild) as MutableSet<OldOptionFlag>,
-                            getRecords(guild)!!,
-                            getOwnerId(guild),
-                            guild.name
-                    )
-                    println("Added guild:" + bGuild.name)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            } catch (e: NumberFormatException) {
-            }
-        }
-    }
-
-    private fun loadUsersFromCSV() {
-        userWrappers.clear()
-        for (file in File("data/$name/global").listFiles()) {
-            val fileName = file.name
-            if (!fileName.contains(".csv")) continue
-            val userId = fileName.replace(".csv", "")
-            println("UserId: $userId")
-            try {
-                if (jda.getUserById(userId) != null) {
-                    val bUser = getUserWrapper(userId)
-                    println("User: " + bUser.jdaUser)
-                    try {
-                        bUser.loadLegacy(
-                                getUserDefaultGuild(bUser.jdaUser)!!.id,
-                                isGloballyBanned(bUser.jdaUser),
-                                bUser.jdaUser!!.name,
-                                adminIds.contains(bUser.id)
-                        )
-                        userWrappers.add(bUser)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    println("Added: " + bUser.name)
-                }
-            } catch (e: NumberFormatException) {
-            }
-        }
-    }
-
-    private fun loadPlayersFromCSV() {
-        for (file in File("data/$name/global").listFiles()) {
-            val fileName = file.name
-            if (!fileName.contains(".csv")) continue
-            val userId = fileName.replace(".csv", "")
-            println("UserId: $userId")
-            try {
-                if (jda.getUserById(userId) != null) {
-                    val bUser = getUserWrapper(userId)
-                    println("User: " + bUser.jdaUser)
-                    try {
-                        gameNetworks.forEach { gameNetwork -> bUser.playerIn(gameNetwork).writeAllegiance(getMainAllegiance(bUser.jdaUser!!)) }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    println("Added: " + bUser.name)
-                }
-            } catch (e: NumberFormatException) {
-            }
-        }
-    }
-
-    private fun loadMembersFromCSV() {
-        for (folder in File("data/$name").listFiles()) {
-            println("Folder:$folder")
-            if (!folder.isDirectory) continue
-            val guildId = folder.name
-            println("GuildId:$guildId")
-            try {
-                val guild = jda.getGuildById(guildId) ?: continue
-                for (file in folder.listFiles()) {
-                    val fileName = file.name
-                    if (!fileName.contains(".csv")) continue
-                    val userId = fileName.replace(".csv", "")
-                    val user = jda.getUserById(userId)
-                    try {
-                        if (jda.getUserById(userId) != null) {
-                            val bMember = getMemberWrapper(userId, guildId)
-                            bMember.loadLegacy(isLocallyBanned(guild, user),
-                                    DailyInfluenceSource(
-                                            getUserDailyAmount(guild, user),
-                                            getUserLastDaily(guild, user)
-                                    ),
-                                    getUserInfluence(guild, user),
-                                    guild.getMember(user!!)?.nickname,
-                                    getUserWrapper(userId))
-                        }
-                    } catch (e: NumberFormatException) {
-                    }
-                }
-            } catch (e: NumberFormatException) {
-            }
         }
     }
 
@@ -781,6 +511,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 gsonBuilder.registerTypeAdapter(QueueStep::class.java, QueueStepAdapter())
                 gsonBuilder.registerTypeAdapter(Container::class.java, ContainerAdapter())
                 gsonBuilder.registerTypeAdapter(ActionQueue::class.java, ActionQueueAdapter())
+                gsonBuilder.registerTypeAdapter(Building::class.java, BuildingAdapter())
                 val gson = gsonBuilder.create()
                 println("Loading game network " + file.name)
                 val gameNetwork = gson.fromJson(IOUtils.read(file), GameNetwork::class.java)

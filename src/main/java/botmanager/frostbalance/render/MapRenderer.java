@@ -49,7 +49,7 @@ public class MapRenderer {
             for (Mobile mob : tile.getMobs()) {
                 renderObject(g, tile, center, sizeFactor, mob);
             }
-            Gatherer activeGatherer = tile.getBuildingData().activeGatherer();
+            Gatherer activeGatherer = tile.getBuildingData().getActiveGatherer();
             if (activeGatherer != null) {
                 renderObject(g, tile, center, sizeFactor, activeGatherer);
             }

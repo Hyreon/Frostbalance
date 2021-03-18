@@ -22,7 +22,7 @@ public class WorkAction extends Action {
     @Override
     public void doAction() {
 
-        Gatherer gatherer = queue.getCharacter().getTile().getBuildingData().activeGatherer();
+        Gatherer gatherer = queue.getCharacter().getTile().getBuildingData().getActiveGatherer();
 
         if (gatherer != null) {
             WorkManager.singleton.addWorker(queue.getCharacter());

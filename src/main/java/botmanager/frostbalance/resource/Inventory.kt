@@ -1,17 +1,26 @@
 package botmanager.frostbalance.resource
 
-class Inventory(val fictional: Boolean = false) {
+open class Inventory(val fictional: Boolean = false) {
     var items: MutableList<ItemStack> = mutableListOf()
 
     /**
      * Adds an item to the inventory. Has no effect if adding null.
      */
-    fun addItem(item: ItemStack?) {
-        item?.let {
-            items.firstOrNull { it.resourceId == item.resourceId && it.quality == item.quality }
-                ?.increment(item.quantity)
-                ?: items.add(item)
+    fun addItem(item: ItemStack?): Boolean {
+        return if (!canAddItemStack(item)) {
+            false
+        } else {
+            item?.let {
+                items.firstOrNull { it.resourceId == item.resourceId && it.quality == item.quality }
+                    ?.increment(item.quantity)
+                    ?: items.add(item)
+            }
+            true
         }
+    }
+
+    open fun canAddItemStack(item: ItemStack?): Boolean {
+        return true
     }
 
     /**

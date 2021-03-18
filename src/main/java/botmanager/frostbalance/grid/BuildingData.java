@@ -2,6 +2,7 @@ package botmanager.frostbalance.grid;
 
 import botmanager.frostbalance.grid.building.Building;
 import botmanager.frostbalance.grid.building.Gatherer;
+import botmanager.frostbalance.resource.ResourceDeposit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,12 +15,36 @@ public class BuildingData implements Containable<Tile>, Container {
 
     /**
      * A reference to all past and current gatherers on this location.
+     * Now uses activeBuilding and ruins.
      */
+    @Deprecated
     List<Gatherer> gatherers = new ArrayList<>();
 
+    /**
+     * The active building on this tile. There can only be one or none.
+     */
+    Building activeBuilding = null;
+
+    /**
+     * A reference to buildings no longer being used.
+     * They can be repaired by the original owner, if they own the land, and behave as if they were never
+     * dismantled.
+     * Buildings are automatically dismantled if a new claim is made, preventing the owner from accessing their
+     * building.
+     */
+    List<Building> ruins = new ArrayList<>();
+
+
+    /**
+     * Gets all buildings, active or otherwise.
+     * @return A newly created list containing all buildings
+     */
     @NotNull
     public List<Building> getBuildings() {
-        return new ArrayList<>(gatherers);
+        if (ruins == null) ruins = new ArrayList<>();
+        List<Building> allBuildings = new ArrayList<>(ruins);
+        if (getActiveBuilding() != null) allBuildings.add(activeBuilding);
+        return allBuildings;
     };
 
     public BuildingData(Tile tile) {
@@ -33,37 +58,65 @@ public class BuildingData implements Containable<Tile>, Container {
 
     @Override
     public void adopt() {
-        for (Building building : getBuildings()) {
-            building.setParent(this.tile); //shrug
+        if (gatherers == null) {
+            for (Building building : getBuildings()) {
+                building.setParent(this.tile); //shrug
+            }
+        } else {
+            ruins = new ArrayList<>();
+            for (Gatherer gatherer : gatherers) {
+                ruins.add(gatherer);
+                gatherer.setParent(this.tile);
+            }
         }
     }
 
     @Nullable
-    public Gatherer activeGatherer() {
-        if (gatherers.isEmpty()) return null;
-        else return gatherers.get(0);
+    public Gatherer getActiveGatherer() {
+        Building activeBuilding = getActiveBuilding();
+        if (activeBuilding instanceof Gatherer) return (Gatherer) activeBuilding;
+        else return null;
     }
 
-    /**
-     * Adds a new gatherer. This gatherer is *not* added to the history if a functionally identical one exists.
-     * @param gatherer
-     * @return Whether the new gatherer was added (true) or simply redirected to an existing one (false).
-     */
-    public boolean addGatherer(@NotNull Gatherer gatherer) {
-        for (int i = 0; i < gatherers.size(); i++) {
-            Gatherer existingGatherer = gatherers.get(i);
-            if (existingGatherer.ownerId.equals(gatherer.ownerId)
-                    && existingGatherer.getDeposit().equals(gatherer.getDeposit())) {
-                gatherers.remove(existingGatherer);
-                gatherers.add(0, existingGatherer);
-                return false;
-            }
-        }
-        gatherers.add(0,gatherer); //this gatherer gets precedence, as it is newer
-        return true;
+    private Building getActiveBuilding() {
+        return activeBuilding;
     }
 
     public boolean allowsWork(PlayerCharacter character) {
-        return (activeGatherer() != null && activeGatherer().ownerId.equals(character.userId));
+        return (getActiveGatherer() != null && getActiveGatherer().ownerId.equals(character.userId));
+    }
+
+    @Nullable
+    public Gatherer gathererOf(@NotNull ResourceDeposit resource) {
+        for (Building building : getBuildings()) {
+            if (building instanceof Gatherer) {
+                if (((Gatherer) building).getDeposit().equals(resource))
+                    return (Gatherer) building;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Adds a building as the new default.
+     * @param building
+     */
+    public void addBuilding(@NotNull Building building) {
+        if (getActiveBuilding() != null) {
+            ruins.add(activeBuilding);
+        }
+        activeBuilding = building;
+    }
+
+    public void activateBuilding(@NotNull Building building) {
+        if (getBuildings().contains(building)) {
+            if (getActiveBuilding() != null) {
+                ruins.add(activeBuilding);
+                activeBuilding = building;
+                ruins.remove(building);
+            }
+        } else {
+            //nothing lol
+        }
     }
 }
