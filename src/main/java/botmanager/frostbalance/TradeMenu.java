@@ -53,13 +53,13 @@ public class TradeMenu extends Menu {
             return;
         } else {
             for (ItemStack item : itemsToGive.getItems()) {
-                if (!getActor().playerIn(getContext().getGameNetwork()).getCharacter().getInventory().queryItem(item)) {
+                if (!getActor().playerIn(getContext().getGameNetwork()).getCharacter().getInventory().hasItem(item)) {
                     failureReason = FailureReason.SHORTAGE;
                     return;
                 }
             }
             for (ItemStack item : itemsToTake.getItems()) {
-                if (otherMerchant.playerIn(getContext().getGameNetwork()).getCharacter().getInventory().queryItem(item)) {
+                if (otherMerchant.playerIn(getContext().getGameNetwork()).getCharacter().getInventory().hasItem(item)) {
                     failureReason = FailureReason.SHORTAGE;
                     return;
                 }

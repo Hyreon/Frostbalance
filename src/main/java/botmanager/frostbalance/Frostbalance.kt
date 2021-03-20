@@ -14,20 +14,20 @@ import botmanager.frostbalance.commands.map.*
 import botmanager.frostbalance.commands.meta.*
 import botmanager.frostbalance.commands.player.QueueCommand
 import botmanager.frostbalance.commands.resource.*
-import botmanager.frostbalance.flags.OldOptionFlag
 import botmanager.frostbalance.grid.*
 import botmanager.frostbalance.grid.biome.*
 import botmanager.frostbalance.grid.building.Building
 import botmanager.frostbalance.grid.building.BuildingAdapter
 import botmanager.frostbalance.grid.building.Gatherer
+import botmanager.frostbalance.grid.building.WorkshopType
 import botmanager.frostbalance.menu.Menu
 import botmanager.frostbalance.records.RegimeData
-import botmanager.frostbalance.records.TerminationCondition
 import botmanager.frostbalance.resource.DepositType
+import botmanager.frostbalance.resource.IngredientField
 import botmanager.frostbalance.resource.ItemType
+import botmanager.frostbalance.resource.crafting.CraftingRecipe
 import botmanager.generic.BotBase
 import botmanager.utils.IOUtils
-import botmanager.utils.Utils
 import com.google.gson.*
 import net.dv8tion.jda.api.entities.*
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent
@@ -45,8 +45,6 @@ import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
-import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
 
 
@@ -58,6 +56,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
     internal val depositTypeCaches: MutableMap<Biome, List<Pair<DepositType, Double>>> = mutableMapOf()
     internal lateinit var itemResources: MutableList<ItemType>
     internal lateinit var depositTypes: MutableList<DepositType>
+    internal var workshops: MutableList<WorkshopType> = mutableListOf()
 
     val networkList: List<GameNetwork>
         get() = gameNetworks.toList()
@@ -95,6 +94,7 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         loadBiomes()
         itemResources = loadItemTypes()
         depositTypes = loadDepositTypes()
+        loadCraftingRecipes()
     }
 
     override fun shutdown() {
@@ -395,13 +395,52 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
         return resourceDeposits
     }
 
-    private fun getSettings(guild: Guild): Collection<OldOptionFlag> {
-        val debugFlagOlds: MutableCollection<OldOptionFlag> = HashSet()
-        val flags = Utilities.readLines(File("data/" + name + "/" + guild.id + "/flags.csv"))
-        for (flag in flags) {
-            debugFlagOlds.add(OldOptionFlag.valueOf(flag!!))
+    private fun loadCraftingRecipes(): MutableList<CraftingRecipe> {
+
+        val file = Utilities.getResource("data/crafting.json")!!
+
+        val craftingRecipes: MutableList<CraftingRecipe> = emptyList<CraftingRecipe>().toMutableList()
+
+        val text = file.readText()
+
+        val data = JsonParser.parseString(text).asJsonObject
+
+        for (key in data.keySet()) {
+            val recipeRepository = data[key].asJsonArray
+            for (recipeAsJsonElement in recipeRepository) {
+                val recipe = recipeAsJsonElement.asJsonObject
+
+                val yieldNames = Gson().fromJson(recipe.get("yield"), MutableMap::class.java) as MutableMap<String, Int>?
+                val costNames = Gson().fromJson(recipe.get("cost"), MutableMap::class.java) as MutableMap<String, Int>?
+
+                val costs = costNames?.mapKeys { entry -> globalItems().firstOrNull { it.getName() == entry.key }?.let {
+                    IngredientField.simple(it)
+                } }
+
+                val yields = yieldNames?.mapKeys { entry -> globalItems().firstOrNull { it.getName() == entry.key } }
+
+                val worksiteName = recipe.get("worksite").asString
+
+                val newRecipe = CraftingRecipe(
+                    recipe.get("name").asString,
+                    costs,
+                    yields,
+                    recipe.get("turns")?.asInt ?: 1
+                )
+
+                workshops.firstOrNull { worksite -> worksite.name == worksiteName }?.addRecipe(newRecipe) ?: workshops.add(
+                    WorkshopType(worksiteName, newRecipe)
+                )
+
+                craftingRecipes.add(newRecipe)
+
+            }
         }
-        return debugFlagOlds
+
+        println("Crafting recipes: $craftingRecipes")
+
+        return craftingRecipes
+
     }
 
     override fun getCommands(): Array<FrostbalanceCommand> {
@@ -684,7 +723,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 DepositOddsCommand(this),
                 TradeCommand(this),
                 QueueCommand(this),
-                DepositListCommand(this)
+                DepositListCommand(this),
+                BuildCommand(this),
+                CraftCommand(this)
         )
         load()
         saverTimer.schedule(object : TimerTask() {

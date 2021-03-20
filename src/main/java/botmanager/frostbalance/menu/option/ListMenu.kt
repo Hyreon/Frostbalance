@@ -39,7 +39,7 @@ abstract class ListMenu<T>(bot: Frostbalance, context: MessageContext, protected
         })
         menuResponses.add(object : MenuResponse("✅", "Exit") {
             override fun reactEvent() {
-                closeAll(false)
+                close(false)
             }
 
             override val isValid: Boolean

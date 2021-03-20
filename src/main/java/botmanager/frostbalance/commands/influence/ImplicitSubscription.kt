@@ -1,7 +1,6 @@
 package botmanager.frostbalance.commands.influence
 
 import botmanager.frostbalance.Frostbalance
-import botmanager.frostbalance.Influence
 import botmanager.frostbalance.command.AuthorityLevel
 import botmanager.frostbalance.command.ContextLevel
 import botmanager.frostbalance.command.FrostbalanceCommand

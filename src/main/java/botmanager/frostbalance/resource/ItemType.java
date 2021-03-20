@@ -1,6 +1,9 @@
 package botmanager.frostbalance.resource;
 
+import botmanager.frostbalance.resource.crafting.ItemModifier;
+
 import java.awt.*;
+import java.util.Collection;
 
 public class ItemType {
 
@@ -14,11 +17,19 @@ public class ItemType {
         this.color = new Color(Integer.parseInt(colorHexCode.replace("0x", ""), 16));
     }
 
+    public String getName() {
+        return name;
+    }
+
     public String getId() {
         return name;
     }
 
     public String toString() {
         return name;
+    }
+
+    public boolean isDescribedBy(Collection<ItemModifier> collection) {
+        return true;
     }
 }

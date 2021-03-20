@@ -1,7 +1,11 @@
 package botmanager.frostbalance.resource;
 
 import botmanager.frostbalance.Frostbalance;
+import botmanager.frostbalance.resource.crafting.ItemModifier;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ItemStack {
 
@@ -10,17 +14,30 @@ public class ItemStack {
     int quality;
     boolean fictional;
 
+    List<ItemModifier> modifiers;
+
+    //TODO run special modifier code, if present
+    public ItemStack(ItemType itemType, double quantity, List<ItemModifier> modifiers) {
+        this(itemType, quantity, 1, false, modifiers);
+    }
+
     public ItemStack(ItemType itemType, double quantity) {
-        this.resourceId = itemType.getId();
-        this.quantity = quantity;
-        this.quality = 1; //default natural quality level
+        this(itemType, quantity, 1, false);
     }
 
     public ItemStack(ItemType itemType, double quantity, int quality, boolean fictional) {
+        this(itemType, quantity, quality, fictional, new ArrayList<>());
+    }
+
+    public ItemStack(ItemType itemType, double quantity, int quality, boolean fictional, List<ItemModifier> modifiers) {
+        if (!itemType.isDescribedBy(modifiers)) {
+            throw new IllegalStateException("Tried to create an ItemStack that can't exist!");
+        }
         this.resourceId = itemType.getId();
         this.quantity = quantity;
         this.quality = quality;
         this.fictional = fictional;
+        this.modifiers = modifiers;
     }
 
     @Override

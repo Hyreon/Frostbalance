@@ -19,6 +19,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     //TODO don't use message caches directly, they become dated. This goes for CommandContext as well!
     //TODO try for better polymorphism with CommandContext and GuildCommandContext, forcing GuildCommandContext where desired.
 
+    private var delegating: Boolean = false
     private val channel: MessageChannel
     get() {
         return message!!.channel
@@ -236,11 +237,15 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
     fun close(delete: Boolean) {
         isClosed = true
         bot.removeMenu(this)
-        if (child != null) {
+        if (child?.isClosed == false) {
             child!!.close(delete)
         }
         if (parent != null) {
-            parent!!.disown()
+            if (!parent!!.delegating) {
+                parent!!.disown()
+            } else {
+                parent!!.close(delete)
+            }
         } else {
             if (delete) {
                 message?.delete()?.queue()
@@ -250,8 +255,13 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         }
     }
 
-    fun closeAll(delete: Boolean) {
-        originalMenu.close(delete)
+    /**
+     * A delegating menu is not reactivated when its child is closed.
+     * Instead, it closes the whole menu, showing the child as the result.
+     * A menu can be told to stop delegating, which will allow it to retain history.
+     */
+    fun setDelegating(b: Boolean) {
+        delegating = b
     }
 
     /**
@@ -317,6 +327,7 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         if (cancelable) {
             child!!.menuResponses.add(object : MenuResponse("⤴", "Previous Menu") {
                 override fun reactEvent() {
+                    setDelegating(false)
                     child!!.close(false)
                 }
 
@@ -327,6 +338,9 @@ abstract class Menu(protected var bot: Frostbalance, val context : MessageContex
         updateMessage()
     }
 
+    /**
+     * Removes this menu's child.
+     */
     private fun disown() {
         if (child != null) {
             child?.disown()

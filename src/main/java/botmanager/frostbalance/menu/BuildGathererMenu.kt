@@ -41,9 +41,15 @@ class BuildGathererMenu(bot: Frostbalance, context: GuildMessageContext) :
         context.author.playerIn(context.gameNetwork).let { player ->
             player.character.tile.let { tile ->
                 tile.buildingData.let { buildData ->
-                    if (buildData.gathererOf(option) != null) {
+                    if (buildData.gathererOf(option)?.owner == player) {
                         buildData.activateBuilding(buildData.gathererOf(option)!!)
                         newGatherer = false
+                    } else if (buildData.gathererOf(option) != null) {
+                        context.sendResponse("Someone else has already claimed this resource, so you can't build a gatherer for it. " +
+                                "Maybe you should diplomatically ask the owner for it.")
+                        success = false
+                        close(true)
+                        return
                     } else {
                         buildData.addBuilding(Gatherer(tile, player, option))
                         newGatherer = true

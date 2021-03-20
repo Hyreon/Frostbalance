@@ -56,6 +56,13 @@ public class Tile implements Containable<WorldMap>, Container {
         return map;
     }
 
+    public BiomeData getBiomeData() {
+        if (biomeData == null) {
+            biomeData = new BiomeData(this);
+        }
+        return biomeData;
+    }
+
     public ClaimData getClaimData() {
         if (claimData == null) {
             claimData = new ClaimData(this);
@@ -84,7 +91,6 @@ public class Tile implements Containable<WorldMap>, Container {
     @Override
     public void setParent(WorldMap parent) {
         this.map = parent;
-        this.biomeData = new BiomeData(this);
     }
 
     @Override
@@ -115,13 +121,13 @@ public class Tile implements Containable<WorldMap>, Container {
     private static final int BASE_COLOR = 64;
 
     public Color getNaiveBiomeColor() {
-        return new Color((int) (biomeData.getTemperature() * 255),
-                (int) (biomeData.getElevation() * 255),
-                (int) (biomeData.getHumidity() * 255));
+        return new Color((int) (getBiomeData().getTemperature() * 255),
+                (int) (getBiomeData().getElevation() * 255),
+                (int) (getBiomeData().getHumidity() * 255));
     }
 
     public Color getBiomeColor() {
-        return biomeData.getBiome().getColor();
+        return getBiomeData().getBiome().getColor();
     }
 
     public Color getPoliticalColor() {
@@ -150,18 +156,18 @@ public class Tile implements Containable<WorldMap>, Container {
     }
 
     public Biome getBiome() {
-        return biomeData.getBiome();
+        return getBiomeData().getBiome();
     }
 
     public HumidityClass getHumidityClass() {
-        return HumidityClass.from(biomeData.getHumidity());
+        return HumidityClass.from(getBiomeData().getHumidity());
     }
 
     public TemperatureClass getTemperatureClass() {
-        return TemperatureClass.from(biomeData.getTemperature());
+        return TemperatureClass.from(getBiomeData().getTemperature());
     }
 
     public ElevationClass getElevationClass() {
-        return ElevationClass.from(biomeData.getElevation());
+        return ElevationClass.from(getBiomeData().getElevation());
     }
 }

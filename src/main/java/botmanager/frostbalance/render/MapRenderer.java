@@ -4,7 +4,7 @@ import botmanager.Utilities;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.grid.*;
 import botmanager.frostbalance.grid.biome.ElevationClass;
-import botmanager.frostbalance.grid.building.Gatherer;
+import botmanager.frostbalance.grid.building.Building;
 import botmanager.frostbalance.grid.coordinate.Hex;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -49,9 +49,9 @@ public class MapRenderer {
             for (Mobile mob : tile.getMobs()) {
                 renderObject(g, tile, center, sizeFactor, mob);
             }
-            Gatherer activeGatherer = tile.getBuildingData().getActiveGatherer();
-            if (activeGatherer != null) {
-                renderObject(g, tile, center, sizeFactor, activeGatherer);
+            Building activeBuilding = tile.getBuildingData().getActiveBuilding();
+            if (activeBuilding != null) {
+                renderObject(g, tile, center, sizeFactor, activeBuilding);
             }
 		}
         g.dispose();

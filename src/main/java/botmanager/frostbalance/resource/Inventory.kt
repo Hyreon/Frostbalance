@@ -1,7 +1,18 @@
 package botmanager.frostbalance.resource
 
+/**
+ * A list of items with special handling for adding new stacks.
+ * Fictional inventories have less safeguards - they allow removing items without
+ * actually having the proper supply, for example. As such these are not recommended
+ * for normal use.
+ */
 open class Inventory(val fictional: Boolean = false) {
+
     var items: MutableList<ItemStack> = mutableListOf()
+
+    constructor(fictional: Boolean, items: MutableList<ItemStack>) : this(fictional) {
+        this.items = items
+    }
 
     /**
      * Adds an item to the inventory. Has no effect if adding null.
@@ -23,15 +34,23 @@ open class Inventory(val fictional: Boolean = false) {
         return true
     }
 
+    open fun makeFiction(): Inventory {
+        return Inventory(true, items)
+    }
+
+    open fun loadFiction(fiction: Inventory) {
+        items = fiction.items
+    }
+
     /**
      * Removes an item from the inventory. Has no effect if removing null.
      * This is generally used for trades and other automated processes. If actual item stacks
      * are ever introduced, this is NOT the method that will handle their removal.
      */
-    fun removeItem(item: ItemStack?) {
-        println("Removing item $item")
-        item?.let { item ->
-            if (fictional || queryItem(item)) {
+    fun removeItem(nullableItem: ItemStack?) {
+        println("Removing item $nullableItem")
+        nullableItem?.let { item ->
+            if (fictional || hasItem(item)) {
                 while (item.quantity > 0) {
                     var substitutionDegree = 0
                     var itemToRemove: ItemStack?
@@ -42,7 +61,7 @@ open class Inventory(val fictional: Boolean = false) {
                             }
                             throw IllegalStateException("Item validation failed - unable to find the items to get rid of during an inventory removal!")
                         }
-                        itemToRemove = items.firstOrNull { itemToRemove -> itemToRemove.resourceId == item.resourceId && itemToRemove.quality - substitutionDegree == item.quality }
+                        itemToRemove = items.firstOrNull { candidateItem -> candidateItem.resourceId == item.resourceId && candidateItem.quality - substitutionDegree == item.quality }
                         substitutionDegree++
                     } while (itemToRemove == null)
                     if (itemToRemove.quantity <= item.quantity) {
@@ -61,7 +80,7 @@ open class Inventory(val fictional: Boolean = false) {
     }
 
     @JvmOverloads
-    fun queryItem(item: ItemStack, substitutions: Boolean = false): Boolean {
+    fun hasItem(item: ItemStack, substitutions: Boolean = false): Boolean {
         return items.filter { it.resourceId == item.resourceId &&
                 (it.quality == item.quality || (substitutions && it.quality >= item.quality)) }
             .map { it.quantity }

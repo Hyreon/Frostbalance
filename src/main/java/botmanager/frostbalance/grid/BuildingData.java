@@ -1,7 +1,7 @@
 package botmanager.frostbalance.grid;
 
-import botmanager.frostbalance.grid.building.Building;
-import botmanager.frostbalance.grid.building.Gatherer;
+import botmanager.frostbalance.Player;
+import botmanager.frostbalance.grid.building.*;
 import botmanager.frostbalance.resource.ResourceDeposit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +43,7 @@ public class BuildingData implements Containable<Tile>, Container {
     public List<Building> getBuildings() {
         if (ruins == null) ruins = new ArrayList<>();
         List<Building> allBuildings = new ArrayList<>(ruins);
-        if (getActiveBuilding() != null) allBuildings.add(activeBuilding);
+        if (getActiveBuilding() != null) allBuildings.add(getActiveBuilding());
         return allBuildings;
     };
 
@@ -58,16 +58,16 @@ public class BuildingData implements Containable<Tile>, Container {
 
     @Override
     public void adopt() {
-        if (gatherers == null) {
-            for (Building building : getBuildings()) {
-                building.setParent(this.tile); //shrug
-            }
-        } else {
+        for (Building building : getBuildings()) {
+            building.setParent(this.tile); //shrug
+        }
+        if (gatherers != null) {
             ruins = new ArrayList<>();
             for (Gatherer gatherer : gatherers) {
                 ruins.add(gatherer);
                 gatherer.setParent(this.tile);
             }
+            gatherers = null;
         }
     }
 
@@ -78,7 +78,7 @@ public class BuildingData implements Containable<Tile>, Container {
         else return null;
     }
 
-    private Building getActiveBuilding() {
+    public Building getActiveBuilding() {
         return activeBuilding;
     }
 
@@ -92,6 +92,26 @@ public class BuildingData implements Containable<Tile>, Container {
             if (building instanceof Gatherer) {
                 if (((Gatherer) building).getDeposit().equals(resource))
                     return (Gatherer) building;
+            }
+        }
+        return null;
+    }
+
+    public Housing housingFor(@NotNull Player player) {
+        for (Building building : getBuildings()) {
+            if (building instanceof Housing) {
+                if (building.getOwner().equals(player))
+                    return (Housing) building;
+            }
+        }
+        return null;
+    }
+
+    public Workshop worksiteOf(@NotNull WorkshopType option) {
+        for (Building building : getBuildings()) {
+            if (building instanceof Workshop) {
+                if (((Workshop) building).getWorksiteType().equals(option))
+                    return (Workshop) building;
             }
         }
         return null;

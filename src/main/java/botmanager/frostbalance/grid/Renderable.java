@@ -1,6 +1,7 @@
 package botmanager.frostbalance.grid;
 
 import botmanager.Utilities;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -39,6 +40,7 @@ public interface Renderable {
 
     void setCachedImage(BufferedImage read);
 
+    @Nullable
     InputStream getRender();
 
 }

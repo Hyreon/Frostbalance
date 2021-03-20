@@ -1,5 +1,6 @@
 package botmanager.frostbalance.grid.building;
 
+import botmanager.Utilities;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.Player;
 import botmanager.frostbalance.grid.Tile;
@@ -27,6 +28,20 @@ public abstract class Building extends TileObject {
     //It's a building. They don't do much.
     public boolean turnAction() {
         return false;
+    }
+
+    double experience = 0.0;
+
+    protected abstract double amountToLevelUp();
+
+    void gainExperience() {
+
+        this.experience += 1.0 / amountToLevelUp();
+
+    }
+
+    double getLevel() {
+        return Math.floor(Utilities.triangulateWithRemainder(experience));
     }
 
 }

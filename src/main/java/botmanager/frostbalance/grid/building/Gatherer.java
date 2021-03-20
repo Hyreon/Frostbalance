@@ -13,10 +13,6 @@ import java.util.List;
 
 public class Gatherer extends Building {
 
-    public final static int TO_LEVEL_UP = 360; //amounts to 6 hours, or 1/4 of a day
-
-    double experience = 0.0;
-
     /**
      * FIXME BAD REFERENCE!
      * This reference would be serialized as a separate thing than the ResourceDeposit it is built on.
@@ -62,25 +58,18 @@ public class Gatherer extends Building {
 
     public boolean turnAction() {
 
-        System.out.println("Doing turn action!");
-
         List<PlayerCharacter> workers = WorkManager.singleton.getWorkers(this);
         double quantity = workers.isEmpty() ? 0 : (1.0 + getLevel()) / workers.size();
         for (PlayerCharacter worker : workers) {
             worker.getInventory().addItem(deposit.yield(quantity));
-            gainExperience(); //there are 360 turns in a day
+            gainExperience();
         }
         return false; //never any graphical change
     }
 
-    private void gainExperience() {
-
-        this.experience += 1.0 / TO_LEVEL_UP;
-
-    }
-
-    private double getLevel() {
-        return Math.floor(Utilities.triangulateWithRemainder(experience));
+    @Override
+    protected double amountToLevelUp() {
+        return 360.0; //there are 1440 turns in a day, this is 1/4 of that
     }
 
     public static final double RATE_NEVER = 0.0; //never
