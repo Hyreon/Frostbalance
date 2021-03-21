@@ -5,6 +5,7 @@ import botmanager.frostbalance.command.*
 import botmanager.frostbalance.grid.building.Workshop
 import botmanager.frostbalance.menu.option.OptionMenu
 import botmanager.frostbalance.resource.crafting.CraftingRecipe
+import net.dv8tion.jda.api.EmbedBuilder
 
 class CraftCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("craft"), AuthorityLevel.GENERIC, ContextLevel.ANY) {
     override fun info(authorityLevel: AuthorityLevel?, isPublic: Boolean): String {
@@ -18,13 +19,19 @@ class CraftCommand(bot: Frostbalance) : FrostbalanceGuildCommand(bot, arrayOf("c
         if (activeBuilding !is Workshop) {
             return context.sendResponse("You can't craft unless you're at a workshop, or headed towards one.")
         } else {
-            context.sendResponse("Sorry, crafting doesn't exist yet. If it did, you could craft any of: ")
             val recipes = activeBuilding.getWorksiteType()?.validRecipes ?: emptyList()
-            val recipeMenu = object : OptionMenu<CraftingRecipe>(bot, context, recipes) {
+            object : OptionMenu<CraftingRecipe>(bot, context, recipes) {
+
+                var option: CraftingRecipe? = null
 
                 override fun select(option: CraftingRecipe) {
                     activeBuilding.currentRecipe = option
+                    this.option = option
+                    close(false)
                 }
+
+                override val embedBuilder: EmbedBuilder
+                    get() = super.embedBuilder.setDescription("Your workshop will now ${option ?: "do a backflip"}.")
 
             }.send()
 

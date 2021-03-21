@@ -11,8 +11,10 @@ import java.io.InputStream
 
 class Workshop(tile: Tile, owner: Player, type: WorkshopType) : Building(tile, owner) {
 
-    var inputInventory: Inventory? = null
-    var outputInventory: Inventory? = null
+    var inputInventory: Inventory? = Inventory()
+    var outputInventory: Inventory? = Inventory()
+
+    @Transient
     var currentRecipe: CraftingRecipe? = null
         set(currentRecipe) {
             if (this.currentRecipe != currentRecipe) {
@@ -20,10 +22,22 @@ class Workshop(tile: Tile, owner: Player, type: WorkshopType) : Building(tile, o
                 progress = 0
             }
         }
+
+    @Transient
     var progress //integer representing the turns spent on this recipe
             = 0
 
     var typeName: String = type.name
+
+    override fun setParent(tile: Tile) {
+        super.setParent(tile)
+        if (inputInventory == null) {
+            inputInventory = Inventory()
+        }
+        if (outputInventory == null) {
+            outputInventory = Inventory()
+        }
+    }
 
     fun getWorksiteType(): WorkshopType? {
         return tile.map.gameNetwork.bot.workshops.firstOrNull { it.name == typeName }
@@ -46,10 +60,6 @@ class Workshop(tile: Tile, owner: Player, type: WorkshopType) : Building(tile, o
         }
         return false //never any graphical change
 
-    }
-
-    override fun amountToLevelUp(): Double {
-        return 360.0
     }
 
     override fun getRender(): InputStream? {

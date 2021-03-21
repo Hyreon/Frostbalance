@@ -410,8 +410,8 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
             for (recipeAsJsonElement in recipeRepository) {
                 val recipe = recipeAsJsonElement.asJsonObject
 
-                val yieldNames = Gson().fromJson(recipe.get("yield"), MutableMap::class.java) as MutableMap<String, Int>?
-                val costNames = Gson().fromJson(recipe.get("cost"), MutableMap::class.java) as MutableMap<String, Int>?
+                val yieldNames = Gson().fromJson(recipe.get("yield"), MutableMap::class.java) as MutableMap<String, Double>?
+                val costNames = Gson().fromJson(recipe.get("cost"), MutableMap::class.java) as MutableMap<String, Double>?
 
                 val costs = costNames?.mapKeys { entry -> globalItems().firstOrNull { it.getName() == entry.key }?.let {
                     IngredientField.simple(it)

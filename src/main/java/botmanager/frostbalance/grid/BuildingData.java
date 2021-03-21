@@ -83,7 +83,7 @@ public class BuildingData implements Containable<Tile>, Container {
     }
 
     public boolean allowsWork(PlayerCharacter character) {
-        return (getActiveGatherer() != null && getActiveGatherer().ownerId.equals(character.userId));
+        return (getActiveBuilding() != null && getActiveBuilding().ownerId.equals(character.userId));
     }
 
     @Nullable

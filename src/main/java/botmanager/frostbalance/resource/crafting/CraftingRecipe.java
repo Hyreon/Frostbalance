@@ -25,15 +25,15 @@ public class CraftingRecipe {
      */
     int baseTurns;
 
-    Map<ItemType, Integer> yields;
+    Map<ItemType, Double> yields;
 
     /**
      * The items that must be consumed to make this.
      * Note that the same ingredient must be used for a given ingredient field.
      */
-    Map<IngredientField, Integer> costs;
+    Map<IngredientField, Double> costs;
 
-    public CraftingRecipe(String displayName, Map<IngredientField, Integer> costs, Map<ItemType, Integer> yields, int turns) {
+    public CraftingRecipe(String displayName, Map<IngredientField, Double> costs, Map<ItemType, Double> yields, int turns) {
         this.name = displayName;
         this.costs = costs;
         this.yields = yields;

@@ -67,11 +67,6 @@ public class Gatherer extends Building {
         return false; //never any graphical change
     }
 
-    @Override
-    protected double amountToLevelUp() {
-        return 360.0; //there are 1440 turns in a day, this is 1/4 of that
-    }
-
     public static final double RATE_NEVER = 0.0; //never
     public static final double RATE_MONTHLY = 1.0 / 2592000; //1 month
     public static final double RATE_WEEKLY = 1.0 / 604800; //1 week

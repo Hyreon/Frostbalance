@@ -32,7 +32,9 @@ public abstract class Building extends TileObject {
 
     double experience = 0.0;
 
-    protected abstract double amountToLevelUp();
+    protected double amountToLevelUp() {
+        return 360.0; //there are 1440 turns in a day, this is 1/4 of that
+    }
 
     void gainExperience() {
 

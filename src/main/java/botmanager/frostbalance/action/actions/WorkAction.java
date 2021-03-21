@@ -1,7 +1,6 @@
 package botmanager.frostbalance.action.actions;
 
 import botmanager.frostbalance.grid.PlayerCharacter;
-import botmanager.frostbalance.grid.building.Gatherer;
 import botmanager.frostbalance.grid.building.WorkManager;
 
 public class WorkAction extends Action {
@@ -22,13 +21,7 @@ public class WorkAction extends Action {
     @Override
     public void doAction() {
 
-        Gatherer gatherer = queue.getCharacter().getTile().getBuildingData().getActiveGatherer();
-
-        if (gatherer != null) {
-            WorkManager.singleton.addWorker(queue.getCharacter());
-        } else {
-            //TODO cancel and refund movement cost
-        }
+        WorkManager.singleton.addWorker(queue.getCharacter());
 
     }
 
