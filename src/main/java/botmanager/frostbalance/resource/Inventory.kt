@@ -24,7 +24,7 @@ open class Inventory(val fictional: Boolean = false) {
             item?.let {
                 items.firstOrNull { it.resourceId == item.resourceId && it.quality == item.quality }
                     ?.increment(item.quantity)
-                    ?: items.add(item)
+                    ?: items.add(item.clone(fictional))
             }
             true
         }
@@ -35,7 +35,8 @@ open class Inventory(val fictional: Boolean = false) {
     }
 
     open fun makeFiction(): Inventory {
-        return Inventory(true, items)
+        val fictionalItems = items.map { ItemStack(it.resource, it.quantity, it.quality, true) }
+        return Inventory(true, fictionalItems.toMutableList())
     }
 
     open fun loadFiction(fiction: Inventory) {
@@ -46,6 +47,8 @@ open class Inventory(val fictional: Boolean = false) {
      * Removes an item from the inventory. Has no effect if removing null.
      * This is generally used for trades and other automated processes. If actual item stacks
      * are ever introduced, this is NOT the method that will handle their removal.
+     * The items MUST be added before they are removed. This method will actually modify the item stack being added,
+     * setting its quantity to zero.
      */
     fun removeItem(nullableItem: ItemStack?) {
         println("Removing item $nullableItem")
@@ -81,10 +84,13 @@ open class Inventory(val fictional: Boolean = false) {
 
     @JvmOverloads
     fun hasItem(item: ItemStack, substitutions: Boolean = false): Boolean {
-        return items.filter { it.resourceId == item.resourceId &&
+        return (items.filter { it.resourceId.equals(item.resourceId) &&
                 (it.quality == item.quality || (substitutions && it.quality >= item.quality)) }
             .map { it.quantity }
-            .reduceOrNull { acc, it -> acc + it } ?: 0.0 > item.quantity
+            .reduceOrNull { acc, it -> acc + it } ?: 0.0).let {
+                println("Amount of $item found: $it. Expected at least ${item.quantity}. ${it >= item.quantity}")
+                it >= item.quantity
+        }
     }
 
     fun render(): String? {

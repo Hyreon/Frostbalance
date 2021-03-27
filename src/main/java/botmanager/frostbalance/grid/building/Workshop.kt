@@ -12,7 +12,15 @@ import java.io.InputStream
 class Workshop(tile: Tile, owner: Player, type: WorkshopType) : Building(tile, owner) {
 
     var inputInventory: Inventory? = Inventory()
+        get() = field ?: run {
+            field = Inventory()
+            inputInventory
+        }
     var outputInventory: Inventory? = Inventory()
+        get() = field ?: run {
+            field = Inventory()
+            outputInventory
+        }
 
     @Transient
     var currentRecipe: CraftingRecipe? = null

@@ -725,7 +725,9 @@ class Frostbalance(botToken: String?, name: String?) : BotBase(botToken, name) {
                 QueueCommand(this),
                 DepositListCommand(this),
                 BuildCommand(this),
-                CraftCommand(this)
+                CraftCommand(this),
+                LoadBuildingCommand(this),
+                UnloadBuildingCommand(this)
         )
         load()
         saverTimer.schedule(object : TimerTask() {

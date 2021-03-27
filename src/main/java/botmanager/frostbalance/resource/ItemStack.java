@@ -2,6 +2,7 @@ package botmanager.frostbalance.resource;
 
 import botmanager.frostbalance.Frostbalance;
 import botmanager.frostbalance.resource.crafting.ItemModifier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -65,5 +66,10 @@ public class ItemStack {
             throw new IllegalArgumentException("Tried to remove more items from a stack than the stack had!");
         }
         this.quantity -= quantity;
+    }
+
+    @NotNull
+    public ItemStack clone(boolean fictional) {
+        return new ItemStack(getResource(), quantity, quality, fictional, modifiers);
     }
 }

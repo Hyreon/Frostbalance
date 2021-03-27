@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class IngredientField {
 
-    private static HashMap<ItemType, IngredientField> simpleIngredients = new HashMap<>();
+    private static final HashMap<ItemType, IngredientField> simpleIngredients = new HashMap<>();
 
     String displayName;
 
@@ -67,4 +67,5 @@ public class IngredientField {
     public List<ItemType> acceptableItems() {
         return validItems;
     }
+
 }
