@@ -1,5 +1,6 @@
 package botmanager;
 
+import botmanager.doomstack.DoomStack;
 import botmanager.frostbalance.Frostbalance;
 import botmanager.generic.BotBase;
 
@@ -17,14 +18,15 @@ public class Server {
         List<String> tokens = readLines(new File("data/botmanager_tokens.txt"));
         
         bots = new BotBase[] {
-            new Frostbalance(tokens.get(0), "Frostbalance")
+            new Frostbalance(tokens.get(0), "Frostbalance"),
+                new DoomStack(tokens.get(1), "DoomStack")
         };
 
-        System.out.println("Frostbalance bot is now loaded. Send any command to stop the bot.");
+        System.out.println("Bots are now loaded. Send any command to stop the bot.");
 
         new Scanner(System.in).nextLine();
 
-        System.out.println("Bot is now shutting down...");
+        System.out.println("Bots are now shutting down...");
 
         for (BotBase bot : bots) {
             bot.shutdown();

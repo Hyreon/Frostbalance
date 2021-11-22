@@ -3,7 +3,7 @@ package botmanager.doomstack.menu
 import botmanager.doomstack.*
 import net.dv8tion.jda.api.EmbedBuilder
 
-class FightMenu(bot: DoomStack, context: MessageContext, val attackers: UnitStack, val defenders: UnitStack) : Menu(bot, context) {
+class FightMenu(bot: DoomStack, context: MessageContext, val attackers: List<UnitStack>, val defenders: List<UnitStack>) : Menu(bot, context) {
 
     val attackQueue: MutableList<CombatUnit> = mutableListOf()
     val defenseQueue: MutableList<CombatUnit> = mutableListOf()
@@ -11,11 +11,15 @@ class FightMenu(bot: DoomStack, context: MessageContext, val attackers: UnitStac
     val log: MutableList<String> = mutableListOf()
 
     init {
-        for (i in 0 until attackers.count) {
-            attackQueue.add(CombatUnit(attackers.type, attackers.rank))
+        attackers.forEach { attackerType ->
+            for (i in 0 until attackerType.count) {
+                attackQueue.add(CombatUnit(attackerType.type, attackerType.rank))
+            }
         }
-        for (i in 0 until defenders.count) {
-            defenseQueue.add(CombatUnit(defenders.type, defenders.rank))
+        defenders.forEach { defenderType ->
+            for (i in 0 until defenderType.count) {
+                defenseQueue.add(CombatUnit(defenderType.type, defenderType.rank))
+            }
         }
     }
 

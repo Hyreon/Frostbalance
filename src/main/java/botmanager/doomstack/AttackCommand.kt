@@ -2,8 +2,6 @@ package botmanager.doomstack
 
 import botmanager.doomstack.menu.InvitationMenu
 import botmanager.frostbalance.MapToCollection
-import botmanager.frostbalance.command.AuthorityLevel
-import botmanager.frostbalance.menu.CheckMenu
 import net.dv8tion.jda.api.entities.TextChannel
 import net.dv8tion.jda.api.entities.User
 import net.dv8tion.jda.internal.utils.tuple.Pair
@@ -41,8 +39,6 @@ class AttackCommand(bot: DoomStack): DoomStackCommand(bot, arrayOf(
         menu.send(context.channel, targetUser)
         addToCheckCache(context.channel as TextChannel, menu)
         if (targetUser.jda.selfUser == targetUser) {
-            result = "Singleplayer hasn't been added yet. But why not!"
-            context.sendResponse(result)
             Timer("SettingUp", false).schedule(500) {
                 menu.PERFORM_CHECK.applyReaction()
             }
